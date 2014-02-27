@@ -1,0 +1,16 @@
+# Server side
+
+* User login system
+
+* User score system
+
+* Character tracking 
+
+# Simulation
+
+* ~~Utility classes: `Grid`, `Point`~~
+* Tile map loading
+
+# Frontend
+
+* Match replay - First have to decide on JSON format to record matches
