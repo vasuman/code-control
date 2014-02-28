@@ -2,7 +2,7 @@ var Direction = {
     U: 0,
     D: 1,
     L: 2,
-    R: 3
+    R: 3,
 }
 
 function Point(i, j) {
@@ -38,7 +38,7 @@ function Grid(row, col) {
     }
     this.get = get;
 
-    function put(p) {
+    function put(p, x) {
         if(!isValid(i, j)) {
             return;
         }
@@ -74,11 +74,11 @@ function Grid(row, col) {
 }
 
 function copy(obj) {
-    if(!(obj instanceof Object)) {
+    if(!(obj instanceof Object) || (obj instanceof Function)) { 
         return obj;
     }
+    var dst = [], i;
     if(obj instanceof Array) {
-        var dst = [], i;
         for(i = 0; i < obj.length; i++) {
             dst[i] = copy(obj[i]);
         }

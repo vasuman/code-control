@@ -1,16 +1,31 @@
 # Server side
 
 * User login system
-
 * User score system
-
 * Character tracking 
 
 # Simulation
 
-* ~~Utility classes: `Grid`, `Point`~~
+* ~~Grid, Point classes~~
 * Tile map loading
+* Level-entity interface
+* Character APIs
+* MatchSim,
+    + Game state recording
+    + Script sandboxing
 
 # Frontend
 
-* Match replay - First have to decide on JSON format to record matches
+* Match replay
+    + JSON Spec
+    + Canvas rendering
+    + Step and play
+
+* Code entry
+    + Editor
+    + Parsing
+    + Debugging
+
+# Misc
+
+* Dummy AI for testing

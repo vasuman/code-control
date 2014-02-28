@@ -3,28 +3,27 @@ util = require('./util'),
 Grid = util.Grid,
 Point = util.Point;
 
-function Level() {
-    var robots = [],
-    turn = 0,
-    data, grid, tSet;
-    function load(jsonPath) {
-        fs.readFile(jsonPath, { encoding: 'utf8' }, fReadCback);
-    }
+function BattleLevel(codeA, codeB, jsonPath) {
+    var entities = [],
+    def, self = this;
+    this.grid = null;
+    this.tSet = {};
     function fReadCback(err, d) {
         if(err) {
             throw err;
         }
-        data = JSON.parse(d);
+        def = JSON.parse(d);
+        self.grid = new Grid(def.height, def.width);
+        var 
+    }
+    fs.readFile(jsonPath, { encoding: 'utf8' }, fReadCback);
+    function act() {
 
     }
+    this.act = act;
     function getGameState() {
-        return {
-            robots: util.copy(robots),
-            turn: turn
-        };
+        return util.copy(entities);
     }
-    function drawBG(ctx) {
-        
-    }
+    this.getGameState = getGameState;
 }
-module.exports.Level = Level;
+module.exports.BattleLevel = BattleLevel;
