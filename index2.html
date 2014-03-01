@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Code-Control</title>
+	<link rel="stylesheet" type="text/css" href="./mycss/bs/bootstrap.css"/>
+        <link rel="stylesheet" type="text/css" href="./mycss/temp1style.css"/>
+		<link rel="stylesheet" type="text/css" href="./mycss/temp2style.css"/>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/ace.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="style.css">
+  </head>
+  <body>
+  <script src="http://mymaplist.com/js/vendor/TweenLite.min.js"></script>
+<!-- This is a very simple parallax effect achieved by simple CSS 3 multiple backgrounds-->
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script>
+$(document).ready(function(){
+  $(document).mousemove(function(e){
+
+     TweenLite.to($('body'), 
+        .5, 
+        { css: 
+            {
+                'background-position':parseInt(event.pageX/8) + "px "+parseInt(event.pageY/12)+"px, "+parseInt(event.pageX/15)+"px "+parseInt(event.pageY/15)+"px, "+parseInt(event.pageX/30)+"px "+parseInt(event.pageY/30)+"px"
+            }
+        });
+  });
+});
+</script>
+ <div class="header">
+	          
+                <a  href="/home">Home</a>
+                <a  href="/robots">Robots</a>
+                <a  href="/directory">Warhouse</a>
+                <a  href="/api">Documentation</a>
+                
+                <div class="logout">
+                <a  href="/profile">Profile  </a>
+                <a  href="/logout">Logout  </a>
+                </div>
+    </div>
+	<div class="modal-content" id="my_modal">
+		<div class="text-left">
+	<h1 class="modal-header">EDIT ROBOT-X</h1>
+    <div class="row">
+      <div class="col-md-4">
+        <p class="lead">Write some JavaScript here.</p>
+        <div id="javascript-input" class="ace-editor-wrapper"></div>
+      </div>
+      <div id="message-wrapper"></div>
+    </div>
+
+    <div id="hud">
+    </div>
+    </div>
+	</div>
+    <script type="text/javascript" src="bundle.js"></script>
+
+  </body>
+</html>
+
+
+<!--
+
+<html>  
+ <head>
+  
+        <link rel="stylesheet" type="text/css" href="./mycss/bs/bootstrap.css"/>
+        <link rel="stylesheet" type="text/css" href="./mycss/robot1style.css"/>
+		<link rel="stylesheet" type="text/css" href="./mycss/temp2style.css"/>
+  </head>
+  <body>
+  <script src="http://mymaplist.com/js/vendor/TweenLite.min.js"></script>
+<!-- This is a very simple parallax effect achieved by simple CSS 3 multiple backgrounds-->
+<!--
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script>
+$(document).ready(function(){
+  $(document).mousemove(function(e){
+
+     TweenLite.to($('body'), 
+        .5, 
+        { css: 
+            {
+                'background-position':parseInt(event.pageX/8) + "px "+parseInt(event.pageY/12)+"px, "+parseInt(event.pageX/15)+"px "+parseInt(event.pageY/15)+"px, "+parseInt(event.pageX/30)+"px "+parseInt(event.pageY/30)+"px"
+            }
+        });
+  });
+});
+</script>
+  	<div class="header">
+	          
+                <a  href="/home">Home</a>
+                <a  href="/robots">Robots</a>
+                <a  href="/directory">Warhouse</a>
+                <a  href="/api">Documentation</a>
+                
+                <div class="logout">
+                <a  href="/profile">Profile  </a>
+                <a  href="/logout">Logout  </a>
+                </div>
+    </div>
+
+	<div class="modal-content" id="my_modal">
+		<div class="text-left">
+			<h1 class="modal-header">ROBOTS</h1>
+			<input type="button" id="my_btn" class="btn-primary" value="+ Create Robot" onclick="gosomewhere();"/>
+            <div class="modal-body">
+			<h2><a href="/rules">ROBOT1</a></h2>
+			<span class="text-info">ELORATING: <span value="elorating1">99</span></span></br>
+			<span class="text-info">CURRENT RANKING: <span value="rank1">99</span></span></br>
+			<label class="href hover">
+			<a  href="/edit">Edit</a>
+            <a  href="/disable">Disable</a>
+            <a  href="/delete">Delete</a>
+            </label>
+			
+			<h2><a href="/rules">ROBOT2</a></h2>
+			<span class="text-info">ELORATING: <span value="elorating2">99</span></span></br>
+			<span class="text-info">CURRENT RANKING: <span value="rank2">99</span></span></br>
+			<label class="href hover">
+			<a  href="/edit">Edit</a>
+            <a  href="/disable">Disable</a>
+            <a  href="/delete">Delete</a>
+            </label>
+            </div>
+		</div>
+
+	</div>
+   
+</body>
+</html>
+-->

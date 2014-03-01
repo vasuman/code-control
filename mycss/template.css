@@ -1,0 +1,20 @@
+.wrapper{
+	
+	padding: 5% 10% 5% 5%;
+	background-color: antiquewhite;
+    border-radius: 10px;
+	margin-left:30%;
+	margin-right:30%;
+	
+}
+
+.header{
+border-radius: 6px;
+padding: 6px 6px;
+margin-left:10%;
+margin-right:10%;
+background-color: rgba(250, 156, 14, 0.98);
+color: white;
+font-size:20px;
+}
+

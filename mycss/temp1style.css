@@ -1,0 +1,35 @@
+.wrapper{
+	
+	padding: 5% 10% 5% 5%;
+	background-color: antiquewhite;
+    border-radius: 10px;
+	margin-left:30%;
+	margin-right:30%;
+	
+}
+
+.header{
+border-radius: 6px;
+padding: 10px 10px;
+margin-left:10%;
+margin-right:10%;
+background-color: rgba(250, 156, 14, 0.98);
+color: white;
+margin-top: 20px;
+font-size:30px;
+}
+
+#my_modal
+{margin-top:20px;
+ border-radius: 6px;
+padding: 6px 6px;
+margin-left:10%;
+margin-right:10%;
+background-color:#e8bdff;
+}
+
+.logout
+{position:absolute;
+ top:30px;
+ right:12%;
+}
