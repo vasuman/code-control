@@ -6,8 +6,6 @@
   "browser": "index.js",
   "dependencies": {
     "ecstatic": "~0.4.13",
-    "uglifyify": "~1.0.1",
-    "watchify": "~0.4.1",
     "through": "~2.3.4",
     "rework": "~0.18.3",
     "autoprefixer": "~0.8.20131209",
@@ -15,8 +13,6 @@
     "clean-css": "~2.0.2"
   },
   "devDependencies": {
-    "domready": "~0.2.13",
-    "gulp-browserify": "~0.2.4",
     "supervisor": "~0.5.7"
   },
   "scripts": {
