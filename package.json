@@ -1,0 +1,36 @@
+{
+  "name": "Code-control",
+  "description": "JS version of robot game",
+  "version": "0.0.0",
+  "main": "index.js",
+  "browser": "index.js",
+  "dependencies": {
+    "ecstatic": "~0.4.13",
+    "uglifyify": "~1.0.1",
+    "watchify": "~0.4.1",
+    "through": "~2.3.4",
+    "rework": "~0.18.3",
+    "autoprefixer": "~0.8.20131209",
+    "rework-npm": "~0.1.0",
+    "clean-css": "~2.0.2"
+  },
+  "devDependencies": {
+    "domready": "~0.2.13",
+    "gulp-browserify": "~0.2.4",
+    "supervisor": "~0.5.7"
+  },
+  "scripts": {
+    "start": "./node_modules/.bin/supervisor -q -w rework.js,server.js,build.js server.js"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vasuman/code-control"
+  },
+  "bugs": {
+    "url": "https://github.com/vasuman/code-control/issues"
+  },
+  "keywords": [
+    "game"
+  ]
+}
