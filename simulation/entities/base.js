@@ -8,12 +8,14 @@ function ControlException(reason) {
 }
 
 ControlException.prototype.toString = function() {
-    return "[ INV_RET ]" + this.reason;
+    return "ControlException: {Invalid Return} " + this.reason;
 }
 
-function Controllable(team, i, j, level) {
+function Controllable(team, i, j, level, health) {
     var self = this;
+    this.health = health;
     this.team = team;
+    this.dead = false;
     this.pos = new Point(i, j);
     if(!level.grid.isValid(self.pos)) {
         throw new Error('Spawn position is invalid');
@@ -27,6 +29,9 @@ function Controllable(team, i, j, level) {
         console.log('[WARN] Entity ' + self.idx + ' ' + x);
     }
     function update(result) {
+        if(!(result instanceof Object)) {
+            throw new ControlException('Must return an object!');
+        }
         if(!('action' in result)) {
             throw new ControlException('No "action" key in result');
         }
@@ -60,6 +65,8 @@ function Controllable(team, i, j, level) {
         }
     }
     this.update = update;
+
+    function damage(amt) { }
 }
 module.exports.Controllable = Controllable;
 module.exports.ControlException = ControlException;

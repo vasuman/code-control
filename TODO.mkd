@@ -7,21 +7,20 @@
 # Simulation
 
 * ~~Grid, Point classes~~
-* Tile map loading
-* Level-entity interface
-* Character APIs
+* ~~Tile map loading~~
+* ~~Level-entity interface~~
+* ~~Character APIs~~
 * MatchSim,
     + Game state recording
-    + Script sandboxing
+    + ~~Script sandboxing~~
 
 # Frontend
 
-* Match replay
+* Match replay,
     + JSON Spec
     + Canvas rendering
     + Step and play
-
-* Code entry
+* Code entry,
     + Editor
     + Parsing
     + Debugging

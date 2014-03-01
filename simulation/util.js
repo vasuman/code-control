@@ -1,8 +1,12 @@
 var Direction = {
-    U: 0,
-    D: 1,
-    L: 2,
-    R: 3,
+    up:         0,
+    down:       1,
+    left:       2,
+    right:      3,
+    up_left:    4,
+    up_right:   5,
+    down_left:  6,
+    down_right: 7,
 }
 
 function Point(i, j) {
@@ -23,6 +27,45 @@ function Point(i, j) {
     this.getMove = getMove;
 }
 
+Point.prototype.toString = function() {
+    return 'p@' + this.i + ':' + this.j;
+}
+
+function Tile(tData) {
+    var self = this;
+    this.type = tData.type;
+    this.img = tData.image;
+}
+
+function Map(grid) {
+    this.maxI = grid.maxI;
+    this.maxJ = grid.maxJ;
+    function at(p) {
+        
+    }
+    function isValid(p) {
+        return grid.isValid(p);
+    }
+    this.isValid = isValid;
+    function getAdjacent(p) {
+        var res = [];
+        var dI, dJ, nP;
+        for(dI = -1; dI <= 1; dI++) {
+            for(dJ = -1; dJ <= 1; dJ++) {
+                if(dI == 0 && dJ == 0) {
+                    continue;
+                }
+                nP = new Point(p.i + dI, p.j + dJ);
+                if(grid.isValid(nP)) {
+                    res.push(nP);
+                }
+            }
+        }
+        return res;
+    }
+    this.getAdjacent = getAdjacent;
+}
+
 function Grid(row, col) {
     this.maxI = row;
     this.maxJ = col;
@@ -39,34 +82,40 @@ function Grid(row, col) {
     this.get = get;
 
     function put(p, x) {
-        if(!isValid(i, j)) {
+        if(!isValid(p)) {
             return;
         }
         arr[p.i * col + p.j] = x;
     }
     this.put = put;
 
-    function getNeighbours(p) {
-        var res = [];
-        var dI, dJ, nP;
-        for(dI = -1; dI <= 1; dI++) {
-            for(dJ = -1; dJ <= 1; dJ++) {
-                nP = new Point(p.i + dI, p.j + dJ);
-                if(isValid(nP)) {
-                    res.push(nP);
-                }
-            }
+
+    function move(oldPos, newPos) {
+        var item = get(oldPos),
+        dest = get(newPos);
+        if(!isVaild(oldPos) || !isValid(newPos)) {
+            console.log('Supplied, ' + oldPos + ', ' + newPos + ' invalid position');
         }
-        return res;
+        if((item == 0) || (item instanceof Tile)) {
+            console.log('Source position is empty');
+            return;
+        }
+        if(dest != 0) {
+            console.log('Destination is not empty');
+            return;
+        }
+        put(oldPos, 0);
+        put(newPos, item);
     }
-    this.getNeighbours = getNeighbours;
+    // this.move = move;
 
     function loadTilemap(data, tSet) {
-        var i, j, idx;
+        var i, j, idx, d;
         for(i = 0; i < row; i++) {
             for(j = 0; j < col; j++) {
                 idx = i * col + j;
-                arr[idx] = tSet[data[idx]];
+                d = data[idx];
+                arr[idx] = (d) ? tSet[d] : 0;
             }
         }
     }
@@ -98,3 +147,4 @@ module.exports.copy = copy;
 module.exports.Point = Point;
 module.exports.Grid = Grid;
 module.exports.Direction = Direction;
+module.exports.Tile = Tile;
