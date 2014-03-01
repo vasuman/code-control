@@ -24,3 +24,40 @@ html, body {
   height: 65px;
   background: #000;
 }
+
+.row {
+  height: 430px;
+}
+
+.dev-section {
+  background-color: #fafafa;
+}
+
+.ace-editor-wrapper {
+  position: absolute;
+  top: 35px;
+  right: 20px;
+  bottom: 0;
+  left: 20px;
+  height: 680px;
+}
+
+#message-wrapper {
+  position: absolute;
+  z-index: 100;
+  left: 60px;
+  font-size: 20px;
+  background-color: rgba(240, 240, 255, 0.8);
+}
+
+#message-wrapper.error {
+  color: red;
+}
+
+#message-wrapper.warning {
+  color: orange;
+}
+
+#message-wrapper.info {
+  color: green;
+}

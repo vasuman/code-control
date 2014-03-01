@@ -2,9 +2,23 @@
 <html>
   <head>
     <title>Code-Control</title>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/ace.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.0/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="style.css">
   </head>
   <body>
+
+    <div class="row">
+      <div class="col-md-4">
+        <p class="lead">Write some JavaScript here.</p>
+        <div id="javascript-input" class="ace-editor-wrapper"></div>
+      </div>
+      <div id="message-wrapper"></div>
+    </div>
 
     <div id="hud">
     </div>
