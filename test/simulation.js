@@ -4,9 +4,16 @@ function finished(result) {
     console.log(JSON.stringify(result));
     process.exit(0);
 }
-const test_code = "\
+
+const t_code = "\
+var messages  [];\
 function update(x) {\
-    var p = new Point(0, 0);\
-    return { action: 'move', dir: Direction.R };\
+    return {action: 'rest'};\
 }";
-var lvl = new BattleLevel(test_code,test_code, "./simulation/base.json", finished);
+
+const s_code = "\
+function update(x) {\
+    return { action: 'move', dir: Direction.R };\
+}"
+
+var lvl = new BattleLevel(t_code, s_code, "./simulation/base.json", finished);
