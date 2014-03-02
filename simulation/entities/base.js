@@ -13,9 +13,9 @@ ControlException.prototype.toString = function() {
 
 function Controllable(team, i, j, level, health) {
     var self = this;
+    this.type = 'entity';
     this.health = health;
     this.team = team;
-    this.dead = false;
     this.pos = new Point(i, j);
     if(!level.grid.isValid(self.pos)) {
         throw new Error('Spawn position is invalid');
@@ -50,10 +50,12 @@ function Controllable(team, i, j, level, health) {
             }
             var occ = level.grid.get(nextPos);
             if(occ) {
-                warnLog('Position already occupied by, ' + occ);
+                warnLog('position - ' + nextPos + ' already occupied by, ' + occ);
                 return;
             }
+            level.grid.put(self.pos, 0);
             level.grid.put(nextPos, self);
+            level.moveEvent(self.idx, nextPos);
             self.pos = nextPos;
         } else if(action == 'rest') {
             // PASS
@@ -66,7 +68,23 @@ function Controllable(team, i, j, level, health) {
     }
     this.update = update;
 
-    function damage(amt) { }
+    function kill() {
+        level.grid.put(self.pos, 0);
+        level.destroy(self.idx);
+    }
+    function damage(amt) {
+        self.health -= amt;
+        if(self.health < 0) {
+            kill();
+        }
+    }
+    this.damage = damage;
+    level.spawnEvent(self);
 }
+
+Controllable.prototype.toString = function() {
+    return 'Controllable: i = ' + this.idx +  ' of P' + this.team;
+}
+
 module.exports.Controllable = Controllable;
 module.exports.ControlException = ControlException;

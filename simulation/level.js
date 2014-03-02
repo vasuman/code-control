@@ -9,32 +9,72 @@ Grid = util.Grid,
 Tile = util.Tile,
 Point = util.Point;
 
-const MAX_TURN = 200;
+const MAX_TURNS = 5;
 function Player(idx) {
     this.idx = idx;
-    this.ents = [];
+    this.ents = {};
 }
 
-function Spawner() {
-    
-}
+const P_A = 0, P_B = 1;
+
 function BattleLevel(codeA, codeB, jsonPath, finishCb) {
-    var entities = [],
-    def, self = this, turn = 0,
-    runner = new Runner(require('./api'), [codeA, codeB], errBack, 1000),
-    playerA = {};
+    var entities = {},
+    updateIdx = [], moveDel = [],
+    def, self = this, turn = 0, replay = [],
+    runner = new Runner('./api', [codeA, codeB], loadMap, errBack, 1000);
+    this.players = [new Player(P_A), new Player(P_B)];
     this.grid = null;
-    this.replay = {};
     this.tSet = {};
 
+    function isFinished() {
+        return turn > MAX_TURNS;
+    }
+
     function gameOver() {
-        return true;
+        var numA = Object.keys(self.players[P_A]).length,
+        numB = Object.keys(self.players[P_B]).length;
+        if(numA > numB) {
+            setImmediate(finishCb, { win: P_A, replay: replay });
+        } else if(numB > numA) {
+            setImmediate(finishCb, { win: P_B, replay: replay });
+        } else {
+            setImmediate(finishCb, { draw: null, replay: replay});
+        }
+    }
+
+    function spawnEvent(ent) {
+        addEvent('spawn', util.copy(ent));
+    }
+    this.spawnEvent = spawnEvent;
+
+    function logEvent(log_obj) {
+        addEvent('log', log_obj)
+    }
+    function shakeEvent(idx) {
+        addEvent('shake', idx);
+    }
+    function moveEvent(idx, pos) {
+        addEvent('move', {
+            idx: idx,
+            pos: pos.clone(),
+        });
+    }
+    this.moveEvent = moveEvent;
+
+    function addEvent(type, data) {
+        var event = {};
+        event[type] = data;
+        replay.push(event);
     }
 
     function errBack(e) {
         console.log(e);
         console.log('INV_CODE Error, must die..');
         process.exit(7);
+    }
+
+    function doSpawn(team, i, j) {
+    
     }
 
     function updateEntCallback(ent, i) {
@@ -45,6 +85,10 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
             } else {
                 try {
                     ent.update(dat);
+                    var logs = runner.flushStr(i);
+                    if(logs.out != ''){
+                        logEvent(logs);
+                    }
                 } catch(e) {
                     console.log('[ERROR] in parsing update result of Player ' + ent.team + '\'s, entity: ' + ent.idx);
                     console.log(e.toString());
@@ -56,15 +100,19 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
 
     function getParams(ent) {
         return {
-            log: function() {
-                console.log(arguments);
-            }
-        }
+            entities: entities,
+            grid: self.grid 
+        };
     }
 
-    function doDebug() {
-        entities.push(new Controllable(0, 0, 0, self));
+
+    function loadMap() {
+        if(++loadMap.count < 2) {
+            return;
+        }
+        fs.readFile(jsonPath, { encoding: 'utf8' }, fReadCback);
     }
+    loadMap.count = 0;
 
     function fReadCback(err, d) {
         if(err) {
@@ -75,46 +123,84 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
         // Building tilesets
         for(key in def.tiledata) {
             if(def.tiledata.hasOwnProperty(key)) {
-                self.tSet[key] = new Tile(def.tiledata);
+                self.tSet[key] = new Tile(def.tiledata[key], key);
             }
         }
-        self.grid.loadTilemap(def.data, def.tiledata);
+        self.grid.loadTilemap(def.data, self.tSet);
         //DEBUG!?
         doDebug();
         start();
     }
 
+    function doDebug() {
+        addEntity(new Controllable(0, 0, 0, self, 100));
+        addEntity(new Controllable(1, 0, 1, self, 100));
+    }
+
+    function start() {
+        setImmediate(act, 0);
+    }
+
+    function destroy(i) {
+        moveDel.push(i);
+    }
+
+    function pushDelete(idx) {
+        var i, delI, nI = updateIdx[idx];
+        while(moveDel.find(nI) != -1) {
+            idx += 1;
+            if(idx >= updateIdx.length) {
+                nI = -1;
+                break;
+            }
+            nI = updateIdx[idx];
+        }
+        for(i = 0; i < moveDel.length; i++) {
+            delI = moveDel[i];
+            updateIdx.splice(updateIdx.indexOf(delI), 1);
+            delete entities[delI];
+        }
+        moveDel = [];
+        return updateIdx.find(nI);
+    }
+
     function act(i) {
-        if(i >= entities.length) {
+        if(moveDel.length != 0) {
+            i = pushDelete(i);
+        }
+        if(i >= updateIdx.length || i < 0) {
+            turn += 1;
             // LOOP DONE
             // UPDATE REST!?
             // ADD HOOK for next
-            if(gameOver()) {
-                setImmediate(finishCb);
+            if(isFinished()) {
+                gameOver();
             } else {
                 setImmediate(start);
             }
             return false;
         }
-        var ent = entities[i];
+        var ent = entities[updateIdx[i]];
         if(ent instanceof Controllable) {
             runner.runCode(ent.team, getParams(ent), updateEntCallback(ent, i), 'update', 2000);
         } else {
-            console.log(entities);
             ent.update();
         }
         return true;
     }
 
-    function start() {
-        act(0);
+    function addEntity(ent) {
+        entities[ent.idx] = ent;
+        updateIdx.push(ent.idx);
     }
 
     function getGameState() {
-        return util.copy(entities);
+        return entities;
     }
     this.getGameState = getGameState;
 
-    fs.readFile(jsonPath, { encoding: 'utf8' }, fReadCback);
 }
+
+
+
 module.exports.BattleLevel = BattleLevel;

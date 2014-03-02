@@ -1,7 +1,6 @@
 var util = require('./util'),
 Point = util.Point,
 Tile = util.Tile,
-Map = util.Map,
 Direction = util.Direction;
 
 function isTile(x) {
@@ -11,6 +10,7 @@ function isTile(x) {
 function isEntity(x) {
     return (x instanceof Controllable);
 }
+
 function getType(x) {
     if(isTile(x)) {
         return 'tile';
@@ -21,6 +21,9 @@ function getType(x) {
     }
 }
 
-module.exports.Point = util.Point;
+function getAt(state, p) {
+    return state.grid[p.i * state.width + p.j];
+}
+module.exports.Point = Point;
 module.exports.Direction = Direction;
-module.exports.Map = Map;
+module.exports.log = console.log;

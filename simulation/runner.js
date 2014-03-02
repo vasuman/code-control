@@ -19,9 +19,8 @@ TimeoutException.prototype.toString = function() {
 }
 
 const INIT = 0, DONE = 1, RUN = 2, KILLED = 3;
-function Runner(api, code, errBack, timeLimit) {
-    var ctx = vm.createContext(api),
-    proc = [], cback = [],
+function Runner(api, code, cBack, errBack, timeLimit) {
+    var proc = [], cback = [],
     i, turn = 0;
 
     function timeoutKill(i) {
@@ -31,7 +30,7 @@ function Runner(api, code, errBack, timeLimit) {
                 if(proc[i].state == INIT) {
                     errBack(new TimeoutException(i));
                 } else if(proc[i].state == RUN) {
-                    proc[i].callback(false, new TimeoutException)
+                    proc[i].callback(false, new TimeoutException(i))
                 }
                 proc[i].state = KILLED;
             }
@@ -44,6 +43,7 @@ function Runner(api, code, errBack, timeLimit) {
             if(type == 'init_done') {
                 clearTimeout(proc[i].timeout);
                 proc[i].state = DONE;
+                setImmediate(cBack);
             } else if(type == 'result') {
                 clearTimeout(proc[i].timeout);
                 proc[i].callback(true, data);
@@ -64,15 +64,23 @@ function Runner(api, code, errBack, timeLimit) {
         }
     }
 
+    function appendToStr(i, str) {
+        return function(data) {
+            proc[i][str] += data;
+        }
+    }
     for(i = 0; i < code.length; i++) {
         proc[i] = {};
         proc[i].q = [];
-        proc[i].p = child_proc.fork('./simulation/sandbox.js');
+        proc[i].errStr = proc[i].outStr = '';
+        proc[i].p = child_proc.fork('./simulation/sandbox.js', [], {silent: true});
         proc[i].p.on('message', messageHandler(i));
         proc[i].p.send({ type: 'init_context', data: api });
         proc[i].state = INIT;
         proc[i].timeout = setTimeout(timeoutKill(i), timeLimit);
         proc[i].p.send({ type: 'init_code', data: code[i] });
+        proc[i].p.stdout.on('data', appendToStr(i, 'outStr'));
+        proc[i].p.stderr.on('data', appendToStr(i, 'errStr'));
     }
 
     function runCode(i, input, cback, f_name, timeLimit) {
@@ -86,6 +94,16 @@ function Runner(api, code, errBack, timeLimit) {
         proc[i].p.send({ type: 'run_code', data: f_name });
     }
     this.runCode = runCode;
+
+    function flushStr(i) {
+        var res = {
+            out: proc[i].outStr,
+            err: proc[i].errStr
+        };
+        proc[i].outStr = proc[i].errStr = '';
+        return res;
+    }
+    this.flushStr = flushStr;
 }
 
 module.exports.Runner = Runner;

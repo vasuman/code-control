@@ -1,12 +1,8 @@
 var Direction = {
-    up:         0,
-    down:       1,
-    left:       2,
-    right:      3,
-    up_left:    4,
-    up_right:   5,
-    down_left:  6,
-    down_right: 7,
+    U: 0,
+    D: 1,
+    L: 2,
+    R: 3,
 }
 
 function Point(i, j) {
@@ -25,16 +21,24 @@ function Point(i, j) {
         return null;
     }
     this.getMove = getMove;
+    function clone() {
+        return new Point(i, j);
+    }
+    this.clone = clone;
 }
 
 Point.prototype.toString = function() {
     return 'p@' + this.i + ':' + this.j;
 }
 
-function Tile(tData) {
-    var self = this;
-    this.type = tData.type;
-    this.img = tData.image;
+function Tile(tData, idx) {
+    this.type = 'tile';
+    this.kind = tData.type;
+    this.key = idx;
+}
+
+Tile.prototype.toString = function() {
+    return '[' + this.kind + '] tile';
 }
 
 function Map(grid) {
@@ -123,7 +127,7 @@ function Grid(row, col) {
 }
 
 function copy(obj) {
-    if(!(obj instanceof Object) || (obj instanceof Function)) { 
+    if(!(obj instanceof Object)) { 
         return obj;
     }
     var dst = [], i;
@@ -137,6 +141,9 @@ function copy(obj) {
     for(key in obj) {
         if(obj.hasOwnProperty(key)) {
             val = obj[key];
+            if(val instanceof Function) {
+                continue;
+            }
             res[key] = copy(val);
         }
     }

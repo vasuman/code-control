@@ -1,11 +1,11 @@
 var vm = require('vm'),
-ctx = {}, code;
+ctx = {}, code, ctors = {};
 function handleMessage(m) {
     var type = m.type,
     data = m.data,
     update_code;
     if(type == 'init_context') {
-        ctx = vm.createContext(data);
+        ctx = vm.createContext(require(data));
     } else if(type == 'load_param') {
         ctx.param = data;
     } else if(type == 'init_code') {
