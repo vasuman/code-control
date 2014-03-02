@@ -20,7 +20,8 @@ const P_A = 0, P_B = 1;
 function BattleLevel(codeA, codeB, jsonPath, finishCb) {
     var entities = {},
     updateIdx = [], moveDel = [],
-    def, self = this, turn = 0, replay = [],
+    def, self = this, turn = 0, replay = [], 
+    msg = '',
     runner = new Runner('./api', [codeA, codeB], loadMap, errBack, 1000);
     this.players = [new Player(P_A), new Player(P_B)];
     this.grid = null;
@@ -67,15 +68,17 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
         replay.push(event);
     }
 
-    function errBack(e) {
-        console.log(e);
+    function errBack(i, e) {
         console.log('INV_CODE Error, must die..');
-        process.exit(7);
+        setImmediate(finishCb, { error: e.toString(), player: i });
     }
 
-    function doSpawn(team, i, j) {
-    
+    function doSpawn() { }
+
+    function logMessage(m) {
+        msg += m + '\n';
     }
+    this.logMessage = logMessage;
 
     function updateEntCallback(ent, i) {
         return function(x, dat) {
@@ -101,7 +104,8 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
     function getParams(ent) {
         return {
             entities: entities,
-            grid: self.grid 
+            grid: self.grid, 
+            turn: turn
         };
     }
 
@@ -133,8 +137,8 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
     }
 
     function doDebug() {
-        addEntity(new Controllable(0, 0, 0, self, 100));
-        addEntity(new Controllable(1, 0, 1, self, 100));
+        addEntity(new Controllable(P_A, 0, 0, self, 100));
+        addEntity(new Controllable(P_B, 0, 1, self, 100));
     }
 
     function start() {
@@ -200,7 +204,5 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
     this.getGameState = getGameState;
 
 }
-
-
 
 module.exports.BattleLevel = BattleLevel;

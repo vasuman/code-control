@@ -1,4 +1,5 @@
 var vm = require('vm'),
+linter = require('../common/lint.js'),
 util = require('./util'),
 child_proc = require('child_process');
 
@@ -11,26 +12,25 @@ SandboxException.prototype.toString = function() {
     return 'SBOX_ERR: P_' + this.i + ' - `' + this.type + '` ' + this.msg;
 }
 
-function TimeoutException(pid) {
-    this.pid = pid;
-}
+function TimeoutException() { }
+
 TimeoutException.prototype.toString = function() {
     return "Subprocess timed out";
 }
 
 const INIT = 0, DONE = 1, RUN = 2, KILLED = 3;
 function Runner(api, code, cBack, errBack, timeLimit) {
-    var proc = [], cback = [],
-    i, turn = 0;
+    var proc = [], cback = [], i;
 
     function timeoutKill(i) {
         return function() {
-            if (proc[i].state != KILLED){
+            if (proc[i].state != KILLED) {
                 proc[i].p.kill('SIGKILL');
                 if(proc[i].state == INIT) {
-                    errBack(new TimeoutException(i));
+                    setImmediate(errBack, i, new TimeoutException);
                 } else if(proc[i].state == RUN) {
-                    proc[i].callback(false, new TimeoutException(i))
+                    var e = new TimeoutException;
+                    setImmediate(proc[i].callback, false, e);
                 }
                 proc[i].state = KILLED;
             }
@@ -50,10 +50,10 @@ function Runner(api, code, cBack, errBack, timeLimit) {
                 proc[i].state = DONE;
             } else if(type == 'error') {
                 if(proc[i].state == INIT) {
-                    errBack(i);
+                    setImmediate(errBack, i, new Error(data))
                 } else if(proc[i].state == RUN) {
                     var e = new SandboxException(data, i);
-                    proc[i].callback(false, e);
+                    setImmediate(proc[i].callback, false, e);
                 }
                 proc[i].state = DONE;
             }
@@ -64,23 +64,28 @@ function Runner(api, code, cBack, errBack, timeLimit) {
         }
     }
 
-    function appendToStr(i, str) {
+    function appendToLog(i) {
         return function(data) {
-            proc[i][str] += data;
+            proc[i].log += data;
         }
     }
+
     for(i = 0; i < code.length; i++) {
+        var err = linter.process(code[i], require(api));
+        if(err.length > 0) {
+            setImmediate(errBack, i, new Error('Code failed to lint'));
+            return;
+        }
         proc[i] = {};
         proc[i].q = [];
-        proc[i].errStr = proc[i].outStr = '';
+        proc[i].log = '';
         proc[i].p = child_proc.fork('./simulation/sandbox.js', [], {silent: true});
         proc[i].p.on('message', messageHandler(i));
         proc[i].p.send({ type: 'init_context', data: api });
         proc[i].state = INIT;
         proc[i].timeout = setTimeout(timeoutKill(i), timeLimit);
         proc[i].p.send({ type: 'init_code', data: code[i] });
-        proc[i].p.stdout.on('data', appendToStr(i, 'outStr'));
-        proc[i].p.stderr.on('data', appendToStr(i, 'errStr'));
+        proc[i].p.stdout.on('data', appendToLog(i));
     }
 
     function runCode(i, input, cback, f_name, timeLimit) {
@@ -96,11 +101,8 @@ function Runner(api, code, cBack, errBack, timeLimit) {
     this.runCode = runCode;
 
     function flushStr(i) {
-        var res = {
-            out: proc[i].outStr,
-            err: proc[i].errStr
-        };
-        proc[i].outStr = proc[i].errStr = '';
+        var res = proc[i].log;
+        proc[i].log = '';
         return res;
     }
     this.flushStr = flushStr;
