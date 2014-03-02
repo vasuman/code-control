@@ -1,0 +1,32 @@
+{
+  "name": "code-control",
+  "version": "0.0.0",
+  "description": "Write code to control a character",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "sandcastle": "~0.1.0",
+    "ejs": "~0.8.5",
+    "express": "~3.4.8"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node test/all.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vasuman/code-control.git"
+  },
+  "keywords": [
+    "game",
+    "code"
+  ],
+  "author": "Vasuman R",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vasuman/code-control/issues"
+  },
+  "homepage": "https://github.com/vasuman/code-control"
+}
