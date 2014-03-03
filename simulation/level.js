@@ -9,10 +9,11 @@ Grid = util.Grid,
 Tile = util.Tile,
 Point = util.Point;
 
-const MAX_TURNS = 5;
+const MAX_TURNS = 5, MAX_ERR = 3;
 function Player(idx) {
     this.idx = idx;
     this.ents = {};
+    this.errCount = 0;
 }
 
 const P_A = 0, P_B = 1;
@@ -44,7 +45,7 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
     }
 
     function spawnEvent(ent) {
-        addEvent('spawn', util.copy(ent));
+        addEvent('spawn', ent);
     }
     this.spawnEvent = spawnEvent;
 
@@ -76,25 +77,29 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
     function doSpawn() { }
 
     function logMessage(m) {
-        msg += m + '\n';
+        logEvent(m);
     }
     this.logMessage = logMessage;
 
     function updateEntCallback(ent, i) {
         return function(x, dat) {
-            if(!x) {
-                console.log('[ERROR] in update of Player ' + ent.team + '\'s, entity: ' + ent.idx);
-                console.log(dat.toString());
-            } else {
-                try {
-                    ent.update(dat);
-                    var logs = runner.flushStr(i);
-                    if(logs.out != ''){
-                        logEvent(logs);
-                    }
-                } catch(e) {
-                    console.log('[ERROR] in parsing update result of Player ' + ent.team + '\'s, entity: ' + ent.idx);
-                    console.log(e.toString());
+            try {
+                if(!x) {
+                    throw dat;
+                }
+                ent.update(dat);
+                var logs = runner.flushStr(i);
+                if(logs != '') {
+                    logMessage(logs);
+                }
+            } catch(e) {
+                logMessage('[ERROR] ENT-' + ent.idx + ', ' + e.toString());
+                self.players[ent.team].errCount += 1;
+                if(self.players[ent.team].errCount > MAX_ERR) {
+                    setImmediate(finishCb, { 
+                        error: e.toString(),
+                        player: ent.team 
+                    });
                 }
             }
             setImmediate(act, i + 1);

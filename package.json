@@ -11,7 +11,8 @@
     "ejs": "~0.8.5",
     "express": "~3.4.8",
     "mongoose": "~3.8.8",
-    "jshint": "~2.4.4"
+    "jshint": "~2.4.4",
+    "passport": "~0.2.0"
   },
   "devDependencies": {},
   "scripts": {

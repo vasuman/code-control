@@ -1,14 +1,14 @@
+var fs = require('fs');
 var BattleLevel = require('../simulation/level').BattleLevel;
 
 function finished(result) {
-    console.log(JSON.stringify(result));
-    process.exit(0);
+    fs.writeFile('result.json', JSON.stringify(result), process.exit);
 }
 
 const t_code = "\
-var messages  [];\
+var messages = [];\
 function update(x) {\
-    return {action: 'rest'};\
+    return { action: 'move', dir: Direction.D };\
 }";
 
 const s_code = "\

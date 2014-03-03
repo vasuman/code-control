@@ -3,13 +3,12 @@ linter = require('../common/lint.js'),
 util = require('./util'),
 child_proc = require('child_process');
 
-function SandboxException(e, i) {
-    this.type = e.n;
-    this.msg = e.m;
+function SandboxException(i, m) {
+    this.m = m;
     this.i = i;
 }
 SandboxException.prototype.toString = function() {
-    return 'SBOX_ERR: P_' + this.i + ' - `' + this.type + '` ' + this.msg;
+    return 'SBOX_ERR: P_' + this.i + ' - ' + this.m;
 }
 
 function TimeoutException() { }
@@ -52,7 +51,7 @@ function Runner(api, code, cBack, errBack, timeLimit) {
                 if(proc[i].state == INIT) {
                     setImmediate(errBack, i, new Error(data))
                 } else if(proc[i].state == RUN) {
-                    var e = new SandboxException(data, i);
+                    var e = new SandboxException(i, data);
                     setImmediate(proc[i].callback, false, e);
                 }
                 proc[i].state = DONE;

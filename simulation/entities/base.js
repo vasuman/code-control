@@ -13,7 +13,7 @@ ControlException.prototype.toString = function() {
 
 function Controllable(team, i, j, level, health) {
     var self = this;
-    this.type = 'entity';
+    this.type = 'warrior';
     this.health = health;
     this.team = team;
     this.pos = new Point(i, j);
@@ -26,7 +26,7 @@ function Controllable(team, i, j, level, health) {
     level.grid.put(this.pos, self);
     this.idx = globalEntIdx++;
     function warnLog(x) {
-        console.log('[WARN] Entity ' + self.idx + ' ' + x);
+        level.logMessage('[WARN] ENT-' + self.idx + ', ' + x);
     }
     function update(result) {
         if(!(result instanceof Object)) {
@@ -79,11 +79,16 @@ function Controllable(team, i, j, level, health) {
         }
     }
     this.damage = damage;
-    level.spawnEvent(self);
+    var spawnObject = util.copy(self);
+    spawnObject.image = {
+        name: "image.png",
+        i: 0, j: 0
+    };
+    level.spawnEvent(spawnObject);
 }
 
 Controllable.prototype.toString = function() {
-    return 'Controllable: i = ' + this.idx +  ' of P' + this.team;
+    return 'Controllable: E' + this.idx +  ' of P' + this.team;
 }
 
 module.exports.Controllable = Controllable;
