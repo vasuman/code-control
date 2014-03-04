@@ -5,9 +5,9 @@ models = require('./models'),
 passport = require('passport'),
 http = require('http'),
 path = require('path'),
+helpers = require('express-helpers')(app),
 PragyanStrategy = require('./auth/pragyan').PragyanStrategy,
 verifyCookie = require('./auth/verify').verifyCookie;
-
 const PORT = process.env.PORT || 8000;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost/code';
 
@@ -41,12 +41,13 @@ function extend(target) {
 }
 
 function notFound(req, res) {
-    res.render('404.ejs', {});
+    res.render('404.ejs', { user: req.user });
     res.status(404);
 }
 
 function noLogin(req, res) {
-    res.render('nologin.ejs', {});
+    req.logout();
+    res.render('nologin.ejs', { user: null });
     res.status(401);
 }
 
@@ -62,6 +63,9 @@ function userPage(req, res, id) {
     }
     try {
         var id = parseInt(req.params.id);
+        if(isNan(id)) {
+            throw new Error('NaN');
+        }
     } catch(e) {
         return notFound(req, res);
     }
@@ -70,6 +74,7 @@ function userPage(req, res, id) {
         populate('matches').
         exec(buildOther);
 }
+
 passport.use(new PragyanStrategy(verifyCookie));
 function renderPage(page) {
     return function(req, res) {
@@ -121,6 +126,7 @@ app.get('/', renderPage('index'));
 app.get('/auth', authHandle);
 app.get('/match', renderPage('match'));
 app.get('/u/:id', userPage);
+app.get('/nologin', noLogin);
 app.get('*', notFound);
 
 function startServer() {

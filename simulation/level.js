@@ -49,9 +49,6 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
     }
     this.spawnEvent = spawnEvent;
 
-    function logEvent(log_obj) {
-        addEvent('log', log_obj)
-    }
     function shakeEvent(idx) {
         addEvent('shake', idx);
     }
@@ -76,8 +73,9 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
 
     function doSpawn() { }
 
-    function logMessage(type, m) {
-        logEvent({ type: type, m: m });
+    function logMessage(type, i, t, m) {
+        var logObj = { type: type, idx: i, player: t, m: m };
+        addEvent('log', logObj);
     }
     this.logMessage = logMessage;
 
@@ -207,7 +205,6 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
         return entities;
     }
     this.getGameState = getGameState;
-
 }
 
 module.exports.BattleLevel = BattleLevel;

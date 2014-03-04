@@ -11,6 +11,8 @@ var codeSchema = new Schema({
     owner: { type: Schema.Types.ObjectId, ref: 'User' },
     type: String,
     name: String,
+    creation: Date,
+    edited: Date,
     rating: Number,
     matches: [{ type: Schema.Types.ObjectId, ref: 'Match'}]
 });

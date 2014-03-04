@@ -5,22 +5,22 @@ var Direction = {
     R: 3,
 }
 
+function getMove(p, dir) {
+    if(dir == Direction.U) {
+        return new Point(p.i - 1, p.j);
+    } else if(dir == Direction.D) {
+        return new Point(p.i + 1, p.j);
+    } else if(dir == Direction.L) {
+        return new Point(p.i, p.j - 1);
+    } else if(dir == Direction.R) {
+        return new Point(p.i, p.j + 1);
+    }
+    return null;
+}
+
 function Point(i, j) {
     this.i = i;
     this.j = j;
-    function getMove(dir) {
-        if(dir == Direction.U) {
-            return new Point(i - 1, j);
-        } else if(dir == Direction.D) {
-            return new Point(i + 1, j);
-        } else if(dir == Direction.L) {
-            return new Point(i, j - 1);
-        } else if(dir == Direction.R) {
-            return new Point(i, j + 1);
-        }
-        return null;
-    }
-    this.getMove = getMove;
     function clone() {
         return new Point(i, j);
     }
@@ -28,7 +28,7 @@ function Point(i, j) {
 }
 
 Point.prototype.toString = function() {
-    return 'p@' + this.i + ':' + this.j;
+    return this.i + ':' + this.j;
 }
 
 function Tile(tData, idx) {
@@ -93,7 +93,6 @@ function Grid(row, col) {
     }
     this.put = put;
 
-
     function move(oldPos, newPos) {
         var item = get(oldPos),
         dest = get(newPos);
@@ -155,3 +154,4 @@ module.exports.Point = Point;
 module.exports.Grid = Grid;
 module.exports.Direction = Direction;
 module.exports.Tile = Tile;
+module.exports.getMove = getMove;

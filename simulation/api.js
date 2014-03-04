@@ -23,10 +23,7 @@ function getType(object) {
 
 }
 
-function getMove(point) {
-
-}
-
 module.exports.Point = Point;
+module.exports.getMove = stuff.getMove;
 module.exports.Direction = Direction;
 module.exports.log = console.log;

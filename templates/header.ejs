@@ -2,15 +2,17 @@
     <div id = "event-name"><h1> Code Character </h1></div>
     <div id = "links">
         <ul>
-            <li><a href = "docs/">Docs</a></li>
+            <li><a href = "/docs/">Docs</a></li>
         </ul>
     </div>
-    <% if(user) { %>
     <div id = "user-data">
+    <% if(user) { %>
         <ul>
             <li> Score: <%= user.points %></li>
-            <li> Welcome <%= make_link(user.pid, '/u/' + user.pid) %></a></li>
+            <li><%- link_to(user.pid, '/u/' + user.pid) %></li>
         </ul>
-    </div>
+    <% } else { %>
+        <%- link_to('Login', '/auth') %>
     <% } %>
+    </div>
 </header>

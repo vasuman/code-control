@@ -26,7 +26,17 @@ function Controllable(team, i, j, level, health) {
     level.grid.put(this.pos, self);
     this.idx = globalEntIdx++;
     function warnLog(x) {
-        level.logMessage('[WARN] ENT-' + self.idx + ', ' + x);
+        level.logMessage('warn', this.idx, this.team, x);
+    }
+    function moveSafe(pos, result) {
+        if(!('dir' in result)) {
+            throw new ControlException('action must have a `dir`');
+        }
+        var nextPos = stuff.getMove(pos, result.dir);
+        if(nextPos === null) {
+            throw new ControlException(result.dir + ' is an invalid direction');
+        }
+        return nextPos;
     }
     function update(result) {
         if(!(result instanceof Object)) {
@@ -37,13 +47,7 @@ function Controllable(team, i, j, level, health) {
         }
         var action = result.action;
         if(action == 'move') {
-            if(!('dir' in result)) {
-                throw new ControlException('Move action must have a `dir`');
-            }
-            var nextPos = self.pos.getMove(result.dir);
-            if(nextPos === null) {
-                throw new ControlException(result.dir + ' is an invalid direction');
-            }
+            var nextPos = moveSafe(self.pos, result);
             if(!level.grid.isValid(nextPos)) {
                 warnLog('attempting to move to invalid position');
                 return;
@@ -62,6 +66,16 @@ function Controllable(team, i, j, level, health) {
         } else if(action == 'attack') {
             // TODO: implement
             throw new Error('Unimplemented');
+            var attackPos = moveSafe(self.pos, result);
+            if(!level.grid.isValid(attackPos)) {
+                warnLog('empty attack');
+                return;
+            }
+            var occ = level.grid.get(attackPos);
+            if(occ) {
+                
+            }
+
         } else {
             throw new ControlException('`' + action + '` is not a valid action');
         }
