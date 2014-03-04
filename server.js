@@ -118,6 +118,7 @@ var authHandle = passport.authenticate('pragyan', {
     failureRedirect: '/exit'
 });
 app.get('/', renderPage('index'));
+app.get('/docs', renderPage('docs'));
 app.get('/auth', authHandle);
 app.get('/match', renderPage('match'));
 app.get('/u/:id', userPage);

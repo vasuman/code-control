@@ -1,0 +1,27 @@
+<html>
+<head>
+    <%- include req %>
+    <title>Docs</title>
+</head>
+<body>
+    <%= include header.ejs %>
+    <div class="docs-container">
+        <div class="content">
+            <h2 class="content-head is-center">Headin</h2>
+
+            <div class="pure-g">
+                <div class="l-box pure-u-1 pure-u-med-1-2 pure-u-lrg-1-4">
+                    <h3 class="content-subhead">
+                        //EACH DOC SUB_HEADING
+                    </h3>
+                    <p>
+                        //DOC CONTENT -- use marked to fill these either from server or client
+                    </p>
+                </div>
+            </div>
+        </div>    
+    </div>
+    <%= include footer.ejs %>
+    <script src = "/marked.js"></script> <!-- use this or npm module -->
+</body>
+</html>
