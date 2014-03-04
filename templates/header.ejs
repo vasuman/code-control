@@ -1,4 +1,16 @@
-<div id = "header">
-    <div id = "event-name">Code Control</div>
-    Welcome <%= user.name %>
-</div>
+<header id = "header" class = "header">
+    <div id = "event-name"><h1> Code Character </h1></div>
+    <div id = "links">
+        <ul>
+            <li><a href = "docs/">Docs</a></li>
+        </ul>
+    </div>
+    <% if(user) { %>
+    <div id = "user-data">
+        <ul>
+            <li> Score: <%= user.points %></li>
+            <li> Welcome <%= make_link(user.pid, '/u/' + user.pid) %></a></li>
+        </ul>
+    </div>
+    <% } %>
+</header>

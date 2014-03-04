@@ -16,4 +16,4 @@ function update(x) {\
     return { action: 'move', dir: Direction.R };\
 }"
 
-var lvl = new BattleLevel(t_code, s_code, "./simulation/base.json", finished);
+var lvl = new BattleLevel(t_code, s_code, "./static/base.json", finished);

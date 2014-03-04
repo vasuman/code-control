@@ -1,21 +1,22 @@
 var mongoose = require('mongoose'),
-Schema = mongoose.schema;
+Schema = mongoose.Schema;
 
 var matchSchema = new Schema({
-    players: [{ type: Schema.Types.ObjectId, ref: 'Code' }],
+    versus: [{ type: Schema.Types.ObjectId, ref: 'Code' }],
     level: String,
+    when: Date,
     result: Object
 });
 var codeSchema = new Schema({
     owner: { type: Schema.Types.ObjectId, ref: 'User' },
     type: String,
+    name: String,
     rating: Number,
     matches: [{ type: Schema.Types.ObjectId, ref: 'Match'}]
 });
 var userSchema = new Schema({
-    handle: String,
+    pid: Number,
     points: Number,
-    prag_id: Number,
     chars: [{ type: Schema.Types.ObjectId, ref: 'Code' }]
 });
 

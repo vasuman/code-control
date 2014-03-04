@@ -1,13 +1,13 @@
 var fs = require('fs'),
-util = require('./util'),
+stuff = require('./stuff'),
 run = require('./runner'),
 baseEnt = require('./entities/base'),
 Runner = run.Runner,
 Controllable = baseEnt.Controllable,
 ControlException = baseEnt.ControlException,
-Grid = util.Grid,
-Tile = util.Tile,
-Point = util.Point;
+Grid = stuff.Grid,
+Tile = stuff.Tile,
+Point = stuff.Point;
 
 const MAX_TURNS = 5, MAX_ERR = 3;
 function Player(idx) {
@@ -18,7 +18,7 @@ function Player(idx) {
 
 const P_A = 0, P_B = 1;
 
-function BattleLevel(codeA, codeB, jsonPath, finishCb) {
+function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
     var entities = {},
     updateIdx = [], moveDel = [],
     def, self = this, turn = 0, replay = [], 
@@ -29,18 +29,18 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
     this.tSet = {};
 
     function isFinished() {
-        return turn > MAX_TURNS;
+        return turn > MAX_TURNS || Object.keys(self.players[P_A]) == 0 || Object.keys(self.players[P_B]) == 0;
     }
 
     function gameOver() {
         var numA = Object.keys(self.players[P_A]).length,
         numB = Object.keys(self.players[P_B]).length;
         if(numA > numB) {
-            setImmediate(finishCb, { win: P_A, replay: replay });
+            setImmediate(finishCb, { winner: idA, replay: replay });
         } else if(numB > numA) {
-            setImmediate(finishCb, { win: P_B, replay: replay });
+            setImmediate(finishCb, { winner: idB, replay: replay });
         } else {
-            setImmediate(finishCb, { draw: null, replay: replay});
+            setImmediate(finishCb, { winner: null, replay: replay });
         }
     }
 
@@ -76,8 +76,8 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb) {
 
     function doSpawn() { }
 
-    function logMessage(m) {
-        logEvent(m);
+    function logMessage(type, m) {
+        logEvent({ type: type, m: m });
     }
     this.logMessage = logMessage;
 

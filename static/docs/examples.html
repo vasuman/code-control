@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Code Character</title>
+
+    <link type="text/css" rel="stylesheet" href="assets/css/reset.css">
+    <link type="text/css" rel="stylesheet" href="http://yandex.st/highlightjs/6.1/styles/sunburst.min.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/docs.css">
+    <link type="text/css" rel="stylesheet" href="assets/css/print.css" media="print">
+    
+
+    <script type="text/javascript" src="assets/js/jquery-1.10.1.min.js"></script>
+    <script type="text/javascript" src="http://yandex.st/highlightjs/6.1/highlight.min.js"></script>
+    <script type="text/javascript" src="assets/js/lunr.min.js"></script>
+
+    
+
+    <script type="text/javascript">var BASE_URL = "";</script>
+    <script type="text/javascript" src="assets/js/viewer.js"></script>
+
+    
+</head>
+<body>
+    <div id="page">
+        <a name="top" />
+        <header id="header">
+            <h1><a href="">Code Character</a></h1>
+        </header>
+        
+
+<div id="sidebar">
+    <form action="search.html"><input id="search" type="text" placeholder="Search" name="q" /></form>
+    <nav id="toc">
+        
+    <ol>
+    
+        <li>
+            <a href="intro.html#introduction">Introduction</a>
+            
+                
+    <ol>
+    
+        <li>
+            <a href="intro.html#objective">Objective</a>
+            
+        </li>
+    
+        <li>
+            <a href="intro.html#scoring">Scoring</a>
+            
+        </li>
+    
+        <li>
+            <a href="intro.html#language">Language</a>
+            
+        </li>
+    
+</ol>
+
+            
+        </li>
+    
+        <li>
+            <a href="update.html#update">Update</a>
+            
+                
+    <ol>
+    
+        <li>
+            <a href="update.html#return-value">Return Value</a>
+            
+        </li>
+    
+        <li>
+            <a href="update.html#entity">Entity</a>
+            
+        </li>
+    
+        <li>
+            <a href="update.html#parameters">Parameters</a>
+            
+        </li>
+    
+</ol>
+
+            
+        </li>
+    
+        <li>
+            <a href="api.html#api">API</a>
+            
+                
+    <ol>
+    
+        <li>
+            <a href="api.html#direction">Direction</a>
+            
+        </li>
+    
+        <li>
+            <a href="api.html#getatparams-point">getAt(params, point)</a>
+            
+        </li>
+    
+        <li>
+            <a href="api.html#getdistancepointa-pointb">getDistance(pointA, pointB)</a>
+            
+        </li>
+    
+        <li>
+            <a href="api.html#getdirectionpointa-pointb">getDirection(pointA, pointB)</a>
+            
+        </li>
+    
+        <li>
+            <a href="api.html#getentidxparams-idx">getEntIdx(params, idx)</a>
+            
+        </li>
+    
+        <li>
+            <a href="api.html#gettypeobject">getType(object)</a>
+            
+        </li>
+    
+        <li>
+            <a href="api.html#getmovepoint-dir">getMove(point, dir)</a>
+            
+        </li>
+    
+</ol>
+
+            
+        </li>
+    
+        <li>
+            <a href="examples.html#examples">Examples</a>
+            
+                
+    <ol>
+    
+        <li>
+            <a href="examples.html#sleepy">Sleepy</a>
+            
+        </li>
+    
+        <li>
+            <a href="examples.html#jerky">Jerky</a>
+            
+        </li>
+    
+        <li>
+            <a href="examples.html#seek-and-destroy">Seek and Destroy</a>
+            
+        </li>
+    
+</ol>
+
+            
+        </li>
+    
+</ol>
+
+    </nav>
+    
+    <nav id="links">
+        <ul>
+            
+        </ul>
+    </nav>
+    
+</div>
+
+        <div id="content">
+            <h1 id="examples">Examples</h1>
+<h2 id="sleepy">Sleepy</h2>
+<pre><code>function update(params) {
+    return { action: &#39;rest&#39; };    
+}
+</code></pre><h2 id="jerky">Jerky</h2>
+<pre><code>function update(params) {
+    var dir = Math.floor(Math.random() * 4);  
+    return { action: &#39;move&#39;, dir: dir };
+}
+</code></pre><h2 id="seek-and-destroy">Seek and Destroy</h2>
+<pre><code>function update(params) {
+    var enemyEntity;
+    for(var i = 0; i &lt; params.entities.length; i++) {
+        enemyEntity = params.entities[i];
+        /* Check if entity is really an enemy */
+        if(enemyEntity.team != params.self.team) {
+            /* Check if it&#39;s close by */
+            if(getDistance(enemyEntity.pos, params.self.pos) == 1) {
+                /* Attack it */
+                return {
+                    action: &#39;attack&#39;,
+                    dir: getDirection(enemyEntity.pos, params.self.pos)
+                };
+            } else {
+                /* Move towards it */
+                return { 
+                    action: &#39;move&#39;, 
+                    dir: getDirection(enemyEntity.pos, params.self.pos)
+                };
+            }
+        }
+    }
+}
+</code></pre>
+
+
+
+        </div>
+        <footer id="footer">
+            Powered by <a href="http://github.com/maximebf/beautiful-docs">beautiful-docs</a> -
+            <a href="#top">Back to top</a> - <a href="all.html">Everything on a single page</a>
+            - <a href="?print=1">Print current page</a> - <a href="all.html?print=1">Print all pages</a>
+            
+        </footer>
+    </div>
+</body>
+</html>

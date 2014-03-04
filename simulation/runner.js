@@ -1,6 +1,5 @@
 var vm = require('vm'),
 linter = require('../common/lint.js'),
-util = require('./util'),
 child_proc = require('child_process');
 
 function SandboxException(i, m) {

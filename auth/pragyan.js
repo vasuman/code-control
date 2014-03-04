@@ -9,7 +9,7 @@ function PragyanStrategy(options, verify) {
     passport.Strategy.call(this);
     this.name = 'pragyan';
     this._verify = verify;
-    this._key = options.key || '_PHPSESSID';
+    this._key = options.key || 'PHPSESSID';
 }
 
 util.inherits(PragyanStrategy, passport.Strategy);

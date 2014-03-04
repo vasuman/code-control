@@ -1,6 +1,6 @@
-var util = require('../util'),
-Direction = util.Direction,
-Point = util.Point;
+var stuff = require('../stuff'),
+Direction = stuff.Direction,
+Point = stuff.Point;
 var globalEntIdx = 0;
 
 function ControlException(reason) {
@@ -79,12 +79,24 @@ function Controllable(team, i, j, level, health) {
         }
     }
     this.damage = damage;
-    var spawnObject = util.copy(self);
-    spawnObject.image = {
-        name: "image.png",
-        i: 0, j: 0
-    };
+    var spawnObject = stuff.copy(self);
+    spawnObject.image = getImage(this.type, this.team);
     level.spawnEvent(spawnObject);
+}
+
+function getImage(type, team) {
+    var image = {
+        name: "/basic.png",
+        i: 0, j: 0
+    }
+    if(type == 'warrior') {
+        if(team == 0) {
+            image.j = 1;
+        } else {
+            image.j = 1;
+        }
+    }
+    return image;
 }
 
 Controllable.prototype.toString = function() {
