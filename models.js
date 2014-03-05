@@ -5,17 +5,23 @@ var matchSchema = new Schema({
     versus: [{ type: Schema.Types.ObjectId, ref: 'Code' }],
     level: String,
     when: Date,
-    result: Object
+    winner: { type: Schema.Types.ObjectId, ref: 'Code' },
+    replay: Object
 });
+
 var codeSchema = new Schema({
     owner: { type: Schema.Types.ObjectId, ref: 'User' },
     type: String,
     name: String,
     creation: Date,
     edited: Date,
+    passed: Boolean,
+    experience: Number,
+    level: Number,
     rating: Number,
     matches: [{ type: Schema.Types.ObjectId, ref: 'Match'}]
 });
+
 var userSchema = new Schema({
     pid: Number,
     points: Number,

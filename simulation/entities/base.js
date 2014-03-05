@@ -11,20 +11,22 @@ ControlException.prototype.toString = function() {
     return "ControlException: {Invalid Return} " + this.reason;
 }
 
-function Controllable(team, i, j, level, health) {
-    var self = this;
+function Controllable(team, p, level, health) {
+    var self = this,
+    attack_damage = 10;
     this.type = 'warrior';
     this.health = health;
     this.team = team;
-    this.pos = new Point(i, j);
+    this.pos = new Point(p.i, p.j);
     if(!level.grid.isValid(self.pos)) {
         throw new Error('Spawn position is invalid');
     }
     if(level.grid.get(self.pos) != 0) {
         throw new Error('Spawn position is occupied');
     }
-    level.grid.put(this.pos, self);
     this.idx = globalEntIdx++;
+    level.grid.put(this.pos, self);
+    level.players[this.team].ents[this.idx] = this;
     function warnLog(x) {
         level.logMessage('warn', this.idx, this.team, x);
     }
@@ -59,23 +61,21 @@ function Controllable(team, i, j, level, health) {
             }
             level.grid.put(self.pos, 0);
             level.grid.put(nextPos, self);
-            level.moveEvent(self.idx, nextPos);
+            level.moveEvent(self.idx, nextPos, self.pos);
             self.pos = nextPos;
         } else if(action == 'rest') {
             // PASS
         } else if(action == 'attack') {
-            // TODO: implement
-            throw new Error('Unimplemented');
             var attackPos = moveSafe(self.pos, result);
             if(!level.grid.isValid(attackPos)) {
                 warnLog('empty attack');
                 return;
             }
             var occ = level.grid.get(attackPos);
-            if(occ) {
-                
+            if((occ == 0) || !(occ instanceof Controllable)) {
+                warnLog('no entity @ - ', attackPos);
             }
-
+            occ.damage(attack_damage);
         } else {
             throw new ControlException('`' + action + '` is not a valid action');
         }
@@ -84,12 +84,15 @@ function Controllable(team, i, j, level, health) {
 
     function kill() {
         level.grid.put(self.pos, 0);
-        level.destroy(self.idx);
+        level.destroy(self);
+        level.deathEvent(self.idx);
     }
     function damage(amt) {
+        level.damageEvent(self.idx, Math.min(self.health, amt));
         self.health -= amt;
-        if(self.health < 0) {
+        if(self.health <= 0) {
             kill();
+            return;
         }
     }
     this.damage = damage;
@@ -107,7 +110,7 @@ function getImage(type, team) {
         if(team == 0) {
             image.j = 1;
         } else {
-            image.j = 1;
+            image.j = 2;
         }
     }
     return image;

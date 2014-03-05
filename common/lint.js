@@ -8,14 +8,24 @@ var options = {
 function makeMap(x) {
     var m = {}, i;
     for(i = 0; i < x.length; i++) {
-        m[x[i]] = false;
+        m[x[i].name] = false;
     }
     return m;
 }
 
+function truthize(x) {
+    var key, res = {};
+    for(key in x) {
+        if(x.hasOwnProperty(key)) {
+            res[key] = true;
+        }
+    }
+    return res;
+}
+
 function process(code, globals, req_func) {
     var j = require('jshint').JSHINT, i,
-    res = j(code, options, globals), warn = [], errors, f;
+    res = j(code, options, truthize(globals)), warn = [], errors, f;
     if(!res) {
         var errors = j.data().errors, e;
         for(i = 0; i < errors.length; i++) {

@@ -21,8 +21,8 @@ Does *nothing* for that turn.
 
 ### move
 
-Attempts to move in the particular [Direction](). If the new position is invalid -- out of bounds; or already occupied, the `move` *fails*.
-This action **requires** an additional `dir` key which specifies the [Direction]() to move in.
+Attempts to move in the particular [Direction](api.html/#direction). If the new position is invalid -- out of bounds; or already occupied, the `move` *fails*.
+This action **requires** an additional `dir` key which specifies the [Direction](api.html/#direction) to move in.
 
     function update(params) {
         return {
@@ -33,7 +33,7 @@ This action **requires** an additional `dir` key which specifies the [Direction]
 
 ### attack
 
-If an entity is present *one* tile away in the [Direction]() `dir` from the current position. The other character is `damaged`.
+If an entity is present *one* tile away in the [Direction](api.html/#direction) `dir` from the current position. The other character is `damaged`.
 
     function update(params) {
         return {
@@ -49,7 +49,7 @@ An entity is just a plain old Javascript `Object` that describes well, an *entit
 
 * *idx*: A unique `id` that identifies each entity.
 * *team*: A number that identifies which team the entity belongs to.
-* *pos*: A [Point]() object that describes its position on the grid.
+* *pos*: A [Point](api.html/#point) object that describes its position on the grid.
 * *health*: The remaining health of the entity.
 
 ## Parameters
@@ -62,10 +62,10 @@ An `entity` object that describes the **character that is being updated**.
 
 ### params.map
 
-A one dimensional `Array` that represents the entire *game grid* at the current instant. The API provides a utility [getAt]() function to help seeking using traditional `i`, `j` indexing.
+A one dimensional `Array` that represents the entire *game grid* at the current instant. The API provides a utility [getAt](api.html/#getat) function to help seeking using traditional `i`, `j` indexing.
 
 > Modifying these parameters *doesn't* change the game state. You can *only* affect the state by *returning* an `action` and update your character.
 
 ### params.entities
 
-An `Array` of all the *entities* currently present on the map.
+An `Object` consisting of all the *entities* currently present on the map .

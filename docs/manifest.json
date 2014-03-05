@@ -1,5 +1,6 @@
 {
     "title": "Code Character",
     "files": ["intro.md", "update.md", "api.md", "examples.md"],
-    "rootDir": "."
+    "rootDir": ".",
+    "theme": "./theme/"
 }

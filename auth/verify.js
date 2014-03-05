@@ -3,8 +3,7 @@ var req = require('request');
 function cbackWrapper(cback) {
     return function(err, msg, resp) {
         if(err) {
-            cback(err);
-            return;
+            return cback(err);
         }
         try {
             var r_code = parseInt(resp);

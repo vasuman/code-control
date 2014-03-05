@@ -1,0 +1,41 @@
+<html>
+<head>
+<%- include req %>
+<title> Character <%= char.name %> </title>
+</head>
+<body>
+<div id = "about">
+<h2> about </h2>
+<ul>
+    <li> experience, <%= char.experience %> </li>
+    <li> <%- link_to('owner', '/u/' + char.owner.pid) %> </li>
+    <li> created, <%= char.creation %> </li>
+    <li> passed tests, <%= char.passed %> </li>
+</ul>
+</div>
+<% if(user) { %>
+<div id = "actions">
+<% if(char.owner._id == user._id) { %>
+    <% button_to('edit', '/c/' + char.name + '/edit' %>
+    <% button_to('train', '/c/' + char.name + '/train' %>
+<% } else { %>
+    <% button_to('challenge', '/c/' + char.name + '/challenge' %>
+<% } %>
+</div>
+<% } %>
+<% if(char.matches.length > 0) { %>
+<h2> matches </h2>
+<div id = "recent-matches">
+    <ul>
+    <% char.matches.forEach(function(match) { %>
+        <li>
+        <% var outcome = (match.winner._id == char._id) ? 'win' : 'lose' %>
+        <div class = "match-<%= outcome %>">
+            <%= link_to(outcome, '/m/' + match._id %> 
+        </div>
+        </li>
+    <% } %>
+    </ul>
+<% } %>
+</body>
+<html>

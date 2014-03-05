@@ -6,30 +6,17 @@
 <body>
 <%- include header %>
 <div id = "about">
-    <%= other.pid %> stats, <br>
-    score: <%= other.points %> <br>
-    <%if(other.chars.length > 0) {%>
-    characters:
+    <h2> about </h2>
+    <%= other.pid %> stats,
+    score: <%= other.points %>
+    <% if(other.chars.length > 0) { %>
+    <h3>characters:</h3>
     <ul id = "characters">
         <% other.chars.forEach(function(char) { %>
         <li>
             <%- link_to(char.type + ':' + char.name , '/c/' + char.name) %>
         </li>
-        <% }) %>
-        <% if (char.matches.length > 0) { %>
-        recently played:
-        <ul id = "recent-matches">
-            <% other.recent.forEach(function(recent) { %>
-            <li>
-            <a href = "/m/<%= recent.name %>"> 
-                <div class = "<%= recent.outcome %>">
-                versus <%= recent.opponent %>
-                </div>
-            </a>
-            </li>
-            <% }) %>
-        </ul>
-        <% } %>
+        <% }); %>
     </ul>
     <% } %>
 </div>

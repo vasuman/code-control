@@ -37,7 +37,7 @@ Function that returns whether a certain point is within the bounds of the map.
 
 Function that returns an `Object` at the given `point` on the map.
 The object may be either an *entity* or a *tile* or value `0` if it's free.
-Type can be determined via [getType](#getType)
+Type can be determined via [getType](#gettype)
 
 ## getDistance
 
@@ -49,19 +49,19 @@ Function that returns the [Manhattan distance](http://en.wikipedia.org/wiki/Taxi
 
 *Parameters*: `pointA`, `pointB`
 
-Function that gets the *direction* of the maximum difference between `pointB` and `pointA`.
+Function that gets the *direction* of the maximum difference between `pointB` and `pointA`. Returns `-1` if both are same;
 
-## getEntIdx
+## getEntArray
 
 *Parameters*: `params`, `idx`
 
-Function that returns an `Entity` object matching the supplied index or `null` otherwise
+Function that returns the entities on the map as an `Array`
 
 ## getType
 
 *Parameters*: `object`
 
-Function that returns the *type* of object from the return value of [getAt](#getAt). Returns,
+Function that returns the *type* of object from the return value of [getAt](#getat). Returns,
 
 * `"entity"`
 * `"empty"`

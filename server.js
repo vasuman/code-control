@@ -29,7 +29,6 @@ app.use(app.router);
 app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
 /* END DEBUG */
 
-
 function extend(target) {
     var sources = [].slice.call(arguments, 1);
     sources.forEach(function (source) {
@@ -50,8 +49,17 @@ function noLogin(req, res) {
     res.render('nologin.ejs', { user: null });
     res.status(401);
 }
-
-function userPage(req, res, id) {
+function dummyMatch(req, res) {
+    res.render('match', { 
+        user: req.user, 
+        map: dummy_map,
+        result: dummy_result
+    });
+}
+function matchPage(req, res) {
+    
+}
+function userPage(req, res) {
     function buildOther(err, user) {
         if(err) {
             throw err;
@@ -62,11 +70,12 @@ function userPage(req, res, id) {
         res.render('user', { user: req.user, other: user });
     }
     try {
-        var id = parseInt(req.params.id);
-        if(isNan(id)) {
+        var id = parseInt(req.params.pid);
+        if(isNaN(id)) {
             throw new Error('NaN');
         }
     } catch(e) {
+        console.log(e);
         return notFound(req, res);
     }
     models.User.findOne({ pid: id }).
@@ -76,6 +85,7 @@ function userPage(req, res, id) {
 }
 
 passport.use(new PragyanStrategy(verifyCookie));
+
 function renderPage(page) {
     return function(req, res) {
         res.render(page, { user: req.user });
@@ -120,13 +130,14 @@ passport.deserializeUser(initUserId);
 
 var authHandle = passport.authenticate('pragyan', {
     successRedirect: '/', 
-    failureRedirect: '/exit'
+    failureRedirect: '/unlogin'
 });
 app.get('/', renderPage('index'));
 app.get('/auth', authHandle);
-app.get('/match', renderPage('match'));
-app.get('/u/:id', userPage);
-app.get('/nologin', noLogin);
+app.get('/match', dummyMatch);
+app.get('/m/:mid', matchPage);
+app.get('/u/:pid', userPage);
+app.get('/unlogin', noLogin);
 app.get('*', notFound);
 
 function startServer() {
@@ -139,6 +150,30 @@ function logQuit(err) {
     process.exit(3);
 }
 
-mongoose.connect(MONGO_URL);
-mongoose.connection.once('open', startServer);
-mongoose.connection.on('error', logQuit);
+function popDummy(cb) {
+    var fs = require('fs');
+    function readMap(e, d) {
+        if(e) {
+            throw e;
+        }
+        dummy_map = d;
+        setImmediate(cb);
+    }
+    function readResult(e, d) {
+        if(e) {
+            throw e;
+        }
+        dummy_result = JSON.parse(d);
+        fs.readFile('./simulation/base.json', {encoding: 'utf8'}, readMap);
+    }
+    fs.readFile('./result.json', {encoding: 'utf8'}, readResult);
+
+}
+var dummy_result, dummy_map;
+function connMongo() {
+    mongoose.connect(MONGO_URL);
+    mongoose.connection.once('open', startServer);
+    mongoose.connection.on('error', logQuit);
+}
+
+popDummy(connMongo);

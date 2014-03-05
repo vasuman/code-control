@@ -5,11 +5,6 @@
 <body>
     <%- include header.ejs %>
     <div id = "versus">
-        <div id = "pA">
-        </div>
-        <b> vs. </b>
-        <div id = "pB">
-        </div>
     </div>
     <div id = "replay-frame">
         <canvas id = "render-canvas" width = 800 height = 800></canvas>
@@ -18,12 +13,12 @@
         <button id = "next-button">next</button>
         <button id = "prev-button">prev</button>
     </div>
-    <script src = "/render.js"></script>
     <script id = "map-json" type = "application/json">
-        <%- JSON.stringify(map) %>
+        <%- map %>
     </script>
     <script id = "replay-json" type = "application/json">
         <%- JSON.stringify(result.replay) %>
     </script>
+    <script src = "/render.js"></script>
 </body>
 </html>

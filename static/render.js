@@ -1,8 +1,8 @@
-var canvas, ctx, logArea, nextButton, prevButton,
-state, seek = -1, dir, delT = 0, entities = {}, bgCanvas,
-images = {}, prevTime, map, replay;
+var canvas, ctx, logTable, nextButton, prevButton,
+state, seek = 0, dir, delT = 0, entities = {}, bgCanvas,
+images = {}, prevTime, map, replay, dead = {};
 
-const LOADING = 0, ERROR = 1, DONE = 2, PLAY = 3;
+const LOADING = 0, ERROR = 1, DONE = 2;
 
 const MOVE_DELAY = 1000;
 function setImmediate(f) {
@@ -14,48 +14,24 @@ function setImmediate(f) {
 function initElements() {
     canvas = document.getElementById('render-canvas');
     ctx = canvas.getContext('2d');
-    logArea = document.getElementById('log-div');
     prevButton = document.getElementById('prev-button');
     nextButton = document.getElementById('next-button');
+    map = JSON.parse(document.getElementById('map-json').innerHTML);
+    replay = JSON.parse(document.getElementById('replay-json').innerHTML);
     prevButton.onclick = prevFrame;
     nextButton.onclick = nextFrame;
+    setImmediate(render);
 }
 
-function stripChar(x, ch) {
+function stripChar(x, ch, rp) {
     while(x.find(ch) != -1) {
-        x = x.replace(ch, '');
+        x = x.replace(ch, rp);
     }
     return x;
 }
 
 function XSafe(x) {
-    return stripChar(stripChar(x, '<'), '>');
-}
-
-function loadReplay(replayPath) {
-    return function() {
-        if(this.status != 200) {
-            state = ERROR;
-            return;
-        }
-        var replayXhr = new XMLHttpRequest;
-        map = JSON.parse(this.responseText);
-        replayXhr.onload = callRender;
-        replayXhr.open('GET', replayPath, true);
-        replayXhr.send();
-    }
-}
-
-function callRender() {
-    replay = JSON.parse(this.responseText).replay;
-    setImmediate(render);
-}
-
-function startLoad(mapPath, replayPath) {
-    var mapXhr = new XMLHttpRequest;
-    mapXhr.onload = loadReplay(replayPath);
-    mapXhr.open('GET', mapPath, true);
-    mapXhr.send();
+    return stripChar(stripChar(x, '<', '&lt;'), '>', '&gt');
 }
 
 function loadImages(imgList, callback) {
@@ -71,7 +47,7 @@ function loadImages(imgList, callback) {
             img.src = imgList[i];
         }
     }
-    cbWrap(0)();
+    setImmediate(cbWrap(0));
 }
 
 function drawBG() {
@@ -89,12 +65,10 @@ function drawBG() {
                                 tile.i * map.tileheight,
                                 map.tilewidth, map.tileheight,
                                 j * map.tilewidth, i * map.tileheight,
-                                map.tilewidth, map.tileheight
-                               );
+                                map.tilewidth, map.tileheight);
             }
         }
     }
-    bgCtx.setLineWidth(map.linewidth);
     for(i = 0; i <= map.height; i++) {
         bgCtx.beginPath();
         bgCtx.moveTo(0, i * map.tileheight);
@@ -112,8 +86,6 @@ function drawBG() {
     canvas.width = bgCanvas.width;
     canvas.height = bgCanvas.height;
     state = DONE;
-    ctx.drawImage(bgCanvas, 0, 0);
-    drawState();
     setImmediate(draw);
 }
 
@@ -128,95 +100,120 @@ function render() {
             }
         }
     }
-    loadImages(imgList, drawBG)
+    loadImages(imgList, drawBG);
 }
 
 function clone(x) {
     return JSON.parse(JSON.stringify(x));
 }
 
+function addRow(logEv) {
+    var row = logArea.insertRow(logArea.rows.length - 1),
+    logLvl = row.insertCell(0),
+    logTeam = row.insertCell(1),
+    logIdx = row.insertCell(2),
+    logMsg = row.insertCell(3);
+    logLvl.innerHTML = logEv.type;
+    logTeam.innerHTML = logEv.player;
+    logIdx.innerHTML = logEv.idx;
+    logMsg.innerHTML = XSafe(logEv.m);
+}
+
 function update() {
-    var curEv = replay[seek],
-    nextEv = replay[seek + dir];
-    if(curEv && curEv.log) {
-        logArea.innerHTML = '';
+    disableButtons();
+    if(dir != -1 && dir != 0) {
+        throw new Error('invalid direction');
     }
+    var curEv = replay[seek],
+    f = (dir == 0) ? 1: -1,
+    nextEv = replay[seek + dir];
     if(!nextEv) {
         throw new Error('undefined transition state!');
     }
+    clearFlags();
     if('spawn' in nextEv) {
-        if(dir == 1) {
+        if(dir == 0) {
             var entClone = clone(nextEv.spawn);
             entities[entClone.idx] = entClone;
-        } else if(dir == -1) {
+        } else {
             delete entities[nextEv.spawn.idx];
         }
-        return true;
-    }
-    if('log' in nextEv) {
-        logArea.innerHTML = XSafe(nextEv.log)
-        return true;
-    }
-    if('move' in nextEv) {
+    } else if('move' in nextEv) {
         var ent = nextEv.move,
         thisEnt = entities[ent.idx];
-        if(delT >= MOVE_DELAY) {
-            thisEnt.pos.i = ent.pos.i;
-            thisEnt.pos.j = ent.pos.j;
-            thisEnt.moveFlag = false;
-            return true;
+        thisEnt.pos.i += f * ent.pos.i;
+        thisEnt.pos.j += f * ent.pos.j;
+    } else if('damage' in nextEv) {
+        var ent = entities[nextEv.damage.idx];
+        ent.health -= f * nextEv.damage.amt;
+        ent.flags.damaged = true;
+    } else if('death' in nextEv) {
+        if(dir == 0) {
+            dead[nextEv.death] = entities[nextEv.death];
+            delete entities[nextEv.death];
+        } else {
+            entities[nextEv.death] = dead[nextEv.death];
+            delete dead[nextEv.death];
         }
-        var frac = (delT / MOVE_DELAY);
-        thisEnt.moveFlag = true;
-        thisEnt.tI = (1 - frac) * thisEnt.pos.i + frac * ent.pos.i;
-        thisEnt.tJ = (1 - frac) * thisEnt.pos.j + frac * ent.pos.j;
-        return false;
     }
-    if('attack' in nextEv) {
-        throw new Error('Unimplemented');
+    seek += f;
+    resetButtons();
+}
+
+function clearFlags() {
+    var key;
+    for(key in entities) {
+        if(entities.hasOwnProperty(key)) {
+            entities[key].flags = {};
+        }
     }
 }
 
 function drawState() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(bgCanvas, 0, 0);
-    var ent, drawX, drawY, img;
+    var ent, img;
     for(key in entities) {
         if(entities.hasOwnProperty(key)) {
             ent = entities[key];
             img = ent.image;
-            if(ent.moveFlag) {
-                drawY = ent.tI * map.tileheight;
-                drawX = ent.tJ * map.tilewidth;
-            } else {
-                drawX = ent.pos.j * map.tilewidth;
-                drawY = ent.pos.i * map.tileheight;
-            }
-            ctx.drawImage(images[img.name], img.j * map.tilewidth, img.i * map.tileheight, 
+            ctx.drawImage(images[img.name], img.j * map.tilewidth,
+                          img.i * map.tileheight, 
                           map.tilewidth, map.tileheight,
-                          drawX, drawY, map.tilewidth, map.tileheight);
+                          ent.pos.j * map.tilewidth,
+                          ent.pos.i * map.tileheight,
+                          map.tilewidth, map.tileheight);
         }
     }
 }
 
-function resetButtons(state) {
-    console.log('buttons reset');
+function disableButtons() {
+    prevButton.disabled = nextButton.disabled = true;
+}
+
+function resetButtons() {
+    if(seek > 0) {
+        prevButton.disabled = false;
+    }
+    if(seek <= (replay.length - 1)){
+        nextButton.disabled = false;
+    }
 }
 
 function nextFrame() {
-    dir = 1;
-    startPlay();
+    if(seek > (replay.length - 1)) {
+        return;
+    }
+    dir = 0;
+    update();
 }
 
 function prevFrame() {
+    if(seek <= 0) {
+        return;
+    }
     dir = -1;
-    startPlay();
-}
-
-function startPlay() {
-    resetButtons(false);
-    state = PLAY;
-    prevDate = Date.now();
+    update();
 }
 
 function drawText(text, size) {
@@ -229,18 +226,7 @@ function draw() {
         drawText('Loading...', 32);
     } else if(state == ERROR) {
         
-    } else {
-        if(state == PLAY) {
-            var nowDate = Date.now();
-            delT += (nowDate - prevDate);
-            prevDate = nowDate;
-            if(update()) {
-                delT = 0;
-                seek = seek + dir;
-                state = DONE;
-                resetButtons(true);
-            }
-        }
+    } else if(state == DONE) {
         drawState();
     }
     requestAnimationFrame(draw);
@@ -248,4 +234,4 @@ function draw() {
 
 /* DEBUG */
 initElements();
-startLoad('base.json', 'result.json');
+window.addEventListener('load', initElements, false);

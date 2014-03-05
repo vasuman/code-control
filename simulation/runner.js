@@ -69,9 +69,9 @@ function Runner(api, code, cBack, errBack, timeLimit) {
     }
 
     for(i = 0; i < code.length; i++) {
-        var err = linter.process(code[i], require(api));
+        var err = linter.process(code[i], require(api), ['update']);
         if(err.length > 0) {
-            setImmediate(errBack, i, new Error('Code failed to lint'));
+            setImmediate(errBack, i, new Error('Code failed to lint ' + err[0].reason));
             return;
         }
         proc[i] = {};

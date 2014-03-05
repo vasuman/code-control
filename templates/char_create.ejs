@@ -1,0 +1,17 @@
+<html>
+<head>
+<%- include req %>
+<title> New Character </title>
+</head>
+<body>
+<div id = "info">
+    <% label_for('char-name', 'name') %>
+    <% text_field_tag('char-name') %>
+</div>
+<div id = "editor">
+</div>
+<div id = "errors">
+</div>
+<% js_button('Submit', 'validate_submit') %>
+</body>
+</html>

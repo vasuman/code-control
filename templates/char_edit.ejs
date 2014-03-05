@@ -1,0 +1,14 @@
+<html>
+<head>
+<title> Edit Character </title>
+<%- include req %>
+<script src = "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/ace.js"></script>
+<script src = "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/mode-javascript.js"></script>
+<script src = "/compiled/edit_page.js"></script>
+</head>
+<body>
+<div id = "editor"> </div>
+<%- js_button('Save', 'save()') %>
+<%- js_button('Pass', 'pass()') %>
+</body>
+</html>

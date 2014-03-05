@@ -5,15 +5,13 @@ function finished(result) {
     fs.writeFile('result.json', JSON.stringify(result), process.exit);
 }
 
-const t_code = "\
-var messages = [];\
-function update(x) {\
-    return { action: 'move', dir: Direction.D };\
-}";
-
-const s_code = "\
-function update(x) {\
-    return { action: 'move', dir: Direction.R };\
-}"
-
-var lvl = new BattleLevel(t_code, s_code, "./static/base.json", finished);
+var codeA, codeB;
+fs.readFile('test/p-a.js', {encoding: 'utf8'}, function(e, d) {
+    if(e) throw e;
+    codeA = d;
+    fs.readFile('test/p-b.js', {encoding: 'utf8'}, function(e, d) {
+        if(e) throw e;
+        codeB = d;
+        new BattleLevel(codeA, codeB, "./simulation/base.json", finished, 103107, 109123);
+    });
+})

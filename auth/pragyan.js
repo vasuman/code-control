@@ -17,14 +17,16 @@ util.inherits(PragyanStrategy, passport.Strategy);
 PragyanStrategy.prototype.authenticate = function(req) {
     var sessionID = req.cookies[this._key];
     if(!sessionID) {
-        return this.pass();
+        return this.fail();
     }
     var self = this;
     function verify(err, user) {
         if(err) {
+            console.log('err');
             return self.error(err);
         }
         if(user == false) {
+            console.log('no');
             return self.fail();
         }
         self.success(user);

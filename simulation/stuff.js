@@ -5,6 +5,72 @@ var Direction = {
     R: 3,
 }
 
+function LinkList() {
+    var self = this,
+    head = null;
+
+    function getHead() {
+        return head.d;
+    }
+    this.getHead = getHead;
+
+    function isHead(x) {
+        return head.d == x;
+    }
+    this.isHead = isHead;
+
+    function append(d) {
+        var x = {};
+        x.d = d;
+        if(head == null) {
+            head = x;
+            x.n = x;
+            x.p = x;
+            return;
+        }
+        x.p = head.p;
+        x.n = head;
+        head.p = x;
+        x.p.n = x;
+    }
+    this.append = append;
+
+    function getNext(d) {
+        var x = head;
+        while(x.d != d) {
+            x = x.n;
+            if(x == head) {
+                return null;
+            }
+        }
+        return x.n.d;
+    }
+    this.getNext = getNext;
+
+    function remove(d) {
+        if(head == null) {
+            return;
+        }
+        var x = head;
+        while(x.d != d) {
+            x = x.n;
+            if(x == head) {
+                return;
+            }
+        }
+        if(head == x) {
+            if(x.n = x) {
+                head = null;
+                return;
+            }
+            head = x.n;
+        }
+        x.p.n = x.n;
+        x.n.p = x.p;
+    }
+    this.remove = remove;
+}
+
 function getMove(p, dir) {
     if(dir == Direction.U) {
         return new Point(p.i - 1, p.j);
@@ -155,3 +221,4 @@ module.exports.Grid = Grid;
 module.exports.Direction = Direction;
 module.exports.Tile = Tile;
 module.exports.getMove = getMove;
+module.exports.LinkList = LinkList;
