@@ -113,7 +113,7 @@ function doTrain(req, res) {
     function simDoneCb(err, r) {
         if(err) {
             console.log(err, r);
-            throw err;
+            return res.send(err);
         }
         var m = new models.Match({
             contenders: [char],
