@@ -208,7 +208,7 @@ function AbstractLevel(chars, jsonPath, finishCb) {
                 logMessage('ERR', ent.idx, ent.team, e.toString());
                 self.players[ent.team].errCount += 1;
                 if(self.players[ent.team].errCount > MAX_ERR) {
-                    setImmediate(finishCb, e, i);
+                    setImmediate(finishCb, e, ent.team);
                 }
             }
             setImmediate(act, updateList.getNext(ent));

@@ -43,6 +43,7 @@ charSchema.methods.getHealth = function() {
 charSchema.methods.getAttack = function() {
     return 10;
 }
+
 var userSchema = new Schema({
     pid: Number,
     chars: [{ type: Schema.Types.ObjectId, ref: 'Character' }],
