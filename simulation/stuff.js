@@ -175,6 +175,7 @@ function Grid(row, col) {
         dest = get(newPos);
         if(!isVaild(oldPos) || !isValid(newPos)) {
             console.log('Supplied, ' + oldPos + ', ' + newPos + ' invalid position');
+            return;
         }
         if((item == 0) || (item instanceof Tile)) {
             console.log('Source position is empty');

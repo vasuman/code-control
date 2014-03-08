@@ -204,11 +204,11 @@ function AbstractLevel(chars, jsonPath, finishCb) {
                     logMessage('MSG', ent.idx, ent.team, logs);
                 }
             } catch(e) {
-                console.log(e.stack);
+                console.log(e);
                 logMessage('ERR', ent.idx, ent.team, e.toString());
                 self.players[ent.team].errCount += 1;
                 if(self.players[ent.team].errCount > MAX_ERR) {
-                    setImmediate(finishCb, e, ent.team);
+                    return setImmediate(finishCb, e, ent.team);
                 }
             }
             setImmediate(act, updateList.getNext(ent));

@@ -91,8 +91,7 @@ function loadData() {
 }
 /* END DATA */
 
-function simErr(req, res) {
-}
+function simErr(req, res) { }
 
 function doTrain(req, res) {
     var char, jsonPath;
@@ -112,6 +111,7 @@ function doTrain(req, res) {
     }
     function simDoneCb(err, r) {
         if(err) {
+            console.log('here');
             console.log(err, r);
             return res.send(err);
         }
