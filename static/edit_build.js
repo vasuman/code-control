@@ -1,4 +1,4 @@
-var editor, session, saveButton, checkButton;
+var editor, session, saveButton, resultDiv, saveDiv;
 
 function init() {
     editor = ace.edit("editor");
@@ -7,10 +7,13 @@ function init() {
     session = editor.getSession();
     session.setUseWorker(false);
     session.setMode("ace/mode/javascript");
+    session.getDocument().on('change', function() {
+        saveDiv.innerHTML = 'NOT SAVED';
+    });
     saveButton = document.getElementById('save-button');
     saveButton.addEventListener('click', save);
-    resultDiv = document.getElementById('result-div');
-    testButton = document.getElementById('test-button');
+    resultDiv = document.getElementById('flag-div');
+    saveDiv = document.getElementById('save-div');
 }
 
 function makeMap(errors) {
@@ -20,6 +23,7 @@ function makeMap(errors) {
     });
     return res;
 }
+
 function doneSave() {
     if(this.status != 200) {
         console.log('Server Error');
@@ -29,12 +33,15 @@ function doneSave() {
         if(resp.status == 0) {
             console.log('Success');
             editor.getSession().setAnnotations([]);
+            resultDiv.innerHTML = 'OK';
         } else if(resp.status == 1) {
             console.log('Server W');
         } else if(resp.status == 2) {
             console.log('Error');
             editor.getSession().setAnnotations(resp.errors);
+            resultDiv.innerHTML = 'FAIL'
         }
+        saveDiv.innerHTML = 'saved';
     }
     setButtonState(true);
 }

@@ -1,4 +1,5 @@
 var express = require('express'),
+fs = require('fs'),
 linter = require('./common/lint'),
 app = express(),
 mongoose = require('mongoose'),
@@ -56,16 +57,16 @@ const DEF_LVL = [
 const START_EXP = 100;
 const START_LVL = 1;
 const TRAIN_DEF = [
-    new SelectOption('Simple', 'SimpleTraining'),
-    new SelectOption('Boss', 'BossTraining'),
-    new SelectOption('Swarm', 'SwarmTraining')
+    // new SelectOption('Simple', 'simple'),
+    // new SelectOption('Boss', 'boss'),
+    new SelectOption('Swarm', 'swarm')
 ];
 const DEF_MAP = [
     new SelectOption('Simple', 'base.json'),
     new SelectOption('Maze', 'maze.json')
 ];
 
-var spawnChar = {
+var swarmChar = {
     id: -1,
     code: '',
     getHealth: function() { return 30; },
@@ -78,7 +79,7 @@ function loadData() {
             if(err) {
                 throw err;
             }
-            v.pop()[key.pop()] = d;
+            val.pop()[key.pop()] = d;
             if(file.length > 0) {
                 fs.readFile(file.pop(), doneFRead(file, val, key));
             } else {
@@ -86,43 +87,50 @@ function loadData() {
             }
         }
     }
-    var fs = require('fs');
-    doneFRead(['spawn-char.js'], [spawnChar], ['code'])
+    fs.readFile('./simulation/swarm-code.js', { encoding: 'utf8' }, doneFRead([], [swarmChar], ['code']))
 }
 /* END DATA */
 
-function trainPage(req, res) {
-    function foundChar(char) {
-        
-    }
-    getChar(req.params.cname, foundChar, res);
-    res.render('train_char', {user: req.user})
+function simErr(req, res) {
 }
+
 function doTrain(req, res) {
-    function charFound(err, char) {
-        if(err) {
-            throw err;
-        }
-        if(!char) {
-            return res.redirect('/404');
-        }
-        if(!char.owner.equals(user._id)) {
+    var char;
+    function charFound(ch) {
+        char = ch;
+        if(!(req.user) || !(char.owner.equals(req.user._id))) {
             return res.redirect('/not_permit');
         }
-        var Level = require('./simulation/level')[req.params.level];
-        if(!Level) {
-            res.redirect('/404');
+        var jsonPath = req.params.jsonPath || 'base';
+        jsonPath = './simulation/' + jsonPath + '.json';
+        if(req.body.level == 'swarm') {
+            var SwarmLevel = require('./simulation/level').SwarmTraining;
+            new SwarmLevel(char, swarmChar, jsonPath, simDoneCb);
+        } else {
+            return res.redirect('/404');
         }
-        var level = new Level(char, req.params.jsonPath, simDoneCb);
     }
-    function simDoneCb(err, res) {
+    function simDoneCb(err, r) {
         if(err) {
-            return res.redirect('/simulation?err=1');
+            console.log(err, r);
+            throw err;
         }
-        if(res.winner) {
-        }
+        var m = new models.Match({
+            contenders: [char],
+            type: 'train',
+            map: req.params.jsonPath,
+            when: Date.now(),
+            result: r.score,
+            replay: r.replay
+        });
+        m.save(function(err) {
+            if(err) {
+                throw err;
+            }
+            res.redirect('/m/' + m._id);
+        });
     }
-    var level = require
+    getChar(req.params.cname, charFound);
 }
 
 function challenge() {
@@ -157,7 +165,26 @@ function unAuth(res, req) {
 }
 
 function matchPage(req, res) {
-    
+    var match;
+    function fileLoaded(err, d) {
+        if(err) {
+            throw err;
+        }
+        res.render('match', { map: d, user: req.user, match: match });
+    }
+    function foundMatch(err, m) {
+        if(err) {
+            throw err;
+        }
+        match = m;
+        if(!match) {
+            return res.redirect('/404');
+        }
+        fs.readFile(match.map, fileLoaded);
+    }
+    models.Match.findById(req.params.mid).
+        populate('contenders').
+        exec(foundMatch);
 }
 function userPage(req, res) {
     function buildOther(err, user) {
@@ -373,11 +400,11 @@ app.get('/m/:mid', matchPage);
 app.get('/u/:pid', userPage);
 app.get('/c/:cname', charPage);
 app.get('/c/:cname/edit', codePage);
-app.get('/c/:cname/train', trainPage);
 app.get('/char/create', createCharPage);
 app.get('/login_failed', noLogin);
 app.get('/leaderboard', leaderboard);
 app.post('/char/params', createChar);
+app.post('/c/:cname/train', doTrain);
 app.post('/c/:cname/save', saveChar);
 app.get('*', notFound);
 
@@ -393,7 +420,7 @@ function logQuit(err) {
 
 function connMongo() {
     mongoose.connect(MONGO_URL);
-    mongoose.connection.once('open', startServer);
+    mongoose.connection.once('open', loadData);
     mongoose.connection.on('error', logQuit);
 }
 

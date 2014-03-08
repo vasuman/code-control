@@ -12,9 +12,9 @@ function Map(level, jsonPath) {
 var matchSchema = new Schema({
     contenders: [{ type: Schema.Types.ObjectId, ref: 'Character' }],
     type: { type: String, enum: MATCH_TYPES },
-    map: Object,
+    map: String,
     when: Date,
-    winner: { type: Schema.Types.ObjectId, ref: 'Character' },
+    result: Object,
     replay: Object
 });
 
@@ -36,12 +36,20 @@ var charSchema = new Schema({
     matches: [{ type: Schema.Types.ObjectId, ref: 'Match'}]
 });
 
+charSchema.methods.getHealth = function() {
+    return 100;
+}
+
+charSchema.methods.getAttack = function() {
+    return 10;
+}
 var userSchema = new Schema({
     pid: Number,
     chars: [{ type: Schema.Types.ObjectId, ref: 'Character' }],
     requests: [{ type: Schema.Types.ObjectId, ref: 'Request' }]
 });
 
+module.exports.Request = mongoose.model('Request', requestSchema);
 module.exports.User = mongoose.model('User', userSchema);
 module.exports.Character = mongoose.model('Character', charSchema);
 module.exports.Match = mongoose.model('Match', matchSchema);

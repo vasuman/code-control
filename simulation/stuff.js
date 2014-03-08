@@ -7,31 +7,32 @@ var Direction = {
 
 function LinkList() {
     var self = this,
-    head = null;
+    head = null, tail = null;
 
     function getHead() {
         return head.d;
     }
     this.getHead = getHead;
 
-    function isHead(x) {
-        return head.d == x;
+    function isEnd(x) {
+        return tail.d == x;
     }
-    this.isHead = isHead;
+    this.isEnd = isEnd;
 
     function append(d) {
         var x = {};
         x.d = d;
-        if(head == null) {
+        if(head == null && tail == null) {
             head = x;
-            x.n = x;
-            x.p = x;
+            tail = x;
+            x.n = null;
+            x.p = null;
             return;
         }
-        x.p = head.p;
-        x.n = head;
-        head.p = x;
-        x.p.n = x;
+        x.p = tail;
+        x.n = null;
+        tail.n = x;
+        tail = x;
     }
     this.append = append;
 
@@ -39,9 +40,12 @@ function LinkList() {
         var x = head;
         while(x.d != d) {
             x = x.n;
-            if(x == head) {
+            if(x == null) {
                 return null;
             }
+        }
+        if(x == tail) {
+            return head.d;
         }
         return x.n.d;
     }
@@ -51,19 +55,26 @@ function LinkList() {
         if(head == null) {
             return;
         }
+        if(head == tail) {
+            head = tail = null;
+            return;
+        }
         var x = head;
         while(x.d != d) {
             x = x.n;
-            if(x == head) {
+            if(x == null) {
                 return;
             }
         }
         if(head == x) {
-            if(x.n = x) {
-                head = null;
-                return;
-            }
-            head = x.n;
+            head = head.n;
+            head.p = null;
+            return;
+        }
+        if(tail == x) {
+            tail = tail.p;
+            tail.n = null;
+            return;
         }
         x.p.n = x.n;
         x.n.p = x.p;

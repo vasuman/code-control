@@ -20,13 +20,22 @@ function Player(idx) {
 
 const P_A = 0, P_B = 1;
 
+function randInt(a, b) {
+    return a + Math.floor(Math.random() * (b - a));
+}
+
+
 function SwarmTraining(char, swarm, jsonPath, finishCb) {
     var self = this,
     pChar, spawned = [];
+
+    AbstractLevel.call(this, [char, swarm], jsonPath, finishCb);
+
     function isFinished() {
-        return pChar.dead;
+        return self.turn > MAX_TURNS || pChar.dead;
     }
     this.isFinished = isFinished;
+
     function getScore() {
         var i, score;
         for(i = 0; i < spawned.length; i++) {
@@ -36,25 +45,35 @@ function SwarmTraining(char, swarm, jsonPath, finishCb) {
         }
         return score;
     }
+
     function gameOver() {
         setImmediate(finishCb, null, { score: getScore(), replay: self.replay })
     }
     this.gameOver = gameOver;
+
     function init() {
-        new Controllable(P_B, self.getSpawn(), self, spawn.getHealth(), spawn.getAttack);
+        pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack())
+        new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack());
     }
     this.init = init;
 
     function nextIter() {
         if(self.turn % 5 == 0) {
-            new Controllable(P_B, self.getSpawn(), self, spawn.getHealth(), spawn.getAttack);
+            new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack());
         }
     }
     this.nextIter = nextIter;
-    SwarmTraining.call(this, [char, swarm], jsonPath, finishCb);
+
+    this.run();
 }
+
+util.inherits(SwarmTraining, AbstractLevel);
+
 function BattleLevel(charA, charB, jsonPath, finishCb) {
     var self = this;
+
+    AbstractLevel.call(this, [charA, charB], jsonPath, finishCb);
+
     function getNumEnt(x) {
         return Object.keys(self.players[x].ents).length;
     }
@@ -86,11 +105,6 @@ function BattleLevel(charA, charB, jsonPath, finishCb) {
     function nextIter() {}
     this.nextIter = nextIter;
 
-    function randInt(a, b) {
-        return a + Math.floor(Math.random() * (b - a));
-    }
-
-    AbstractLevel.call(this, [charA, charB], jsonPath, finishCb);
     this.run();
 }
 
@@ -249,7 +263,7 @@ function AbstractLevel(chars, jsonPath, finishCb) {
         if(ent == null) {
             ent = updateList.getHead();
         }
-        if(updateList.isHead(ent)) {
+        if(updateList.isEnd(ent)) {
             self.turn += 1;
             self.nextIter();
             // LOOP DONE
@@ -281,3 +295,4 @@ function AbstractLevel(chars, jsonPath, finishCb) {
 }
 
 module.exports.BattleLevel = BattleLevel;
+module.exports.SwarmTraining = SwarmTraining;

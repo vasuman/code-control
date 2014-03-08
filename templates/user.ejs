@@ -11,7 +11,7 @@
     <ul id = "characters"> 
     <% other.chars.forEach(function(char) { %>
         <li>
-        <%- link_to(char.type + ':' + char.name , '/c/' + char.name) %> 
+        <%- link_to(char.name , '/c/' + char.name) %> 
         </li>
     <% }); %>
     </ul>

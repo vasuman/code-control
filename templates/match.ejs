@@ -4,7 +4,20 @@
 </head>
 <body>
     <%- include header.ejs %>
+    <div id = "info">
+        <h2> Info </h2>
+        <ul>
+            <li> Played on, <%= match.when %> </li>
+            <li> Type, <%= match.type %> </li>
+        </ul>
+    </div>
     <div id = "versus">
+        <h2> Contenders </h2>
+        <ul>
+        <% match.contenders.forEach(function(contender) { %>
+            <li> <%- link_to(contender.name, '/c/' + contender.name) %> </li>
+        <% }); %>
+        </ul>
     </div>
     <div id = "replay-frame">
         <canvas id = "render-canvas" width = 800 height = 800></canvas>
@@ -18,7 +31,7 @@
         <%- map %>
     </script>
     <script id = "replay-json" type = "application/json">
-        <%- JSON.stringify(result.replay) %>
+        <%- JSON.stringify(match.replay) %>
     </script>
     <script src = "/render.js"></script>
 </body>
