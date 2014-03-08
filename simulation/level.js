@@ -123,7 +123,6 @@ function AbstractLevel(chars, jsonPath, finishCb) {
     updateList = new LinkList, moveDel = [],
     self = this,
     msg = '', runner;
-    
 
     this.players = chars.map(function(x) {
         return new Player(x.id);

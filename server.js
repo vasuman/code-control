@@ -111,7 +111,6 @@ function doTrain(req, res) {
     }
     function simDoneCb(err, r) {
         if(err) {
-            console.log('here');
             console.log(err, r);
             return res.send(err);
         }
@@ -127,7 +126,13 @@ function doTrain(req, res) {
             if(err) {
                 throw err;
             }
-            res.redirect('/m/' + m._id);
+            char.matches.append(m._id);
+            char.save(function(err) {
+                if(err) {
+                    throw err;
+                }
+                res.redirect('/m/' + m._id);
+            });
         });
     }
     getChar(req.params.cname, charFound);
