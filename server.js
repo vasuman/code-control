@@ -95,13 +95,13 @@ function simErr(req, res) {
 }
 
 function doTrain(req, res) {
-    var char;
+    var char, jsonPath;
     function charFound(ch) {
         char = ch;
         if(!(req.user) || !(char.owner.equals(req.user._id))) {
             return res.redirect('/not_permit');
         }
-        var jsonPath = req.params.jsonPath || 'base';
+        jsonPath = req.params.jsonPath || 'base';
         jsonPath = './simulation/' + jsonPath + '.json';
         if(req.body.level == 'swarm') {
             var SwarmLevel = require('./simulation/level').SwarmTraining;
@@ -118,7 +118,7 @@ function doTrain(req, res) {
         var m = new models.Match({
             contenders: [char],
             type: 'train',
-            map: req.params.jsonPath,
+            map: jsonPath,
             when: Date.now(),
             result: r.score,
             replay: r.replay
