@@ -1,0 +1,13 @@
+<html>
+<head>
+<%- include req %>
+<title> Train <%= char.name %> </title>
+</head>
+<body>
+<%- include header %>
+<%- form_tag('do') %>
+<%- label_for('level') %>
+<%- select_tag('level', TRAIN_LVL) %>
+<%- form_end_tag() %>
+</body>
+</html>

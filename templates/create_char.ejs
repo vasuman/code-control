@@ -1,0 +1,26 @@
+<html>
+<head>
+<%- include req %>
+<title> New Character </title>
+</head>
+<body>
+<%- include header %>
+<div id = "info">
+<%- form_tag('/char/params') %>
+    <%- label_for('name') %>
+    <%- text_field_tag('name') %>
+    <% if(err) { %>
+        <div id = "name-err">
+        <% if(err == 1) { %>
+            Name must be 5-15 characters of lowercase and numbers
+        <% } else if(err == 2) { %>
+            Name is already taken
+        <% } %>
+        </div>
+    <% } %>
+    <%- label_for('type') %>
+    <%- select_tag('type', allowed_types) %>
+    <%- submit_tag('create') %>
+<%- form_end_tag() %>
+</body>
+</html>

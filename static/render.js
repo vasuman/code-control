@@ -11,6 +11,11 @@ function setImmediate(f) {
     }, 0)
 }
 
+function downloadLink() {
+    var a = document.getElementById('dload-link');
+    a.href = 'data:application/json;charset=utf-8;base64,' + btoa(JSON.stringify(replay));
+}
+
 function initElements() {
     canvas = document.getElementById('render-canvas');
     ctx = canvas.getContext('2d');
@@ -20,6 +25,7 @@ function initElements() {
     replay = JSON.parse(document.getElementById('replay-json').innerHTML);
     prevButton.onclick = prevFrame;
     nextButton.onclick = nextFrame;
+    downloadLink();
     setImmediate(render);
 }
 
@@ -159,6 +165,7 @@ function update() {
     seek += f;
     resetButtons();
 }
+
 
 function clearFlags() {
     var key;

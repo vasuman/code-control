@@ -11,12 +11,12 @@ ControlException.prototype.toString = function() {
     return "ControlException: {Invalid Return} " + this.reason;
 }
 
-function Controllable(team, p, level, health) {
-    var self = this,
-    attack_damage = 10;
+function Controllable(team, p, level, health, attack_damage) {
+    var self = this;
     this.type = 'warrior';
     this.health = health;
     this.team = team;
+    this.dead = false;
     this.pos = new Point(p.i, p.j);
     if(!level.grid.isValid(self.pos)) {
         throw new Error('Spawn position is invalid');
@@ -83,6 +83,7 @@ function Controllable(team, p, level, health) {
     this.update = update;
 
     function kill() {
+        self.dead = true;
         level.grid.put(self.pos, 0);
         level.destroy(self);
         level.deathEvent(self.idx);
@@ -96,6 +97,7 @@ function Controllable(team, p, level, health) {
         }
     }
     this.damage = damage;
+    level.addEntity(this);
     var spawnObject = stuff.copy(self);
     spawnObject.image = getImage(this.type, this.team);
     level.spawnEvent(spawnObject);

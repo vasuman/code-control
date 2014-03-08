@@ -8,11 +8,10 @@
     <div id = "user-data">
     <% if(user) { %>
         <ul>
-            <li> Score: <%= user.points %></li>
             <li><%- link_to(user.pid, '/u/' + user.pid) %></li>
         </ul>
     <% } else { %>
-        <%- link_to('Login', '/auth') %>
+        <%- link_to('Login', '/login') %>
     <% } %>
     </div>
 </header>

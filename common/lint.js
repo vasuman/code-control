@@ -30,7 +30,13 @@ function process(code, globals, req_func) {
         var errors = j.data().errors, e;
         for(i = 0; i < errors.length; i++) {
             e = errors[i];
-            warn.push({ line: e.line, reason: e.reason });
+            warn.push({ 
+                row: e.line - 1, 
+                text: e.reason, 
+                raw: e.reason, 
+                column: e.character,
+                type: 'error'
+            });
         }
     } else {
         if(req_func) {
@@ -38,8 +44,11 @@ function process(code, globals, req_func) {
             for(i = 0; i < req_func.length; i++) {
                 if(!(req_func[i] in f)) {
                     warn.push({ 
-                        line: 1, 
-                        reason: 'Function ' + req_func[i] + ' is not defined'
+                        row: 0, 
+                        text: 'Function ' + req_func[i] + ' is not defined',
+                        column: 1,
+                        type: 'warning',
+                        raw: 'Required function not defined'
                     });
                 }
             }

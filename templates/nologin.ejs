@@ -1,14 +1,17 @@
 <html>
 <head>
     <%- include req %>
+    <title> Not logged in </title>
 </head>
 <body>
 <%- include header %>
 <div id = "message">
     <p>
     You are not logged in.
-    Login at <a href="http://pragyan.org">Main site</a> then visit
-    <a href="/auth">this</a> to complete login.
+    </p>
+    <p>
+    Login at <a href="http://pragyan.org" target="_blank">Main site</a> then visit
+    <a href="/login">this</a> to complete login.
     </p>
 </body>
 </html>

@@ -6,19 +6,21 @@
 <body>
 <%- include header %>
 <div id = "about">
-    <h2> about </h2>
-    <%= other.pid %> stats,
-    score: <%= other.points %>
     <% if(other.chars.length > 0) { %>
     <h3>characters:</h3>
-    <ul id = "characters">
-        <% other.chars.forEach(function(char) { %>
+    <ul id = "characters"> 
+    <% other.chars.forEach(function(char) { %>
         <li>
-            <%- link_to(char.type + ':' + char.name , '/c/' + char.name) %>
+        <%- link_to(char.type + ':' + char.name , '/c/' + char.name) %> 
         </li>
-        <% }); %>
+    <% }); %>
     </ul>
     <% } %>
+    <div id = "actions">
+    <% if(user && other.pid == user.pid) { %>
+        <%- button_to('Create', '/char/create') %>
+    <% } %>
+    </div>
 </div>
 </body>
 </html>

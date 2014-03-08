@@ -1,0 +1,23 @@
+<html>
+<head>
+<%- include req %>
+<title> Leaderboard </title>
+</head>
+<body>
+<%- include header %>
+<table>
+    <thead>
+        <th> Position </th>
+        <th> Name </th>
+        <th> Experience </th>
+    </thead>
+    <% topChars.forEach(function(char, i) { %>
+        <tr>
+            <td> <%= i %> </td>
+            <td> <%- link_to(char.name, '/c/' + char.name) %> </td>
+            <td> <%= char.experience %> </td>
+        </tr>
+    <% }); %>
+</table>
+</body>
+</html>

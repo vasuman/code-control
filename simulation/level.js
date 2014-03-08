@@ -1,4 +1,5 @@
 var fs = require('fs'),
+util = require('util');
 stuff = require('./stuff'),
 run = require('./runner'),
 baseEnt = require('./entities/base'),
@@ -19,39 +20,127 @@ function Player(idx) {
 
 const P_A = 0, P_B = 1;
 
-function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
-    var entities = {},
-    updateList = new LinkList, moveDel = [],
-    def, self = this, turn = 0, replay = [], 
-    msg = '',
-    runner = new Runner('./api', [codeA, codeB], loadMap, errBack, 1000);
-    this.players = [new Player(idA), new Player(idB)];
-    this.grid = null;
-    this.tSet = {};
+function SwarmTraining(char, swarm, jsonPath, finishCb) {
+    var self = this,
+    pChar, spawned = [];
+    function isFinished() {
+        return pChar.dead;
+    }
+    this.isFinished = isFinished;
+    function getScore() {
+        var i, score;
+        for(i = 0; i < spawned.length; i++) {
+            if(spawned[i].dead) {
+                score += 1;
+            }
+        }
+        return score;
+    }
+    function gameOver() {
+        setImmediate(finishCb, null, { score: getScore(), replay: self.replay })
+    }
+    this.gameOver = gameOver;
+    function init() {
+        new Controllable(P_B, self.getSpawn(), self, spawn.getHealth(), spawn.getAttack);
+    }
+    this.init = init;
 
+    function nextIter() {
+        if(self.turn % 5 == 0) {
+            new Controllable(P_B, self.getSpawn(), self, spawn.getHealth(), spawn.getAttack);
+        }
+    }
+    this.nextIter = nextIter;
+    SwarmTraining.call(this, [char, swarm], jsonPath, finishCb);
+}
+function BattleLevel(charA, charB, jsonPath, finishCb) {
+    var self = this;
     function getNumEnt(x) {
         return Object.keys(self.players[x].ents).length;
     }
+
     function isFinished() {
-        return turn > MAX_TURNS || getNumEnt(P_A) == 0 || getNumEnt(P_B)== 0;
+        return self.turn > MAX_TURNS || getNumEnt(P_A) == 0 || getNumEnt(P_B) == 0;
     }
+    this.isFinished = isFinished;
 
     function gameOver() {
         var numA = Object.keys(self.players[P_A]).length,
         numB = Object.keys(self.players[P_B]).length;
         if(numA > numB) {
-            setImmediate(finishCb, { winner: idA, replay: replay });
+            setImmediate(finishCb, null, { winner: charA.id, replay: self.replay });
         } else if(numB > numA) {
-            setImmediate(finishCb, { winner: idB, replay: replay });
+            setImmediate(finishCb, null, { winner: charB.id, replay: self.replay });
         } else {
-            setImmediate(finishCb, { winner: null, replay: replay });
+            setImmediate(finishCb, null, { winner: null, replay: self.replay });
         }
     }
+    this.gameOver = gameOver;
+
+    function init() {
+        new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack());
+        new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack());
+    }
+    this.init = init;
+    
+    function nextIter() {}
+    this.nextIter = nextIter;
+
+    function randInt(a, b) {
+        return a + Math.floor(Math.random() * (b - a));
+    }
+
+    AbstractLevel.call(this, [charA, charB], jsonPath, finishCb);
+    this.run();
+}
+
+util.inherits(BattleLevel, AbstractLevel);
+
+/* CHAR IFACE */
+
+/* getAttack()
+ * getHealth()
+ * code
+ * id
+ */
+
+function AbstractLevel(chars, jsonPath, finishCb) {
+    var entities = {},
+    updateList = new LinkList, moveDel = [],
+    self = this,
+    msg = '', runner;
+    
+
+    this.players = chars.map(function(x) {
+        return new Player(x.id);
+    });
+    this.grid = null;
+    this.tSet = {};
+    this.turn = 0;
+    this.replay = [];
+
+    function run() {
+        var code = chars.map(function(x) {
+            return x.code;
+        });
+        runner = new Runner('./api', code, loadMap, errBack, 1000);
+    }
+    this.run = run;
 
     function spawnEvent(ent) {
         addEvent('spawn', ent);
     }
     this.spawnEvent = spawnEvent;
+
+    function getSpawn() {
+        var p = {};
+        do {
+            p.i = randInt(0, self.def.height);
+            p.j = randInt(0, self.def.width);
+        } while(self.grid.get(p) != 0);
+        return p;
+    }
+    this.getSpawn = getSpawn;
 
     function damageEvent(idx, amt) {
         addEvent('damage', {
@@ -75,15 +164,13 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
     function addEvent(type, data) {
         var event = {};
         event[type] = data;
-        replay.push(event);
+        self.replay.push(event);
     }
 
     function errBack(i, e) {
         console.log('INV_CODE Error, must die..');
-        setImmediate(finishCb, { error: e.toString(), player: i });
+        setImmediate(finishCb, e, i);
     }
-
-    function doSpawn() { }
 
     function logMessage(type, i, t, m) {
         var logObj = { type: type, idx: i, player: t, m: m };
@@ -107,10 +194,7 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
                 logMessage('ERR', ent.idx, ent.team, e.toString());
                 self.players[ent.team].errCount += 1;
                 if(self.players[ent.team].errCount > MAX_ERR) {
-                    setImmediate(finishCb, { 
-                        error: e.toString(),
-                        player: ent.team 
-                    });
+                    setImmediate(finishCb, e, i);
                 }
             }
             setImmediate(act, updateList.getNext(ent));
@@ -121,13 +205,13 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
         return {
             entities: entities,
             grid: self.grid, 
-            turn: turn,
+            turn: self.turn,
             self: ent
         };
     }
 
     function loadMap() {
-        if(++loadMap.count < 2) {
+        if(++loadMap.count < chars.length) {
             return;
         }
         fs.readFile(jsonPath, { encoding: 'utf8' }, fReadCback);
@@ -136,25 +220,19 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
 
     function fReadCback(err, d) {
         if(err) {
-            throw err;
+            return setImmediate(finishCb, err);
         }
-        def = JSON.parse(d);
-        self.grid = new Grid(def.height, def.width);
+        self.def = JSON.parse(d);
+        self.grid = new Grid(self.def.height, self.def.width);
         // Building tilesets
-        for(key in def.tiledata) {
-            if(def.tiledata.hasOwnProperty(key)) {
-                self.tSet[key] = new Tile(def.tiledata[key], key);
+        for(key in self.def.tiledata) {
+            if(self.def.tiledata.hasOwnProperty(key)) {
+                self.tSet[key] = new Tile(self.def.tiledata[key], key);
             }
         }
-        self.grid.loadTilemap(def.data, self.tSet);
-        //DEBUG!?
-        doDebug();
+        self.grid.loadTilemap(self.def.data, self.tSet);
+        self.init();
         act(null);
-    }
-
-    function doDebug() {
-        addEntity(new Controllable(0, getSpawn(), self, 100));
-        addEntity(new Controllable(1, getSpawn(), self, 100));
     }
 
     function destroy(e) {
@@ -172,12 +250,13 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
             ent = updateList.getHead();
         }
         if(updateList.isHead(ent)) {
-            turn += 1;
+            self.turn += 1;
+            self.nextIter();
             // LOOP DONE
             // UPDATE REST!?
             // ADD HOOK for next
-            if(isFinished()) {
-                gameOver();
+            if(self.isFinished()) {
+                self.gameOver();
                 return false;
             }
         }
@@ -189,22 +268,11 @@ function BattleLevel(codeA, codeB, jsonPath, finishCb, idA, idB) {
         return true;
     }
 
-    function randInt(a, b) {
-        return a + Math.floor(Math.random() * (b - a));
-    }
-    function getSpawn() {
-        var p = {};
-        do {
-            p.i = randInt(0, def.height);
-            p.j = randInt(0, def.width);
-        } while(self.grid.get(p) != 0);
-        return p;
-    }
-
     function addEntity(ent) {
         entities[ent.idx] = ent;
         updateList.append(ent);
     }
+    this.addEntity = addEntity;
 
     function getGameState() {
         return entities;

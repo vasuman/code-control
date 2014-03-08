@@ -20,6 +20,9 @@ function cbackWrapper(cback) {
 
 const VERIFY_URL = 'http://pragyan.org/14/cms/codecharacter.php?kookie='
 function verifyCookie(kookie, cback) {
+    /* DEBUG */
+    //return cback(null, {pid: '111016'});
+    /* END DEBUG */
     var get = req.get(VERIFY_URL + kookie, cbackWrapper(cback));
 }
 

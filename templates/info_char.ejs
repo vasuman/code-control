@@ -1,0 +1,53 @@
+<html>
+<head>
+<%- include req %>
+<title> Character <%= char.name %> </title>
+</head>
+<body>
+<%- include header %>
+<h2> <%= char.name %> </h2>
+<div id = "about">
+<h3> about </h3>
+<ul>
+    <%= char.type %>
+    <li> experience, <%= char.experience %> </li>
+    <li> <%- link_to('owner', '/u/' + char.owner.pid) %> </li>
+    <li> created, <%= char.creation %> </li>
+    <li> passed tests, <%= char.passed %> </li>
+</ul>
+</div>
+<% if(user) { %>
+<% var isOwner = char.owner._id.equals(user._id) %>
+<div id = "actions">
+<% if(isOwner) { %>
+    <%- button_to('edit', '/c/' + char.name + '/edit') %>
+<% } %>
+<% if(char.passed) { %>
+    <% if(isOwner) { %>
+        <%- form_tag('train') %>
+        <%- label_for('level') %>
+        <%- select_tag('level', train_level) %>
+        <%- submit_tag('Train') %>
+        <%- form_end_tag() %>
+    <% } else { %>
+        <%- button_to('challenge', '/c/' + char.name + '/challenge') %>
+    <% } %>
+<% } %>
+</div>
+<% } %>
+<% if(char.matches.length > 0) { %>
+<h3> matches </h3>
+<div id = "recent-matches">
+    <ul>
+    <% char.matches.forEach(function(match) { %>
+        <li>
+        <% var outcome = (match.winner._id == char._id) ? 'win' : 'lose'; %>
+        <div class = "match-<%= outcome %>">
+            <%= link_to(outcome, '/m/' + match._id) %> 
+        </div>
+        </li>
+    <% }) %>
+    </ul>
+<% } %>
+</body>
+<html>

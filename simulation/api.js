@@ -51,14 +51,11 @@ function getType(object) {
     return (object.type || 'none')
 }
 
-function log(x) {
-    if(x.length > 100) {
-        
-    }
-}
 module.exports.Point = Point;
 module.exports.getMove = stuff.getMove;
 module.exports.Direction = Direction;
 module.exports.log = console.log;
 module.exports.getDistance = getDistance;
 module.exports.getDirection = getDirection;
+module.exports.getEntArray = getEntArray;
+module.exports.getType = getType;
