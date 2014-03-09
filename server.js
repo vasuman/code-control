@@ -68,7 +68,7 @@ const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
 const DEF_LVL = [
     new SelectOption('Battle', 'battle')
 ];
-const START_EXP = 100;
+const START_EXP = 10;
 const START_LVL = 1;
 const TRAIN_DEF = [
     // new SelectOption('Simple', 'simple'),
@@ -77,7 +77,6 @@ const TRAIN_DEF = [
 ];
 const EXP_DIFF = 75;
 const EXP_GAIN = 15;
-const START_EXP = 10;
 const DEF_MAP = [
     new SelectOption('Simple', 'base.json'),
     new SelectOption('Maze', 'maze.json')
