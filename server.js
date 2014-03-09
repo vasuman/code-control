@@ -31,6 +31,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(app.router);
 
+app.locals.format_date_t = function(d) {
+    return d.toDateString() + '    ' + d.toTimeString().split(' ')[0];
+}
 function SelectOption(text, value) {
     this.text = text;
     this.value = value;
@@ -93,6 +96,16 @@ function loadData() {
 
 function simErr(req, res) { }
 
+function isValidMap(map) {
+    var i;
+    for(i = 0; i < DEF_MAP.length; i++) {
+        if(map == DEF_MAP[i].value) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function doTrain(req, res) {
     var char, jsonPath;
     function charFound(ch) {
@@ -100,8 +113,10 @@ function doTrain(req, res) {
         if(!(req.user) || !(char.owner.equals(req.user._id))) {
             return res.redirect('/not_permit');
         }
-        jsonPath = req.params.jsonPath || 'base';
-        jsonPath = './simulation/' + jsonPath + '.json';
+        if(!isValidMap(req.body.map)) {
+            return res.redirect('/404');
+        }
+        jsonPath = path.join('./simulation', req.body.map);
         if(req.body.level == 'swarm') {
             var SwarmLevel = require('./simulation/level').SwarmTraining;
             new SwarmLevel(char, swarmChar, jsonPath, simDoneCb);
@@ -114,6 +129,7 @@ function doTrain(req, res) {
             console.log(err, r);
             return res.send(err);
         }
+        console.log(r);
         var m = new models.Match({
             contenders: [char],
             type: 'train',
@@ -126,7 +142,8 @@ function doTrain(req, res) {
             if(err) {
                 throw err;
             }
-            char.matches.append(m._id);
+            char.matches.push(m._id);
+            char.experience += r.score;
             char.save(function(err) {
                 if(err) {
                     throw err;
@@ -138,9 +155,7 @@ function doTrain(req, res) {
     getChar(req.params.cname, charFound);
 }
 
-function challenge() {
-    
-}
+function challenge() {}
 
 function extend(target) {
     var sources = [].slice.call(arguments, 1);
@@ -271,7 +286,8 @@ function charPage(req, res) {
         if(!char) {
             res.redirect('/404');
         }
-        res.render('info_char', { user: req.user, char: char, train_level: TRAIN_DEF });
+        console.log(char);
+        res.render('info_char', { user: req.user, char: char, allowed_maps: DEF_MAP, train_level: TRAIN_DEF });
     }
     models.Character.findOne({ name: req.params.cname }).
         populate('owner').
@@ -370,7 +386,7 @@ function saveChar(req, res) {
         errs = linter.process(req.body.code, require('./simulation/api'), ['update']);
         /* END DATA */
         char.code = req.body.code;
-        char.passed = errs.length == 0;
+        char.passed = (errs.length == 0);
         char.save(doneSave);
     }
     if(!req.body.code) {

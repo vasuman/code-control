@@ -1,5 +1,5 @@
 var vm = require('vm'),
-ctx = {}, code, ctors = {};
+ctx = { this: null }, code, ctors = {};
 
 function deepFreeze (o) {
     var prop, propKey;

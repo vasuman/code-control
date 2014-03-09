@@ -89,12 +89,12 @@ function Controllable(team, p, level, health, attack_damage) {
         level.deathEvent(self.idx);
     }
     function damage(amt) {
-        level.damageEvent(self.idx, Math.min(self.health, amt));
         self.health -= amt;
-        if(self.health <= 0) {
+        if(self.health < 1) {
             kill();
             return;
         }
+        level.damageEvent(self.idx, Math.min(self.health, amt));
     }
     this.damage = damage;
     level.addEntity(this);

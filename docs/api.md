@@ -53,7 +53,7 @@ Function that gets the *direction* of the maximum difference between `pointB` an
 
 ## getEntArray
 
-*Parameters*: `params`, `idx`
+*Parameters*: `params`
 
 Function that returns the entities on the map as an `Array`
 
@@ -61,11 +61,7 @@ Function that returns the entities on the map as an `Array`
 
 *Parameters*: `object`
 
-Function that returns the *type* of object from the return value of [getAt](#getat). Returns,
-
-* `"entity"`
-* `"empty"`
-* `"tile"`
+Function that returns the *type* of object from the return value of [getAt](#getat) or `none` if it's empty.
 
 ## getMove
 

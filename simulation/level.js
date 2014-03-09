@@ -37,7 +37,7 @@ function SwarmTraining(char, swarm, jsonPath, finishCb) {
     this.isFinished = isFinished;
 
     function getScore() {
-        var i, score;
+        var i, score = 0;
         for(i = 0; i < spawned.length; i++) {
             if(spawned[i].dead) {
                 score += 1;
@@ -53,13 +53,13 @@ function SwarmTraining(char, swarm, jsonPath, finishCb) {
 
     function init() {
         pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack())
-        new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack());
+        spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack()));
     }
     this.init = init;
 
     function nextIter() {
         if(self.turn % 5 == 0) {
-            new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack());
+            spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack()));
         }
     }
     this.nextIter = nextIter;

@@ -1,17 +1,14 @@
-<header id = "header" class = "header">
-    <div id = "event-name"><h1> Code Character </h1></div>
-    <div id = "links">
-        <ul>
-            <li><a href = "/docs/">Docs</a></li>
-        </ul>
+<nav id = "header" class = "navbar navbar-default">
+    <div class = "navbar-header">
+        <a id = "event-name" class = "navbar-brand" href = "/">Code Character </a>
     </div>
-    <div id = "user-data">
+    <ul class = "nav navbar-nav">
+        <li><a href = "/docs/">Docs</a></li>
+        <li><a href = "/leaderboard">Leaderboard</a></li>
     <% if(user) { %>
-        <ul>
-            <li><%- link_to(user.pid, '/u/' + user.pid) %></li>
-        </ul>
+        <li><%- link_to(user.pid, '/u/' + user.pid) %></li>
     <% } else { %>
-        <%- link_to('Login', '/login') %>
+        <li><%- link_to('Login', '/login') %></li>
     <% } %>
-    </div>
-</header>
+    </ul>
+</nav>

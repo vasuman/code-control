@@ -1,38 +1,48 @@
 <html>
 <head>
-    <title>test</title>
+    <%- include req %>
+    <title>Match</title>
 </head>
 <body>
-    <%- include header.ejs %>
+<%- include header %>
+<div class = "container centered">
     <div id = "info">
         <h2> Info </h2>
         <ul>
-            <li> Played on, <%= match.when %> </li>
+            <li> Played on, <%= format_date_t(match.when) %> </li>
             <li> Type, <%= match.type %> </li>
         </ul>
     </div>
     <div id = "versus">
         <h2> Contenders </h2>
         <ul>
-        <% match.contenders.forEach(function(contender) { %>
-            <li> <%- link_to(contender.name, '/c/' + contender.name) %> </li>
+            <% match.contenders.forEach(function(contender) { %>
+                <li> <%- link_to(contender.name, '/c/' + contender.name) %> </li>
         <% }); %>
         </ul>
     </div>
+    <div id = "result" >
+    <h2> Result </h2>
+    <% if(match.type == 'train') { %>
+        Earned experience <%= match.result %>
+    <% } else { %>
+        Winner <%= match.result %>
+    <% } %>
+    </div>
     <div id = "replay-frame">
+        <h2> Replay </h2>
         <canvas id = "render-canvas" width = 800 height = 800></canvas>
     </div>
     <div id = "replay-buttons">
-        <button id = "next-button">next</button>
-        <button id = "prev-button">prev</button>
+        <button class = "btn sp-but" id = "next-button">next</button>
+        <button class = "btn sp-but" id = "prev-button">prev</button>
+        <button class = "btn sp-but" id = "pause-button">pause</button>
+        <button class = "btn sp-but" id = "play-button">play</button>
+        <button class = "btn sp-but" id = "reset-button">reset</button>
+        <a id = "dload-link" style = "margin-left:5em;"><b>Download</b></a>
     </div>
-    <a id = "dload-link">Download</a>
-    <script id = "map-json" type = "application/json">
-        <%- map %>
-    </script>
-    <script id = "replay-json" type = "application/json">
-        <%- JSON.stringify(match.replay) %>
-    </script>
+    <script id = "map-json" type = "application/json"> <%- map %> </script>
+    <script id = "replay-json" type = "application/json"> <%- JSON.stringify(match.replay) %> </script>
     <script src = "/render.js"></script>
-</body>
+</div></body>
 </html>

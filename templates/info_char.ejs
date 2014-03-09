@@ -5,50 +5,78 @@
 </head>
 <body>
 <%- include header %>
-<h2> <%= char.name %> </h2>
-<div id = "about">
-<h3> about </h3>
-<ul>
-    <%= char.type %>
-    <li> experience, <%= char.experience %> </li>
-    <li> owner, <%- link_to(char.owner.pid, '/u/' + char.owner.pid) %> </li>
-    <li> created, <%= char.creation.getDate() + '/' + char.creation.getMonth() +
-        '/' + char.creation.getFullYear() + '  -  ' + char.creation.getHours() + ':' + char.creation.getMinutes()  %> </li>
-    <li> passed tests, <%= char.passed %> </li>
-</ul>
-</div>
-<% if(user) { %>
-<% var isOwner = char.owner._id.equals(user._id) %>
-<div id = "actions">
-<% if(isOwner) { %>
-    <%- button_to('edit', '/c/' + char.name + '/edit') %>
-<% } %>
-<% if(char.passed) { %>
+<center> <h2> <%= char.name %> </h2> </center>
+<div class = "container centered ">
+    <div id = "about" class = "col-lg-4 well">
+        <h3> About </h3>
+        <ul>
+            <li> <b>Class:</b> <%= char.type %> </li>
+            <li> <b>Exp:</b> <%= char.experience %> </li>
+            <li> <b>Owner:</b> <%- link_to(char.owner.pid, '/u/' + char.owner.pid) %> </li>
+            <li> <b>Created:</b> <%- format_date_t(char.creation)%> </li>
+        </ul>
+    </div>
+    <% if(user) { %>
+    <% var isOwner = char.owner._id.equals(user._id) %>
     <% if(isOwner) { %>
-        <%- form_tag('/c/' + char.name + '/train') %>
-        <%- label_for('level') %>
-        <%- select_tag('level', train_level) %>
-        <%- submit_tag('Train') %>
-        <%- form_end_tag() %>
-    <% } else { %>
-        <%- button_to('challenge', '/c/' + char.name + '/challenge') %>
+    <div id = "edit" class = "col-lg-4 well">
+        <center>
+            <h3> Code </h3>
+        <% if(char.passed) { %>
+            <div style = "color: green;">
+                <b> Tests passed </b>
+            </div>
+        <% } else { %>
+            <div style = "color: red;">
+                <b> Failed tests. Fix! </b>
+            </div>
+        <% } %>
+        <br />
+            <%- button_to('Edit', '/c/' + char.name + '/edit', { class: "btn btn-info" }) %>
+        </center>
+    </div>
     <% } %>
-<% } %>
-</div>
-<% } %>
-<% if(char.matches.length > 0) { %>
-<h3> matches </h3>
-<div id = "recent-matches">
-    <ul>
-    <% char.matches.forEach(function(match) { %>
-        <li>
-        <% var outcome = (match.winner._id == char._id) ? 'win' : 'lose'; %>
-        <div class = "match-<%= outcome %>">
-            <%= link_to(outcome, '/m/' + match._id) %> 
-        </div>
-        </li>
-    <% }) %>
-    </ul>
-<% } %>
+    <% if(user && char.passed) {%>
+    <div id = "actions" class = "col-lg-4 well">
+        <h3> Actions </h3>
+            <% if(isOwner) { %>
+                    <%- form_tag('/c/' + char.name + '/train' ) %>
+                    <%- label_for('level') %>
+                    <%- select_tag('level', train_level, { class: "form-control" }) %>
+                    <%- label_for('map') %>
+                    <%- select_tag('map', allowed_maps, { class: "form-control" }) %>
+                    <br />
+                    <%- submit_tag('Train', { class: "btn btn-success" }) %>
+                    <%- form_end_tag() %>
+                <% } else { %>
+                    <%- form_tag('/c/' + char.name + '/challenge') %>
+                    <%- label_for('level') %>
+                    <%- select_tag('level', vs_level) %>
+                    <%- label_for('map') %>
+                    <%- select_tag('map', allowed_maps) %>
+                    <%- submit_tag('Challenge') %>
+                    <%- form_end_tag() %>
+                <% } %>
+            <% } %>
+    </div>
+    <% } %>
+    <% if(char.matches.length > 0) { %>
+    <div id = "recent-matches" class = "col-lg-4 well">
+            <h3> Matches </h3>
+                <% char.matches.forEach(function(match) { %>
+                <% if(match.type == 'train') { %>
+                    <div class = "train">
+                        <%- link_to('training', '/m/' + match._id) %>
+                    </div>
+                <% } else { %>
+                    <% var outcome = (match.winner._id == char._id) ? 'win' : 'lose'; %>
+                    <div class = "match-<%= outcome %>">
+                        <%- link_to(outcome, '/m/' + match._id) %> 
+                    </div>
+                <% } %>
+            <% }) %>
+    </div>
+    </div>
+    <% } %>
 </body>
 <html>

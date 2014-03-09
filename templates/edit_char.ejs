@@ -7,30 +7,36 @@
 <script src = "//cdnjs.cloudflare.com/ajax/libs/ace/1.1.01/theme-chrome.js"></script>
 <style type="text/css" media="screen">
     #editor { 
-        width: 900;
+        width: auto;
         height: 400;
     }
 </style>
 </head>
 <body>
 <%- include header %>
-<div id = "char-info">
-    <li> <%- link_to(char.name, '/c/' + char.name) %> </li>
-</div>
-<div id = "flag-div">
-    <% if(char.passed) { %>
-        OK
-    <% } else { %>
-        FAIL
-    <% } %>
-</div>
-<div id = "save-div">
-    saved
-</div>
+<center>
+    <h2> <%- link_to(char.name, '/c/' + char.name) %> </h2>
+    </center>
 <div id = "editor" autofocus><%= char.code %></div>
-<div id = "buttons">
-    <%- js_button('Save', 'save', { id: 'save-button' }) %>
-</div>
+<center>
+    <div id = "flag-div">
+    <% if(char.passed) { %>
+        <div style = "color: green;">
+            <b> Passed </b>
+        </div>
+    <% } else { %>
+        <div style = "color: red;">
+            <b> Failed </b>
+        </div>
+    <% } %>
+    </div>
+    <div id = "save-div">
+        Saved
+    </div>
+    <div id = "buttons">
+        <%- js_button('Save', 'save', { id: 'save-button' }) %>
+    </div>
+</center>
 <script src = "/edit_build.js"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
-var canvas, ctx, logTable, nextButton, prevButton,
+var canvas, ctx, logTable, nextButton, prevButton, playButton, pauseButton,
+resetButton, playTime = 0,
 state, seek = 0, dir, delT = 0, entities = {}, bgCanvas,
 images = {}, prevTime, map, replay, dead = {};
 
@@ -19,16 +20,52 @@ function downloadLink() {
 function initElements() {
     canvas = document.getElementById('render-canvas');
     ctx = canvas.getContext('2d');
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
     prevButton = document.getElementById('prev-button');
     nextButton = document.getElementById('next-button');
+    playButton = document.getElementById('play-button');
+    pauseButton = document.getElementById('pause-button');
+    resetButton = document.getElementById('reset-button');
     map = JSON.parse(document.getElementById('map-json').innerHTML);
     replay = JSON.parse(document.getElementById('replay-json').innerHTML);
     prevButton.onclick = prevFrame;
     nextButton.onclick = nextFrame;
+    playButton.onclick = beginPlay;
+    pauseButton.onclick = pausePlay;
+    resetButton.onclick = resetPlay;
     downloadLink();
     setImmediate(render);
+    pausePlay();
 }
 
+function doPlay() {
+    nextFrame();
+    if(seek > replay.length - 1) {
+        pausePlay();
+    }
+}
+function togglePlayState(v) {
+    prevButton.disabled = nextButton.disabled = v;
+    playButton.disabled = resetButton.disabled = v;
+    pauseButton.disabled = !v;
+}
+
+var playInt = 200;
+function beginPlay() {
+    togglePlayState(true);
+    playTime = setInterval(doPlay, playInt);
+}
+function pausePlay() {
+    clearInterval(playTime);
+    togglePlayState(false);
+    resetButtons();
+}
+function resetPlay() {
+    seek = 0;
+    entities = {};
+    dead = {};
+}
 function stripChar(x, ch, rp) {
     while(x.find(ch) != -1) {
         x = x.replace(ch, rp);
@@ -176,20 +213,21 @@ function clearFlags() {
     }
 }
 
+const F_SIZE = 13;
 function drawState() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(bgCanvas, 0, 0);
-    var ent, img;
+    var ent, img, drawX, drawY;
     for(key in entities) {
         if(entities.hasOwnProperty(key)) {
             ent = entities[key];
             img = ent.image;
-            ctx.drawImage(images[img.name], img.j * map.tilewidth,
-                          img.i * map.tileheight, 
-                          map.tilewidth, map.tileheight,
-                          ent.pos.j * map.tilewidth,
-                          ent.pos.i * map.tileheight,
-                          map.tilewidth, map.tileheight);
+            drawX = ent.pos.j * map.tilewidth;
+            drawY = ent.pos.i * map.tileheight;
+            ctx.drawImage(images[img.name], img.j * map.tilewidth, img.i * map.tileheight, 
+                          map.tilewidth, map.tileheight, drawX, drawY, map.tilewidth, map.tileheight);
+            ctx.font = F_SIZE + 'pt Serif';
+            ctx.fillText('' + ent.health, drawX, drawY + map.tileheight / 2);
         }
     }
 }

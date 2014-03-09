@@ -5,21 +5,23 @@
 </head>
 <body>
 <%- include header %>
-<div id = "about">
-    <% if(other.chars.length > 0) { %>
-    <h3>characters:</h3>
-    <ul id = "characters"> 
-    <% other.chars.forEach(function(char) { %>
-        <li>
-        <%- link_to(char.name , '/c/' + char.name) %> 
-        </li>
-    <% }); %>
-    </ul>
+<div class = "container col-lg-2 centered well">
+    <div id = "about">
+        <% if(other.chars.length > 0) { %>
+            <h3>Characters</h3>
+        <ul id = "characters"> 
+            <% other.chars.forEach(function(char) { %>
+                <li>
+            <%- link_to(char.name , '/c/' + char.name) %> 
+            </li>
+        <% }); %>
+        </ul>
     <% } %>
-    <div id = "actions">
-    <% if(user && other.pid == user.pid) { %>
-        <%- button_to('Create', '/char/create') %>
-    <% } %>
+        <div id = "actions">
+            <% if(user && other.pid == user.pid) { %>
+                <%- button_to('Create', '/char/create', { class: "btn btn-info" }) %>
+        <% } %>
+        </div>
     </div>
 </div>
 </body>

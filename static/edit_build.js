@@ -8,7 +8,7 @@ function init() {
     session.setUseWorker(false);
     session.setMode("ace/mode/javascript");
     session.getDocument().on('change', function() {
-        saveDiv.innerHTML = 'NOT SAVED';
+        saveDiv.innerHTML = 'Not Saved!?';
     });
     saveButton = document.getElementById('save-button');
     saveButton.addEventListener('click', save);
@@ -33,15 +33,15 @@ function doneSave() {
         if(resp.status == 0) {
             console.log('Success');
             editor.getSession().setAnnotations([]);
-            resultDiv.innerHTML = 'OK';
+            resultDiv.innerHTML = '<div style = "color:green;">Passed</div>';
         } else if(resp.status == 1) {
             console.log('Server W');
         } else if(resp.status == 2) {
             console.log('Error');
             editor.getSession().setAnnotations(resp.errors);
-            resultDiv.innerHTML = 'FAIL'
+            resultDiv.innerHTML = '<div style = "color:red;">Failed</div>'
         }
-        saveDiv.innerHTML = 'saved';
+        saveDiv.innerHTML = 'Saved';
     }
     setButtonState(true);
 }
@@ -51,7 +51,7 @@ function sendCode(code) {
     saveXhr.onload = doneSave;
     saveXhr.open('POST', 'save', true);
     saveXhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    saveXhr.send('code=' + code);
+    saveXhr.send('code=' + encodeURIComponent(code));
 }
 
 function save() {
