@@ -10,6 +10,7 @@
     <div id = "about" class = "col-lg-4 well">
         <h3> About </h3>
         <ul>
+            <li> <b>State:</b>  <%= (isRested(char)) ? 'Rested' : 'Tired' %> </li>
             <li> <b>Class:</b> <%= char.type %> </li>
             <li> <b>Exp:</b> <%= char.experience %> </li>
             <li> <b>Owner:</b> <%- link_to(char.owner.pid, '/u/' + char.owner.pid) %> </li>
@@ -53,15 +54,13 @@
                     <%- form_tag('/c/' + char.name + '/challenge') %>
                     <%- label_for('level') %>
                     <%- select_tag('level', vs_level, { class: "form-control" }) %>
-                    <%- label_for('map') %>
-                    <%- select_tag('map', allowed_maps, { class: "form-control" }) %>
                     <%- label_for('uchar', 'Challenge with') %>
                     <%- select_tag('uchar', valify(user.chars, char), { class: "form-control" }) %>
                     <br />
                     <%- submit_tag('Challenge', { class: "btn btn-success" }) %>
                     <%- form_end_tag() %>
                 <% } else { %>
-                    None of your characters have comparable experience
+                    None of your characters are able to fight this character
                 <% } %>
             <% } %>
     </div>
@@ -75,7 +74,12 @@
                 <%- link_to('training', '/m/' + match._id) %>
             </div>
         <% } else { %>
-            <% var outcome = (match.winner == char._id) ? 'win' : 'lose'; %>
+            <% var outcome; %>
+            <% if(!match.result) { %>
+                <% outcome = 'draw' %>
+            <% } else { %>
+                <% outcome = (match.result.equals(char._id)) ? 'win' : 'lose'; %>
+            <% } %>
             <div class = "match-<%= outcome %>">
                 <%- link_to(outcome, '/m/' + match._id) %> 
             </div>

@@ -272,7 +272,11 @@ function AbstractLevel(chars, jsonPath, finishCb) {
             }
         }
         if(ent instanceof Controllable) {
-            runner.runCode(ent.team, getParams(ent), updateEntCallback(ent), 'update', 2000);
+            try {
+                runner.runCode(ent.team, getParams(ent), updateEntCallback(ent), 'update', 2000);
+            } catch(e) {
+                setImmediate(finishCb, e, ent.team);
+            }
         } else {
             ent.update();
         }

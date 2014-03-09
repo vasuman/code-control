@@ -37,6 +37,9 @@ app.locals.valify = function(x, oc) {
         if(Math.abs(oc.experience - ch.experience) > EXP_DIFF) {
             return;
         }
+        if(!isRested(ch)) {
+            return;
+        }
         res.push(new SelectOption(ch.name, i));
     });
     return res;
@@ -62,22 +65,22 @@ const PORT = process.env.PORT || 8000;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost/code';
 const DEFAULT_CODE = 'function update(params) {\n // TODO: insert code here\n}';
 const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
-const DEF_LVL = [
-    new SelectOption('Battle', 'battle')
-];
+const DEF_LVL = [ new SelectOption('Battle', 'battle') ];
 const START_EXP = 10;
 const START_LVL = 1;
-const TRAIN_DEF = [
-    // new SelectOption('Simple', 'simple'),
-    // new SelectOption('Boss', 'boss'),
-    new SelectOption('Swarm', 'swarm')
-];
+const TRAIN_DEF = [ new SelectOption('Swarm', 'swarm') ];
 const EXP_DIFF = 75;
-const EXP_GAIN = 15;
+const EXP_GAIN = 14;
+const MIN_EXP_GAIN = 1;
 const DEF_MAP = [
+    new SelectOption('Maze', 'maze.json'),
     new SelectOption('Simple', 'base.json'),
-    new SelectOption('Maze', 'maze.json')
+    new SelectOption('Blub', 'blub.json'),
+    new SelectOption('Glob', 'glob.json'),
+    new SelectOption('Jimk', 'jimk.json')
 ];
+
+const REST_INTERVAL = 1000 * 90;
 
 var swarmChar = {
     id: -1,
@@ -103,6 +106,11 @@ function loadData() {
     fs.readFile('./simulation/swarm-code.js', { encoding: 'utf8' }, doneFRead([], [swarmChar], ['code']))
 }
 /* END DATA */
+
+function isRested(char) {
+    return (Date.now() - char.lastPlayed) > REST_INTERVAL
+}
+app.locals.isRested = isRested;
 
 function simErr(req, res) { }
 
@@ -167,9 +175,48 @@ function doTrain(req, res) {
     getChar(req.params.cname, charFound);
 }
 
+function isPlaying(match, char) {
+    if(match.type != 'versus' || match.result == null) {
+        return false;
+    }
+    var i;
+    for(i = 0; i < match.contenders.length; i++) {
+        if(match.contenders[i].equals(char)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function playedAgainst(userA, userB) {
+    var x = 0;
+    userA.chars.forEach(function(charA) {
+        userB.chars.forEach(function(charB) {
+            x += getMatchesBetween(charA, charB);
+        });
+    });
+    return x;
+}
+
+function getMatchesBetween(charA, charB) {
+    var count = 0;
+    charA.matches.forEach(function(match) {
+        if(isPlaying(match, charB)) {
+            count += 1;
+        }
+    });
+    return count;
+}
+
 function challenge(req, res) {
-    var charA, charB, jsonPath;
-    function charFound(ch) {
+    var charA, charB, jsonPath, payoff;
+    function charFound(err, ch) {
+        if(err) {
+            throw err;
+        }
+        if(!ch) {
+            return res.redirect('/404');
+        }
         charA = ch;
         if(!(req.user)) {
             return res.redirect('/not_permit');
@@ -178,13 +225,15 @@ function challenge(req, res) {
         if(!charB) {
             return res.redirect('/not_permit');
         }
-        if(!isValidMap(req.body.map)) {
-            return res.redirect('/404');
-        }
         if(Math.abs(charA.experience - charB.experience) > EXP_DIFF) {
             return res.redirect('/not_permit');
         }
-        jsonPath = path.join('./simulation', req.body.map);
+        if(!isRested(charB)) {
+            return res.redirect('/not_permit');
+        }
+        var map = DEF_MAP[~~(Math.random() * DEF_MAP.length)].value;
+        payoff = Math.max(~~(EXP_GAIN * Math.pow(0.7, playedAgainst(req.user, charA.owner))), MIN_EXP_GAIN);
+        jsonPath = path.join('./simulation', map);
         if(req.body.level == 'battle') {
             var BattleLevel = require('./simulation/level').BattleLevel;
             new BattleLevel(charA, charB, jsonPath, simDoneCb);
@@ -203,19 +252,21 @@ function challenge(req, res) {
             }
             return res.send(reason + err);
         }
-        console.log(r);
         var m = new models.Match({
             contenders: [charA, charB],
             type: 'versus',
             map: jsonPath,
             when: Date.now(),
             result: r.winner,
-            replay: r.replay
+            replay: r.replay,
+            expr: payoff
         });
-        if(r.winner == charA._id) {
-            charA.experience += EXP_GAIN;
-        } else if(r.winner = charB._id) {
-            charB.experience += EXP_GAIN;
+        if(r.winner) {
+            if(r.winner.equals(charA._id)) {
+                charA.experience += payoff;
+            } else if(r.winner.equals(charB._id)) {
+                charB.experience += payoff;
+            }
         }
         m.save(function(err) {
             if(err) {
@@ -226,17 +277,28 @@ function challenge(req, res) {
                 if(err) {
                     throw err;
                 }
-                charB.matches.push(m._id);
-                charB.save(function(err) {
+                models.Character.findOne({ _id: charB._id }, function(err, char) {
                     if(err) {
                         throw err;
                     }
-                    res.redirect('/m/' + m._id);
+                    char.matches.push(m._id);
+                    char.lastPlayed = Date.now();
+                    char.save(function(err) {
+                        if(err) {
+                            throw err;
+                        }
+                        res.redirect('/m/' + m._id);
+                    });
                 });
             });
         });
     }
-    getChar(req.params.cname, charFound);
+    function userPoped(err, user) {
+        models.Character.findOne({ name: req.params.cname }).
+            populate('owner').
+            exec(charFound);
+    }
+    models.Character.populate(req.user, { path: 'chars.matches', model: 'Match' }, userPoped);
 }
 
 function extend(target) {
@@ -349,7 +411,11 @@ function initUserId(pid, done) {
         });
         user.save(ret(user));
     }
-    models.User.findOne({ pid: pid }).populate('chars').exec(init);
+    models.User.findOne({ pid: pid }).
+        populate('chars').
+        populate('matches').
+        populate('contenders').
+        exec(init);
 }
 
 passport.serializeUser(getUserId);
@@ -366,7 +432,7 @@ function charPage(req, res) {
             throw err;
         }
         if(!char) {
-            res.redirect('/404');
+            return res.redirect('/404');
         }
         res.render('info_char', { user: req.user, char: char, allowed_maps: DEF_MAP, train_level: TRAIN_DEF, vs_level: DEF_LVL });
     }
@@ -419,6 +485,7 @@ function createChar(req, res) {
             experience: START_EXP,
             level: 1,
             code: DEFAULT_CODE,
+            lastPlayed: new Date(0),
             matches: []
         });
         c.save(saveChar);

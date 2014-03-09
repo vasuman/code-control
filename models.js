@@ -15,7 +15,8 @@ var matchSchema = new Schema({
     map: String,
     when: Date,
     result: Object,
-    replay: Object
+    replay: Object,
+    expr: Number
 });
 
 var requestSchema = new Schema({
@@ -33,6 +34,7 @@ var charSchema = new Schema({
     passed: Boolean,
     experience: Number,
     code: String,
+    lastPlayed: Date,
     matches: [{ type: Schema.Types.ObjectId, ref: 'Match'}]
 });
 
