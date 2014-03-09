@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.use(express.cookieParser());
 
 /* DEBUG */
-app.use(express.session({ secret: 'this shit sucks balls' }));
+app.use(express.session({ secret: 'salkfjhalskjdasdfjhakj' }));
 /* END DEBUG */
 
 app.use(express.urlencoded());
@@ -60,10 +60,7 @@ app.use(express.errorHandler());
 /* DATA REGION */
 const PORT = process.env.PORT || 8000;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost/code';
-const DEFAULT_CODE = '\
-function update(params) {\
-    // TODO: insert code here\
-}';
+const DEFAULT_CODE = 'function update(params) {\n // TODO: insert code here\n}';
 const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
 const DEF_LVL = [
     new SelectOption('Battle', 'battle')
@@ -421,7 +418,7 @@ function createChar(req, res) {
             creation: Date.now(),
             edited: Date.now(),
             passed: false,
-            experience: 100,
+            experience: START_EXP,
             level: 1,
             code: DEFAULT_CODE,
             matches: []
