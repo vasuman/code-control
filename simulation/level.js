@@ -11,7 +11,7 @@ Tile = stuff.Tile,
 LinkList = stuff.LinkList,
 Point = stuff.Point;
 
-const MAX_TURNS = 100, MAX_ERR = 1;
+const MAX_TURNS = 100, MAX_ERR = 101;
 function Player(id) {
     this.id = id;
     this.ents = {};
