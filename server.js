@@ -143,7 +143,6 @@ function doTrain(req, res) {
             console.log(err, r);
             return res.send(err);
         }
-        console.log(r);
         var m = new models.Match({
             contenders: [char],
             type: 'train',
@@ -157,7 +156,6 @@ function doTrain(req, res) {
                 throw err;
             }
             char.matches.push(m._id);
-            char.experience += r.score;
             char.save(function(err) {
                 if(err) {
                     throw err;
