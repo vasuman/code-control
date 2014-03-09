@@ -12,8 +12,8 @@ LinkList = stuff.LinkList,
 Point = stuff.Point;
 
 const MAX_TURNS = 100, MAX_ERR = 1;
-function Player(idx) {
-    this.idx = idx;
+function Player(id) {
+    this.id = id;
     this.ents = {};
     this.errCount = 0;
 }
@@ -70,7 +70,7 @@ function SwarmTraining(char, swarm, jsonPath, finishCb) {
 util.inherits(SwarmTraining, AbstractLevel);
 
 function BattleLevel(charA, charB, jsonPath, finishCb) {
-    var self = this;
+    var self = this, aP, bP;
 
     AbstractLevel.call(this, [charA, charB], jsonPath, finishCb);
 
@@ -79,17 +79,15 @@ function BattleLevel(charA, charB, jsonPath, finishCb) {
     }
 
     function isFinished() {
-        return self.turn > MAX_TURNS || getNumEnt(P_A) == 0 || getNumEnt(P_B) == 0;
+        return self.turn > MAX_TURNS || aP.dead || bP.dead;
     }
     this.isFinished = isFinished;
 
     function gameOver() {
-        var numA = Object.keys(self.players[P_A]).length,
-        numB = Object.keys(self.players[P_B]).length;
-        if(numA > numB) {
-            setImmediate(finishCb, null, { winner: charA.id, replay: self.replay });
-        } else if(numB > numA) {
-            setImmediate(finishCb, null, { winner: charB.id, replay: self.replay });
+        if(bP.dead) {
+            setImmediate(finishCb, null, { winner: charA._id, replay: self.replay });
+        } else if(aP.dead) {
+            setImmediate(finishCb, null, { winner: charB._id, replay: self.replay });
         } else {
             setImmediate(finishCb, null, { winner: null, replay: self.replay });
         }
@@ -97,8 +95,8 @@ function BattleLevel(charA, charB, jsonPath, finishCb) {
     this.gameOver = gameOver;
 
     function init() {
-        new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack());
-        new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack());
+        aP = new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack());
+        bP = new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack());
     }
     this.init = init;
     
@@ -125,7 +123,7 @@ function AbstractLevel(chars, jsonPath, finishCb) {
     msg = '', runner;
 
     this.players = chars.map(function(x) {
-        return new Player(x.id);
+        return new Player(x._id);
     });
     this.grid = null;
     this.tSet = {};

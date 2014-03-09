@@ -5,7 +5,7 @@
 </head>
 <body>
 <%- include header %>
-<table>
+<table class = "table table-striped table-bordered table-condensed">
     <thead>
         <th> Position </th>
         <th> Name </th>
@@ -13,11 +13,12 @@
     </thead>
     <% topChars.forEach(function(char, i) { %>
         <tr>
-            <td> <%= i %> </td>
+            <td> <%= i + 1 %> </td>
             <td> <%- link_to(char.name, '/c/' + char.name) %> </td>
             <td> <%= char.experience %> </td>
         </tr>
     <% }); %>
 </table>
+<%- link_to('More', '/leaderboard?from=' + (from + 100)) %>
 </body>
 </html>

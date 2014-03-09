@@ -8,17 +8,14 @@
 <div class = "container centered">
     <div id = "info">
         <h2> Info </h2>
-        <ul>
-            <li> Played on, <%= format_date_t(match.when) %> </li>
-            <li> Type, <%= match.type %> </li>
-        </ul>
+        <b>Played</b> <%= format_date_t(match.when) %>
     </div>
     <div id = "versus">
         <h2> Contenders </h2>
         <ul>
-            <% match.contenders.forEach(function(contender) { %>
-                <li> <%- link_to(contender.name, '/c/' + contender.name) %> </li>
-        <% }); %>
+            <% match.contenders.forEach(function(contender, i) { %>
+                <li> <%- link_to(contender.name, '/c/' + contender.name) %> - Player <%= i + 1 %> </li>
+            <% }); %>
         </ul>
     </div>
     <div id = "result" >
@@ -26,11 +23,19 @@
     <% if(match.type == 'train') { %>
         Earned experience <%= match.result %>
     <% } else { %>
-        Winner <%= match.result %>
+        <% if(match.result == null) { %>
+            Draw
+        <% } else { %>
+            <b> Winner <%= find_char_id(match.result, match.contenders) %> </b>
+        <% } %>
     <% } %>
     </div>
     <div id = "replay-frame">
         <h2> Replay </h2>
+        <div id = "misc-info">
+            Player 1 - BLUE<br>
+            Player 2 - RED
+        </div>
         <canvas id = "render-canvas" width = 800 height = 800></canvas>
     </div>
     <div id = "replay-buttons">

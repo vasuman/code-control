@@ -15,9 +15,6 @@ app.set('port', process.env.PORT || 8000);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'templates'));
 
-/* DEBUG */
-app.use(express.logger('dev'));
-/* END DEBUG */
 
 app.use(express.static(path.join(__dirname, 'static')));
 app.use(express.cookieParser());
@@ -34,14 +31,31 @@ app.use(app.router);
 app.locals.format_date_t = function(d) {
     return d.toDateString() + '    ' + d.toTimeString().split(' ')[0];
 }
+app.locals.valify = function(x, oc) {
+    var res = [];
+    x.forEach(function(ch, i) {
+        if(Math.abs(oc.experience - ch.experience) > EXP_DIFF) {
+            return;
+        }
+        res.push(new SelectOption(ch.name, i));
+    });
+    return res;
+}
+app.locals.find_char_id = function(id, chars) {
+    var i;
+    for(i = 0; i < chars.length; i++) {
+        if(chars[i]._id.equals(id)) {
+            return chars[i].name;
+        }
+    }
+    return '_';
+}
 function SelectOption(text, value) {
     this.text = text;
     this.value = value;
 }
 
-/* DEBUG */
-app.use(express.errorHandler({ dumpExceptions: true, showStack: true }));
-/* END DEBUG */
+app.use(express.errorHandler());
 
 /* DATA REGION */
 const PORT = process.env.PORT || 8000;
@@ -52,10 +66,7 @@ function update(params) {\
 }';
 const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
 const DEF_LVL = [
-    {
-        lvl: 'BattleLevel',
-        char: 'warrior',
-    }
+    new SelectOption('Battle', 'battle')
 ];
 const START_EXP = 100;
 const START_LVL = 1;
@@ -64,6 +75,9 @@ const TRAIN_DEF = [
     // new SelectOption('Boss', 'boss'),
     new SelectOption('Swarm', 'swarm')
 ];
+const EXP_DIFF = 75;
+const EXP_GAIN = 15;
+const START_EXP = 10;
 const DEF_MAP = [
     new SelectOption('Simple', 'base.json'),
     new SelectOption('Maze', 'maze.json')
@@ -96,6 +110,10 @@ function loadData() {
 
 function simErr(req, res) { }
 
+function doLogout(req, res) {
+    req.logout();
+    return res.redirect('/');
+}
 function isValidMap(map) {
     var i;
     for(i = 0; i < DEF_MAP.length; i++) {
@@ -155,7 +173,77 @@ function doTrain(req, res) {
     getChar(req.params.cname, charFound);
 }
 
-function challenge() {}
+function challenge(req, res) {
+    var charA, charB, jsonPath;
+    function charFound(ch) {
+        charA = ch;
+        if(!(req.user)) {
+            return res.redirect('/not_permit');
+        }
+        charB = req.user.chars[req.body.uchar];
+        if(!charB) {
+            return res.redirect('/not_permit');
+        }
+        if(!isValidMap(req.body.map)) {
+            return res.redirect('/404');
+        }
+        if(Math.abs(charA.experience - charB.experience) > EXP_DIFF) {
+            return res.redirect('/not_permit');
+        }
+        jsonPath = path.join('./simulation', req.body.map);
+        if(req.body.level == 'battle') {
+            var BattleLevel = require('./simulation/level').BattleLevel;
+            new BattleLevel(charA, charB, jsonPath, simDoneCb);
+        } else {
+            return res.redirect('/404');
+        }
+    }
+    function simDoneCb(err, r) {
+        if(err) {
+            console.log(err, r);
+            var reason = ''
+            if(r == 1) {
+                reason = 'Error in your code - ';
+            } else {
+                reason = 'Error in other character code - ';
+            }
+            return res.send(reason + err);
+        }
+        console.log(r);
+        var m = new models.Match({
+            contenders: [charA, charB],
+            type: 'versus',
+            map: jsonPath,
+            when: Date.now(),
+            result: r.winner,
+            replay: r.replay
+        });
+        if(r.winner == charA._id) {
+            charA.experience += EXP_GAIN;
+        } else if(r.winner = charB._id) {
+            charB.experience += EXP_GAIN;
+        }
+        m.save(function(err) {
+            if(err) {
+                throw err;
+            }
+            charA.matches.push(m._id);
+            charA.save(function(err) {
+                if(err) {
+                    throw err;
+                }
+                charB.matches.push(m._id);
+                charB.save(function(err) {
+                    if(err) {
+                        throw err;
+                    }
+                    res.redirect('/m/' + m._id);
+                });
+            });
+        });
+    }
+    getChar(req.params.cname, charFound);
+}
 
 function extend(target) {
     var sources = [].slice.call(arguments, 1);
@@ -267,7 +355,7 @@ function initUserId(pid, done) {
         });
         user.save(ret(user));
     }
-    models.User.findOne({ pid: pid }, init)
+    models.User.findOne({ pid: pid }).populate('chars').exec(init);
 }
 
 passport.serializeUser(getUserId);
@@ -286,8 +374,7 @@ function charPage(req, res) {
         if(!char) {
             res.redirect('/404');
         }
-        console.log(char);
-        res.render('info_char', { user: req.user, char: char, allowed_maps: DEF_MAP, train_level: TRAIN_DEF });
+        res.render('info_char', { user: req.user, char: char, allowed_maps: DEF_MAP, train_level: TRAIN_DEF, vs_level: DEF_LVL });
     }
     models.Character.findOne({ name: req.params.cname }).
         populate('owner').
@@ -406,26 +493,33 @@ function codePage(req, res) {
 }
 
 function leaderboard(req, res) {
+    var start = parseInt(req.query.from) || 0;
     function qCback(err, chars) {
         if(err) {
             throw err;
         }
-        res.render('leaderboard', { user: req.user, topChars: chars });
+        res.render('leaderboard', { user: req.user, topChars: chars, from: start });
     }
-    models.Character.find().sort({ experience: -1 }).limit(100).exec(qCback);
+    models.Character.find().sort({ experience: -1 }).skip(start).limit(100).exec(qCback);
 }
 
+function notPermit(req, res) {
+    return res.send('Not permitted!');
+}
 app.get('/', renderPage('index'));
 app.get('/login', authHandle);
+app.get('/logout', doLogout);
 app.get('/m/:mid', matchPage);
 app.get('/u/:pid', userPage);
 app.get('/c/:cname', charPage);
 app.get('/c/:cname/edit', codePage);
 app.get('/char/create', createCharPage);
 app.get('/login_failed', noLogin);
+app.get('/not_permit', notPermit);
 app.get('/leaderboard', leaderboard);
 app.post('/char/params', createChar);
 app.post('/c/:cname/train', doTrain);
+app.post('/c/:cname/challenge', challenge);
 app.post('/c/:cname/save', saveChar);
 app.get('*', notFound);
 

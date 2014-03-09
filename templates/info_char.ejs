@@ -39,6 +39,7 @@
     <% if(user && char.passed) {%>
     <div id = "actions" class = "col-lg-4 well">
         <h3> Actions </h3>
+            <% var char_opts = valify(user.chars, char); %>
             <% if(isOwner) { %>
                     <%- form_tag('/c/' + char.name + '/train' ) %>
                     <%- label_for('level') %>
@@ -48,33 +49,38 @@
                     <br />
                     <%- submit_tag('Train', { class: "btn btn-success" }) %>
                     <%- form_end_tag() %>
-                <% } else { %>
+                <% } else if(char_opts.length > 0) { %>
                     <%- form_tag('/c/' + char.name + '/challenge') %>
                     <%- label_for('level') %>
-                    <%- select_tag('level', vs_level) %>
+                    <%- select_tag('level', vs_level, { class: "form-control" }) %>
                     <%- label_for('map') %>
-                    <%- select_tag('map', allowed_maps) %>
-                    <%- submit_tag('Challenge') %>
+                    <%- select_tag('map', allowed_maps, { class: "form-control" }) %>
+                    <%- label_for('uchar', 'Challenge with') %>
+                    <%- select_tag('uchar', valify(user.chars, char), { class: "form-control" }) %>
+                    <br />
+                    <%- submit_tag('Challenge', { class: "btn btn-success" }) %>
                     <%- form_end_tag() %>
+                <% } else { %>
+                    None of your characters have comparable experience
                 <% } %>
             <% } %>
     </div>
     <% } %>
     <% if(char.matches.length > 0) { %>
     <div id = "recent-matches" class = "col-lg-4 well">
-            <h3> Matches </h3>
-                <% char.matches.forEach(function(match) { %>
-                <% if(match.type == 'train') { %>
-                    <div class = "train">
-                        <%- link_to('training', '/m/' + match._id) %>
-                    </div>
-                <% } else { %>
-                    <% var outcome = (match.winner._id == char._id) ? 'win' : 'lose'; %>
-                    <div class = "match-<%= outcome %>">
-                        <%- link_to(outcome, '/m/' + match._id) %> 
-                    </div>
-                <% } %>
-            <% }) %>
+        <h3> Matches </h3>
+        <% char.matches.forEach(function(match) { %>
+        <% if(match.type == 'train') { %>
+            <div class = "train">
+                <%- link_to('training', '/m/' + match._id) %>
+            </div>
+        <% } else { %>
+            <% var outcome = (match.winner == char._id) ? 'win' : 'lose'; %>
+            <div class = "match-<%= outcome %>">
+                <%- link_to(outcome, '/m/' + match._id) %> 
+            </div>
+        <% } %>
+        <% }) %>
     </div>
     </div>
     <% } %>

@@ -5,5 +5,29 @@
 </head>
 <body>
     <%- include header %>
+    <div class = "centered container">
+        <p>
+        This is a JavaScript coding event as part of <em>CodeIt</em> for <a href="//pragyan.org/">Pragyan</a>
+        </p>
+        <p>
+        Visit the <a href = "/docs">Documentation</a>
+        </p>
+        <p>
+        <% if(user) { %>
+            Visit <%- link_to('your page', '/u/' + user.pid) %>
+        <% } else { %>
+            Start by <%- link_to('logging in', '/login') %>
+        <% } %>
+        </p>
+        <p>
+        Training you character gives you one exp. per killed character
+        </p>
+        <p>
+        You can challenge any character whose exp. difference with your character is less than 75.
+        </p>
+        <p>
+        A character gets 15 exp. for every match won
+        </p>
+    </div>
 </body>
 </html>
