@@ -60,8 +60,12 @@ Your `update` function is supplied with a bunch of parameters that specify the c
 
 An `entity` object that describes the **character that is being updated**.
 
-### params.map
+### params.grid
 
+Keys,
+* `arr` 1D row major representation of *game grid*
+* `row` number of rows
+* `col` number of columns
 A one dimensional `Array` that represents the entire *game grid* at the current instant. The API provides a utility [getAt](api.html#getat) function to help seeking using traditional `i`, `j` indexing.
 
 > Modifying these parameters *doesn't* change the game state. You can *only* affect the state by *returning* an `action` and update your character.
