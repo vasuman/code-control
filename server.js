@@ -72,7 +72,7 @@ const TRAIN_DEF = [ new SelectOption('Swarm', 'swarm') ];
 const EXP_DIFF = 50;
 const EXP_GAIN = 14;
 const MIN_EXP_GAIN = 1;
-const MAX_PLAYS = 30;
+const MAX_PLAYS = 40;
 const DEF_MAP = [
     new SelectOption('Maze', 'maze.json'),
     new SelectOption('Simple', 'base.json'),
@@ -245,8 +245,12 @@ function challenge(req, res) {
         if(!isRested(charB)) {
             return res.redirect('/not_permit');
         }
-        var map = DEF_MAP[~~(Math.random() * DEF_MAP.length)].value;
-        payoff = Math.max(~~(EXP_GAIN * Math.pow(0.7, playedAgainst(req.user, charA.owner))), MIN_EXP_GAIN);
+        var map = DEF_MAP[~~(Math.random() * DEF_MAP.length)].value,
+        numPlays = playedAgainst(req.user, charA.owner);
+        payoff = Math.max(~~(EXP_GAIN * Math.pow(0.7, numPlays)), MIN_EXP_GAIN);
+        if(numPlays > MAX_PLAYS) {
+            payoff = 0;
+        }
         jsonPath = path.join('./simulation', map);
         if(req.body.level == 'battle') {
             var BattleLevel = require('./simulation/level').BattleLevel;
