@@ -20,7 +20,7 @@ app.use(express.static(path.join(__dirname, 'static')));
 app.use(express.cookieParser());
 
 /* DEBUG */
-app.use(express.session({ secret: 'salkfjhalskjdasdfjhakj' }));
+app.use(express.session({ secret: 'lfaskdjhflasjdkfskdfjhl' }));
 /* END DEBUG */
 
 app.use(express.urlencoded());
@@ -72,6 +72,7 @@ const TRAIN_DEF = [ new SelectOption('Swarm', 'swarm') ];
 const EXP_DIFF = 75;
 const EXP_GAIN = 14;
 const MIN_EXP_GAIN = 1;
+const MAX_PLAYS = 30;
 const DEF_MAP = [
     new SelectOption('Maze', 'maze.json'),
     new SelectOption('Simple', 'base.json'),
@@ -80,13 +81,25 @@ const DEF_MAP = [
     new SelectOption('Jimk', 'jimk.json')
 ];
 
-const REST_INTERVAL = 1000 * 90;
+const REST_INTERVAL = 1000 * 120;
 
 var swarmChar = {
     id: -1,
     code: '',
     getHealth: function() { return 30; },
     getAttack: function() { return 5; }
+}
+
+var ALLOWED_PIDS = {};
+
+function loadPIDs() {
+    function fRead(err, d) {
+        if(err) {
+            throw err;
+        }
+        ALLOWED_PIDS = JSON.parse(d);
+    }
+    fs.readFile('pids.json', {encoding: 'utf8'}, fRead);
 }
 
 function loadData() {
@@ -282,6 +295,7 @@ function challenge(req, res) {
                         throw err;
                     }
                     char.matches.push(m._id);
+                    char.experience = charB.experience;
                     char.lastPlayed = Date.now();
                     char.save(function(err) {
                         if(err) {
@@ -404,6 +418,9 @@ function initUserId(pid, done) {
         if(res) {
             return done(null, res);
         }
+        /*if(!(pid in ALLOWED_PIDS)) {
+            return done(new Error('Not registered'));
+        }*/
         var user = new models.User({
             pid: pid,
             points: 0,
