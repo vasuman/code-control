@@ -3,6 +3,10 @@ Point = stuff.Point,
 Tile = stuff.Tile,
 Direction = stuff.Direction;
 
+function isValid(params, p) {
+    return p.i >= 0 && p.i < params.grid.row && p.j >= 0 && p.j < params.grid.col;
+}
+
 function getAt(params, p) {
     return params.grid.arr[p.i * params.grid.col + p.j];
 }
@@ -60,3 +64,4 @@ module.exports.getDirection = getDirection;
 module.exports.getEntArray = getEntArray;
 module.exports.getType = getType;
 module.exports.getAt = getAt;
+module.exports.isValid = isValid;
