@@ -69,7 +69,7 @@ const DEF_LVL = [ new SelectOption('Battle', 'battle') ];
 const START_EXP = 10;
 const START_LVL = 1;
 const TRAIN_DEF = [ new SelectOption('Swarm', 'swarm') ];
-const EXP_DIFF = 75;
+const EXP_DIFF = 50;
 const EXP_GAIN = 14;
 const MIN_EXP_GAIN = 1;
 const MAX_PLAYS = 30;
@@ -239,7 +239,7 @@ function challenge(req, res) {
         if(!charB) {
             return res.redirect('/not_permit');
         }
-        if((charB.experience - charA.experience) > EXP_DIFF) {
+        if(Math.abs(charB.experience - charA.experience) > EXP_DIFF) {
             return res.redirect('/not_permit');
         }
         if(!isRested(charB)) {
