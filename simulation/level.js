@@ -215,7 +215,7 @@ function AbstractLevel(chars, jsonPath, finishCb) {
     function getParams(ent) {
         return {
             entities: entities,
-            grid: self.grid, 
+            grid: self.grid.getRepr(), 
             turn: self.turn,
             self: ent
         };

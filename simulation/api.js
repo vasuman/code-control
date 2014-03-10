@@ -3,8 +3,8 @@ Point = stuff.Point,
 Tile = stuff.Tile,
 Direction = stuff.Direction;
 
-function getAt(state, p) {
-    return state.grid[p.i * state.width + p.j];
+function getAt(params, p) {
+    return params.grid.arr[p.i * params.grid.col + p.j];
 }
 
 function getDistance(pointA, pointB) {
@@ -59,3 +59,4 @@ module.exports.getDistance = getDistance;
 module.exports.getDirection = getDirection;
 module.exports.getEntArray = getEntArray;
 module.exports.getType = getType;
+module.exports.getAt = getAt;

@@ -170,6 +170,15 @@ function Grid(row, col) {
     }
     this.put = put;
 
+    function getRepr() {
+        return {
+            arr: arr,
+            col: col,
+            row: row
+        }
+    }
+    this.getRepr = getRepr;
+
     function move(oldPos, newPos) {
         var item = get(oldPos),
         dest = get(newPos);
