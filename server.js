@@ -614,7 +614,7 @@ function logQuit(err) {
 
 function connMongo() {
     mongoose.connect(MONGO_URL);
-    mongoose.connection.once('open', loadData);
+    mongoose.connection.once('open', loadPIDs);
     mongoose.connection.on('error', logQuit);
 }
 
