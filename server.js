@@ -98,8 +98,9 @@ function loadPIDs() {
             throw err;
         }
         ALLOWED_PIDS = JSON.parse(d);
+        loadData();
     }
-    fs.readFile('pids.json', {encoding: 'utf8'}, fRead);
+    fs.readFile('./pids.json', {encoding: 'utf8'}, fRead);
 }
 
 function loadData() {
@@ -238,7 +239,7 @@ function challenge(req, res) {
         if(!charB) {
             return res.redirect('/not_permit');
         }
-        if(Math.abs(charA.experience - charB.experience) > EXP_DIFF) {
+        if((charB.experience - charA.experience) > EXP_DIFF) {
             return res.redirect('/not_permit');
         }
         if(!isRested(charB)) {
@@ -418,9 +419,9 @@ function initUserId(pid, done) {
         if(res) {
             return done(null, res);
         }
-        /*if(!(pid in ALLOWED_PIDS)) {
+        if(!(pid in ALLOWED_PIDS)) {
             return done(new Error('Not registered'));
-        }*/
+        }
         var user = new models.User({
             pid: pid,
             points: 0,
