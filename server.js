@@ -342,6 +342,10 @@ function noLogin(req, res) {
     res.render('nologin.ejs', { user: null });
 }
 
+function docs(req, res) {
+	res.render('docs.ejs', { user: null });
+}
+
 function unAuth(res, req) {
     res.render('unauth.ejs', { user: req.user });
     res.status(401);
@@ -589,6 +593,7 @@ function leaderboard(req, res) {
 function notPermit(req, res) {
     return res.send('Not permitted!');
 }
+app.get('/docs', docs);
 app.get('/', renderPage('index'));
 app.get('/login', authHandle);
 app.get('/logout', doLogout);
