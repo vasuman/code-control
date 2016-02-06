@@ -149,6 +149,9 @@ function doTrain(req, res) {
         if(!(req.user) || !(char.owner.equals(req.user._id))) {
             return res.redirect('/not_permit');
         }
+
+		//ASH : REMEMBER TO REMOVE
+		//
         if(!isValidMap(req.body.map)) {
             return res.redirect('/404');
         }
@@ -168,7 +171,7 @@ function doTrain(req, res) {
         var m = new models.Match({
             contenders: [char],
             type: 'train',
-            map: jsonPath,
+            map: r.map,
             when: Date.now(),
             result: r.score,
             replay: r.replay
@@ -273,7 +276,7 @@ function challenge(req, res) {
         var m = new models.Match({
             contenders: [charA, charB],
             type: 'versus',
-            map: jsonPath,
+            map: r.map,
             when: Date.now(),
             result: r.winner,
             replay: r.replay,
@@ -353,11 +356,11 @@ function unAuth(res, req) {
 
 function matchPage(req, res) {
     var match;
-    function fileLoaded(err, d) {
-        if(err) {
-            throw err;
-        }
-        res.render('match', { map: d, user: req.user, match: match });
+    function fileLoaded() {
+        //if(err) {
+        //    throw err;
+        //}
+        res.render('match', { map: match.map, user: req.user, match: match });
     }
     function foundMatch(err, m) {
         if(err) {
@@ -367,7 +370,8 @@ function matchPage(req, res) {
         if(!match) {
             return res.redirect('/404');
         }
-        fs.readFile(match.map, fileLoaded);
+        //fs.readFile(match.map, fileLoaded);
+		setImmediate(fileLoaded);
     }
     models.Match.findById(req.params.mid).
         populate('contenders').

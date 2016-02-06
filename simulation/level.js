@@ -24,7 +24,6 @@ function randInt(a, b) {
     return a + Math.floor(Math.random() * (b - a));
 }
 
-
 function SwarmTraining(char, swarm, jsonPath, finishCb) {
     var self = this,
     pChar, spawned = [];
@@ -47,7 +46,7 @@ function SwarmTraining(char, swarm, jsonPath, finishCb) {
     }
 
     function gameOver() {
-        setImmediate(finishCb, null, { score: getScore(), replay: self.replay })
+        setImmediate(finishCb, null, { score: getScore(), replay: self.replay, map: JSON.stringify(self.def) });
     }
     this.gameOver = gameOver;
 
@@ -85,11 +84,11 @@ function BattleLevel(charA, charB, jsonPath, finishCb) {
 
     function gameOver() {
         if(bP.dead) {
-            setImmediate(finishCb, null, { winner: charA._id, replay: self.replay });
+            setImmediate(finishCb, null, { winner: charA._id, replay: self.replay, map: JSON.stringify(self.def) });
         } else if(aP.dead) {
-            setImmediate(finishCb, null, { winner: charB._id, replay: self.replay });
+            setImmediate(finishCb, null, { winner: charB._id, replay: self.replay, map: JSON.stringify(self.def) });
         } else {
-            setImmediate(finishCb, null, { winner: null, replay: self.replay });
+            setImmediate(finishCb, null, { winner: null, replay: self.replay, map: JSON.stringify(self.def) });
         }
     }
     this.gameOver = gameOver;
@@ -225,15 +224,12 @@ function AbstractLevel(chars, jsonPath, finishCb) {
         if(++loadMap.count < chars.length) {
             return;
         }
-        fs.readFile(jsonPath, { encoding: 'utf8' }, fReadCback);
+		setImmediate(fReadCback);
     }
     loadMap.count = 0;
 
-    function fReadCback(err, d) {
-        if(err) {
-            return setImmediate(finishCb, err);
-        }
-        self.def = JSON.parse(d);
+    function fReadCback() {
+		self.def = require("./map_gen").GenerateMap();
         self.grid = new Grid(self.def.height, self.def.width);
         // Building tilesets
         for(key in self.def.tiledata) {
