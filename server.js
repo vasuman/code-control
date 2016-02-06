@@ -357,9 +357,6 @@ function unAuth(res, req) {
 function matchPage(req, res) {
     var match;
     function fileLoaded() {
-        //if(err) {
-        //    throw err;
-        //}
         res.render('match', { map: match.map, user: req.user, match: match });
     }
     function foundMatch(err, m) {
@@ -370,13 +367,13 @@ function matchPage(req, res) {
         if(!match) {
             return res.redirect('/404');
         }
-        //fs.readFile(match.map, fileLoaded);
 		setImmediate(fileLoaded);
     }
     models.Match.findById(req.params.mid).
         populate('contenders').
         exec(foundMatch);
 }
+
 function userPage(req, res) {
     function buildOther(err, user) {
         if(err) {
