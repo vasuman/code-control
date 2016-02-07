@@ -6,3 +6,8 @@
 .sp-but {
     margin: 2em;
 }
+
+.overlay, .mini-replay {
+	padding: 10px 10px 10px 10px;
+	float: left;
+}
