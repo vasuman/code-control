@@ -9,7 +9,8 @@ http = require('http'),
 path = require('path'),
 helpers = require('express-helpers')(app),
 PragyanStrategy = require('./auth/pragyan').PragyanStrategy,
-verifyCookie = require('./auth/verify').verifyCookie;
+verifyCookie = require('./auth/verify').verifyCookie,
+markdown = require( "marked" );
 
 app.set('port', process.env.PORT || 8000);
 app.set('view engine', 'ejs');
@@ -346,7 +347,19 @@ function noLogin(req, res) {
 }
 
 function docs(req, res) {
-	res.render('docs.ejs', { user: null });
+    var mdFiles = JSON.parse(
+            fs.readFileSync( path.join( 'docs', 'manifest.json' ), 'utf8' ) )['files'] ,
+    mdHTML = mdFiles.map( function( elem ) {
+        var md = path.join( 'docs', elem ), text = fs.readFileSync( md, 'utf8');
+        return markdown(text);
+    });
+    res.render('docs.ejs', {
+            user: null, 
+            intro: mdHTML[0], 
+            update: mdHTML[1], 
+            api: mdHTML[2], 
+            examples: mdHTML[3]
+    });
 }
 
 function unAuth(res, req) {

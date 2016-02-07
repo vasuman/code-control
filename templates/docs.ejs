@@ -1,29 +1,10 @@
 <html lang="en">
 <head>
 	<title>Documentation</title>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<%- include req %>
 </head>
 <body>
-
-<nav id = "header" class = "navbar navbar-default">
-	<div class = "navbar-header">
-	<a id = "event-name" class = "navbar-brand" href = "/">Code Character </a>
-	</div>
-	<ul class = "nav navbar-nav">
-		<li><a href = "/docs/">Docs</a></li>
-		<li><a href = "/leaderboard">Leaderboard</a></li>
-			<% if(user) { %>
-		<li><%- link_to(user.pid, '/u/' + user.pid) %></li>
-			<% } else { %>
-		<li><%- link_to('Login', '/login') %></li>
-			<% } %>
-	</ul>
-</nav>
-
+	<%- include header %>
 	<br />
 	<div class="container">
 		<ul class="nav nav-tabs nav-justified">
@@ -33,144 +14,12 @@
 			<li><a data-toggle="tab" href="#update">Update</a></li>
 		</ul>
 		<div class = "tab-content">
-			<div id = "intro" class = "tab-pane fade in active">
-				<!-- Intro content converted from md to html -->
-				<h1>Introduction</h1>
-				<p><strong>Code Character</strong> is a versus event. Your aim is to code a character and defeat the other player.</p>
-				<h2>Objective</h2>
-				<p>You create a <em>character</em> which is controlled by a <strong>single</strong> entry point, the <code>update</code> loop.</p>
-				<pre><code>function update(params) {<br /> &#09; // Do stuff here<br />}</code></pre>
-				<p>The <code>update</code> loop is executed each turn for your character with some <code>params</code> that represent the current state of the game.</p>
-				<h2>Scoring</h2>
-				<p>Once you have coded your character and submitted it. You can challenge other players’ characters.
-				Then, a match is simulated between your two characters and the winner is awarded a certain number of points.
-				The final winners are decided based on who has the <em>most</em> number of points.</p>
-				<h2>Language</h2>
-				<p>The chosen implementation language is <a href="https://developer.mozilla.org/en/docs/Web/JavaScript">Javascript</a> chosen for it’s specific ease of use. Also being an interpreted, scripting language with <em>no</em> static typing it offers several coding speed benefits.</p>
-				<h3>Environment</h3>
-				<p>All submitted code is executed in a sandboxed environment so, the standard browser <code>document</code> and <code>window</code> objects are <em>not</em> present. There are <em>no</em> module loaders like <code>require</code> either.</p>
-				<p>The standard language features like,</p>
-				<ul>
-				<li><code>Object</code></li>
-				<li><code>Array</code></li>
-				<li><code>Math</code></li>
-				</ul>
-				<p>etc. <em>are</em> accessible.</p>
-				<h3>Linting</h3>
-				<p>For safety checking we employ some basic <a href="http://en.wikipedia.org/wiki/Lint_%28software%29">code linting</a>. Things to ensure,</p>
-				<ul>
-				<li><strong>No access of undeclared global variables</strong></li>
-				</ul>
-				<pre><code>var b; <br /> function update(params) { <br /> &#09; b = 2;  /* GUD */ <br />&#09;a = 1;  /* BAD */<br />}</code></pre>
-				<ul>
-				<li><strong>No modification of provided API objects</strong></li>
-				</ul>
-				<pre><code>function update(params) {<br />&#09;Point.x = 1;    /* NO */<br />}</code></pre>
-				<ul>
-				<li><strong>No modification of <code>prototype</code> of inbuilt objects</strong></li>
-				</ul>
-				<pre><code>function update(params) {<br />&#09;Array.prototype.toString = function() {<br />&#09;&#09;return 'I am a 1337 h@xx0r'    /* NOPE */<br />&#09;}<br />}</code></pre>
-			</div>
-			<div id = "api" class = "tab-pane fade in">
-				<!-- API content converted from api.md to HTML -->
-				<h1>API</h1>
-				<h2>Point</h2>
-				<p>A constructor that simplifies creation of <code>i</code>, <code>j</code> objects</p>
-				<pre><code>var p = new Point(0, 0); <br />console.log(p); <br /> <br />/* OUTPUT */ <br />{<br />&#09; i: 0,<br />&#09; j: 0 <br />}</code></pre>
-				<h2>Direction</h2>
-				<p>An object containing constants representing the directions,</p>
-				<pre><code>const Direction = {<br />&#09; U: 0,<br />&#09; D: 1,<br />&#09; L: 2,<br />&#09; R: 3<br />}
-				</code></pre>
-				<h2>isValid</h2>
-				<p><em>Parameters</em>: <code>params</code>, <code>point</code></p>
-				<p>Function that returns whether a certain point is within the bounds of the map.</p>
-				<h2>getAt</h2>
-				<p><em>Parameters</em>: <code>params</code>, <code>point</code></p>
-				<p>Function that returns an <code>Object</code> at the given <code>point</code> on the map.
-				The object may be either an <em>entity</em> or a <em>tile</em> or value <code>0</code> if it’s free.
-				Type can be determined via <a href="#gettype">getType</a></p>
-				<h2>getDistance</h2>
-				<p><em>Parameters</em>: <code>pointA</code>, <code>pointB</code></p>
-				<p>Function that returns the <a href="http://en.wikipedia.org/wiki/Taxicab_geometry">Manhattan distance</a> between two points</p>
-				<h2>getDirection</h2>
-				<p><em>Parameters</em>: <code>pointA</code>, <code>pointB</code></p>
-				<p>Function that gets the <em>direction</em> of the maximum difference between <code>pointB</code> and <code>pointA</code>. Returns <code>-1</code> if both are same;</p>
-				<h2>getEntArray</h2>
-				<p><em>Parameters</em>: <code>params</code></p>
-				<p>Function that returns the entities on the map as an <code>Array</code></p>
-				<h2>getType</h2>
-				<p><em>Parameters</em>: <code>object</code></p>
-				<p>Function that returns the <em>type</em> of object from the return value of <a href="#getat">getAt</a> or <code>none</code> if it’s empty.</p>
-				<h2>getMove</h2>
-				<p><em>Parameters</em>: <code>point</code>, <code>dir</code></p>
-				<p>Function that returns the point you reach when you move in direction <code>dir</code> from <code>point</code>.</p>
-			</div>
-			<div id = "examples" class = "tab-pane fade in">
-				<!-- Example content from examples.md to HTML -->
-				<h1>Examples</h1>
-				<h2>Sleepy</h2>
-				<pre><code>function update(params) {<br />&#09; return { action: 'rest' };<br />}</code></pre>
-				<h2>Jerky</h2>
-				<pre><code>function update(params) {<br />&#09; var dir = Math.floor(Math.random() * 4);  <br />&#09; return { action: 'move', dir: dir };<br />}</code></pre>
-				<h2>Seek and Destroy</h2>
-				<pre><code>function update(params) {<br />&#09; var enemyEntity;<br />&#09; for(var key in params.entities) {<br />&#09; &#09;if(params.entities.hasOwnProperty(key)) {<br />&#09; &#09; &#09; enemyEntity = params.entities[key];<br />&#09; &#09; &#09; /* Check if entity is really an enemy */<br />&#09; &#09; &#09; if(enemyEntity.team != params.self.team) {<br />&#09; &#09; &#09; &#09; /* Check if it's close by */<br />&#09; &#09; &#09; &#09; if(getDistance(enemyEntity.pos, params.self.pos) == 1) {<br />&#09; &#09; &#09; &#09; &#09; /* Attack it */<br />&#09; &#09; &#09; &#09; &#09; return {<br />&#09; &#09; &#09; &#09; &#09;&#09; action: 'attack',<br />&#09; &#09; &#09; &#09; &#09; &#09; dir: getDirection(enemyEntity.pos, params.self.pos) <br />&#09; &#09; &#09; &#09; &#09; };<br />&#09; &#09; &#09; &#09; } else {<br />&#09; &#09; &#09; &#09; &#09; /* Move towards it */<br />&#09; &#09; &#09; &#09; &#09;return { <br />&#09; &#09;&#09; &#09; &#09; &#09; action: 'move', <br />&#09; &#09; &#09; &#09; &#09; &#09; dir: getDirection(enemyEntity.pos, params.self.pos) <br />&#09; &#09; &#09; &#09; &#09; }; <br />&#09; &#09; &#09; &#09; } <br />&#09; &#09; &#09; } <br />&#09; &#09; }<br />&#09; }<br />return { action: 'rest' };<br />}</code></pre>
-			</div>
-			<div id = "update" class = "tab-pane fade in">
-				<!-- update content from update.md to html -->
-				<h1>Update</h1>
-				<p>The single entry point to all your code. This is the only function that is actually called by the simulation. Controls the <code>action</code> your character takes during that turn. Any <strong>declared</strong> global variables are accessible <em>persistantly</em>. The <code>update</code> function <strong>must</strong> be declared.</p>
-				<blockquote>
-				<p>Additional functions -- that are called from <code>update</code> may also be declared.</p>
-				</blockquote>
-				<h2>Return Value</h2>
-				<p>The <code>action</code> your character performs is determined by the <code>Object</code> that your function returns.
-				The <strong>compulsory</strong> key that your return object must posses is the <code>action</code> key. This key can be any one of,</p>
-				<h3>rest</h3>
-				<p>Does <em>nothing</em> for that turn.</p>
-				<pre><code>function update(params) { <br />&#09;return { action: 'rest' } <br />} </code></pre>
-				<blockquote>
-				<p>Any additional keys are ignored</p>
-				</blockquote>
-				<h3>move</h3>
-				<p>Attempts to move in the particular <a href="api.html#direction">Direction</a>. If the new position is invalid -- out of bounds; or already occupied, the <code>move</code> <em>fails</em>.
-				This action <strong>requires</strong> an additional <code>dir</code> key which specifies the <a href="api.html#direction">Direction</a> to move in.</p>
-				<pre><code>function update(params) { <br />&#09;return {<br /> &#09;&#09;action: 'move', <br />&#09;&#09;dir: Direction.U<br />&#09;} <br />}
-				</code></pre>
-				<h3>attack</h3>
-				<p>If an entity is present <em>one</em> tile away in the <a href="api.html#direction">Direction</a> <code>dir</code> from the current position. The other character is <code>damaged</code>.</p>
-				<pre><code>function update(params) { <br />&#09;return { <br />&#09;&#09; action: 'attack',<br />&#09;&#09; dir: Direction.D <br /> &#09;}<br />}
-				</code></pre>
-				<h2>Entity</h2>
-				<p>An entity is just a plain old Javascript <code>Object</code> that describes well, an <em>entity</em>. Its keys describe its state. Available keys,</p>
-				<ul>
-				<li><em>idx</em>: A unique <code>id</code> that identifies each entity.</li>
-				<li><em>team</em>: A number that identifies which team the entity belongs to.</li>
-				<li><em>pos</em>: A <a href="api.html#point">Point</a> object that describes its position on the grid.</li>
-				<li><em>health</em>: The remaining health of the entity.</li>
-				</ul>
-				<h2>Parameters</h2>
-				<p>Your <code>update</code> function is supplied with a bunch of parameters that specify the current game state. All of these parameters are encapsualted into a single <code>params</code> object. All parameters are accesible via the <em>keys</em> of this object.</p>
-				<h3>params.self</h3>
-				<p>An <code>entity</code> object that describes the <strong>character that is being updated</strong>.</p>
-				<h3>params.grid</h3>
-				<p>Keys,</p>
-				<ul>
-				<li><code>arr</code> 1D row major representation of <em>game grid</em></li>
-				<li><code>row</code> number of rows</li>
-				<li><code>col</code> number of columns
-				A one dimensional <code>Array</code> that represents the entire <em>game grid</em> at the current instant. The API provides a utility <a href="api.html#getat">getAt</a> function to help seeking using traditional <code>i</code>, <code>j</code> indexing.</li>
-				</ul>
-				<blockquote>
-				<p>Modifying these parameters <em>doesn't</em> change the game state. You can <em>only</em> affect the state by <em>returning</em> an <code>action</code> and update your character.</p>
-				</blockquote>
-				<h3>params.entities</h3>
-				<p>An <code>Object</code> consisting of all the <em>entities</em> currently present on the map .</p>
-
-			</div>
+			<div id = "intro" class = "tab-pane fade in active"><%- intro %></div>
+			<div id = "api" class = "tab-pane fade in "><%- api %></div>
+			<div id = "examples" class = "tab-pane fade in "><%- examples %></div>
+			<div id = "update" class = "tab-pane fade in "><%- update %></div>	
 		</div>
 	  </ul>
 	</div>
-	
-	<br /> <br />
 </body>
 </html>
