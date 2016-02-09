@@ -9,7 +9,8 @@ http = require('http'),
 path = require('path'),
 helpers = require('express-helpers')(app),
 PragyanStrategy = require('./auth/pragyan').PragyanStrategy,
-verifyCookie = require('./auth/verify').verifyCookie;
+verifyCookie = require('./auth/verify').verifyCookie,
+markdown = require( "marked" );
 
 app.set('port', process.env.PORT || 8000);
 app.set('view engine', 'ejs');
@@ -149,6 +150,9 @@ function doTrain(req, res) {
         if(!(req.user) || !(char.owner.equals(req.user._id))) {
             return res.redirect('/not_permit');
         }
+
+		//ASH : REMEMBER TO REMOVE
+		//
         if(!isValidMap(req.body.map)) {
             return res.redirect('/404');
         }
@@ -168,7 +172,7 @@ function doTrain(req, res) {
         var m = new models.Match({
             contenders: [char],
             type: 'train',
-            map: jsonPath,
+            map: r.map,
             when: Date.now(),
             result: r.score,
             replay: r.replay
@@ -273,7 +277,7 @@ function challenge(req, res) {
         var m = new models.Match({
             contenders: [charA, charB],
             type: 'versus',
-            map: jsonPath,
+            map: r.map,
             when: Date.now(),
             result: r.winner,
             replay: r.replay,
@@ -342,6 +346,22 @@ function noLogin(req, res) {
     res.render('nologin.ejs', { user: null });
 }
 
+function docs(req, res) {
+    var mdFiles = JSON.parse(
+            fs.readFileSync( path.join( 'docs', 'manifest.json' ), 'utf8' ) )['files'] ,
+    mdHTML = mdFiles.map( function( elem ) {
+        var md = path.join( 'docs', elem ), text = fs.readFileSync( md, 'utf8');
+        return markdown(text);
+    });
+    res.render('docs.ejs', {
+            user: null, 
+            intro: mdHTML[0], 
+            update: mdHTML[1], 
+            api: mdHTML[2], 
+            examples: mdHTML[3]
+    });
+}
+
 function unAuth(res, req) {
     res.render('unauth.ejs', { user: req.user });
     res.status(401);
@@ -349,11 +369,8 @@ function unAuth(res, req) {
 
 function matchPage(req, res) {
     var match;
-    function fileLoaded(err, d) {
-        if(err) {
-            throw err;
-        }
-        res.render('match', { map: d, user: req.user, match: match });
+    function fileLoaded() {
+        res.render('match', { map: match.map, user: req.user, match: match });
     }
     function foundMatch(err, m) {
         if(err) {
@@ -363,12 +380,13 @@ function matchPage(req, res) {
         if(!match) {
             return res.redirect('/404');
         }
-        fs.readFile(match.map, fileLoaded);
+		setImmediate(fileLoaded);
     }
     models.Match.findById(req.params.mid).
         populate('contenders').
         exec(foundMatch);
 }
+
 function userPage(req, res) {
     function buildOther(err, user) {
         if(err) {
@@ -589,6 +607,7 @@ function leaderboard(req, res) {
 function notPermit(req, res) {
     return res.send('Not permitted!');
 }
+app.get('/docs', docs);
 app.get('/', renderPage('index'));
 app.get('/login', authHandle);
 app.get('/logout', doLogout);

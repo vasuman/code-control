@@ -3,3 +3,6 @@ static/docs/
 build/
 *.swp
 *.swo
+
+#Vim Temp files
+*~
