@@ -224,12 +224,12 @@ function AbstractLevel(chars, jsonPath, finishCb) {
         if(++loadMap.count < chars.length) {
             return;
         }
-		setImmediate(fReadCback);
+		require("./map_gen").GenerateMap(fReadCback);
     }
     loadMap.count = 0;
 
-    function fReadCback() {
-		self.def = require("./map_gen").GenerateMap();
+    function fReadCback(map) {
+		self.def = map;
         self.grid = new Grid(self.def.height, self.def.width);
         // Building tilesets
         for(key in self.def.tiledata) {

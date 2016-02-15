@@ -90,7 +90,7 @@ function generation(index) {
 	}
 }
 
-function GenerateMap() {
+function GenerateMap(cback) {
 	var argc = 10;
 
 	params = new Array(generations);
@@ -106,7 +106,7 @@ function GenerateMap() {
 
 	var isMapValid = mapValidate();
 	if (isMapValid)
-		return mapAssign();
+		mapAssign(cback);
 	else
 		GenerateMap();
 }
@@ -146,7 +146,7 @@ function countFloorInCurrentPool(fi, fj) {
 		countFloorInCurrentPool(fi,fj+1);
 }
 
-function mapAssign() {
+function mapAssign(cback) {
 	var map = (JSON.parse(JSON.stringify(mapTemplate)));
 
 	for (var i=0;i<size_y;i++) {
@@ -155,7 +155,7 @@ function mapAssign() {
 		}
 	}
 
-	return map;
+	setImmediate(cback, map);
 }
 
 function makeArray(element, index, array) {
