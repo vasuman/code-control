@@ -7,12 +7,13 @@ function init() {
     session = editor.getSession();
     session.setUseWorker(false);
     session.setMode("ace/mode/javascript");
+    resultDiv = document.getElementById('flag-div');
     session.getDocument().on('change', function() {
         saveDiv.innerHTML = 'Not Saved!?';
+        resultDiv.innerHTML = '<div style = "color:green;">Typing..</div>';
     });
     saveButton = document.getElementById('save-button');
     saveButton.addEventListener('click', save);
-    resultDiv = document.getElementById('flag-div');
     saveDiv = document.getElementById('save-div');
 }
 
