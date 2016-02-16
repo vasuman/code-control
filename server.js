@@ -571,7 +571,11 @@ function saveChar(req, res) {
             return res.redirect('/login_failed');
         }
         /* DATA REGION */
-        errs = linter.process(req.body.code, require('./simulation/api'), ['update']);
+        // errs = linter.process(req.body.code, require('./simulation/api'), ['update']);
+
+		errs = linter.versusProcess(req.body.code, [require('./simulation/api'), require('./simulation/api'), require('./simulation/api')], ['attack', 'defend']);
+		// console.log(linter.getFunctionCode(req.body.code, require('./simulation/api'), 'attack'));
+
         /* END DATA */
         char.code = req.body.code;
         char.passed = (errs.length == 0);
