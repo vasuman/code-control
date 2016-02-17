@@ -123,6 +123,7 @@ function getCode(code, globals, name) {
 
 // Will allow only required functions as global variables, nothing more.
 const EraseGlobals = true;
+const ValidGlobalsList = ['Array', 'Math', 'Function', 'Object', 'String', 'Infinity', 'NaN', 'undefined', 'null', 'Boolean', 'Symbol', 'Error', 'EvalError', 'InternalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number', 'Math', 'Date', 'RegExp', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array', 'Map', 'Set', 'WeakMap', 'WeakSet', 'ArrayBuffer', 'SharedArrayBuffer', 'Atomics', 'DataView', 'JSON', 'Promise', 'Generator', 'GeneratorFunction', 'Reflect', 'Proxy', 'arguments' ];
 
 // Assume req_func = ['attack','defend']
 // globalsArr is essentially = ['common + attack + defend', 'common + attack', 'common + defend'] api
@@ -139,7 +140,7 @@ function versusProcess(code, globalsArr, req_func) {
 
 	var functionData = jsHintExport.data().functions;
 	var jsHintData = jsHintExport.data();
-	// console.log(jsHintData);
+	console.log(jsHintData);
 
 	if (EraseGlobals) {
 		for (var i = 0; i < jsHintData.globals.length; i++) {
@@ -148,6 +149,13 @@ function versusProcess(code, globalsArr, req_func) {
 
 			for (var j = 0; j < req_func.length; j++) {
 				if (name === req_func[j]) {
+					nameIsIn = true;
+					break;
+				}
+			}
+
+			for (var j = 0; j < ValidGlobalsList.length; j++) {
+				if (name === ValidGlobalsList[j]) {
 					nameIsIn = true;
 					break;
 				}
