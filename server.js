@@ -64,7 +64,8 @@ app.use(express.errorHandler());
 /* DATA REGION */
 const PORT = process.env.PORT || 8000;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost/code';
-const DEFAULT_CODE = 'function update(params) {\n // TODO: insert code here\n}';
+const DEFAULT_ATTACK_CODE = 'function attack(params) {\n // TODO: insert attack code here\n}';
+const DEFAULT_DEFEND_CODE = 'function defend(params) {\n // TODO: insert defend code here\n}';
 const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
 const DEF_LVL = [ new SelectOption('Battle', 'battle') ];
 const START_EXP = 10;
@@ -524,7 +525,7 @@ function createChar(req, res) {
             passed: false,
             experience: START_EXP,
             level: 1,
-            code: DEFAULT_CODE,
+            code: [ DEFAULT_DEFEND_CODE, DEFAULT_ATTACK_CODE ],
             lastPlayed: new Date(0),
             matches: []
         });

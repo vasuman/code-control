@@ -33,7 +33,7 @@ var charSchema = new Schema({
     edited: Date,
     passed: Boolean,
     experience: Number,
-    code: String,
+    code: [String],
     lastPlayed: Date,
     matches: [{ type: Schema.Types.ObjectId, ref: 'Match'}]
 });
