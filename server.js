@@ -475,6 +475,9 @@ function charPage(req, res) {
         if(!char) {
             return res.redirect('/404');
         }
+        // console.log(req.user);
+        // console.log("####################");
+        // console.log(char);
         res.render('info_char', { user: req.user, char: char, allowed_maps: DEF_MAP, train_level: TRAIN_DEF, vs_level: DEF_LVL });
     }
     models.Character.findOne({ name: req.params.cname }).
@@ -574,11 +577,11 @@ function saveChar(req, res) {
         /* DATA REGION */
         // errs = linter.process(req.body.code, require('./simulation/api'), ['update']);
 
-		errs = linter.versusProcess(req.body.code, [require('./simulation/api'), require('./simulation/attack_api'), require('./simulation/defend_api')], ['attack', 'defend']);
+		errs = linter.versusProcess(req.body.code, [require('./simulation/api'), require('./simulation/defend_api'), require('./simulation/attack_api')], ['defend', 'attack']);
 		// console.log(linter.getFunctionCode(req.body.code, require('./simulation/api'), 'attack'));
 
         /* END DATA */
-        char.code = req.body.code;
+        char.code = linter.adCode;
         char.passed = (errs.length == 0);
         char.save(doneSave);
     }

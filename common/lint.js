@@ -1,10 +1,13 @@
+const DEFAULT_ATTACK_CODE = 'function attack(params) {\n // TODO: insert attack code here\n}';
+const DEFAULT_DEFEND_CODE = 'function defend(params) {\n // TODO: insert defend code here\n}';
+
 var options = {
     undef: true,
     noarg: true,
     freeze: true,
     latedef: true
 }
-
+var attack_and_defend_code = [ DEFAULT_DEFEND_CODE, DEFAULT_ATTACK_CODE]
 const ATTACK_FUNCTION = 'attack',
 	  DEFEND_FUNCTION = 'defend';
 
@@ -26,7 +29,6 @@ function truthize(x) {
     return res;
 }
 
-// Done after appropriate linting
 function getFunctionCode(code, name, lineInfo) {
 	var codeLines = code.split('\n'),
 		functionCode = '';
@@ -84,17 +86,15 @@ function getLineData(functionArray, name) {
 	var lineInfo = {},
 		funcPresent = false;
 
-	for (var func in functionArray) {
-		func = functionArray[func];
-		if (func.name === name) {
-			funcPresent = true;
-
-			lineInfo.line = func.line;
-			lineInfo.character = func.character;
-			lineInfo.last = func.last;
-			lineInfo.lastcharacter = func.lastcharacter;
-		}
-	}
+    functionArray.forEach(function(func){
+        if (func.name === name) {
+            funcPresent = true;
+            lineInfo.line = func.line;
+            lineInfo.character = func.character;
+            lineInfo.last = func.last;
+            lineInfo.lastcharacter = func.lastcharacter;
+        }
+    });
 
 	if (funcPresent)
 		return lineInfo;
@@ -121,32 +121,35 @@ function getCode(code, globals, name) {
 	return functionCode;
 }
 
-// Will allow only required functions as global variables, nothing more.
 const EraseGlobals = true;
 const ValidGlobalsList = ['Array', 'Math', 'Function', 'Object', 'String', 'Infinity', 'NaN', 'undefined', 'null', 'Boolean', 'Symbol', 'Error', 'EvalError', 'InternalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number', 'Math', 'Date', 'RegExp', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array', 'Map', 'Set', 'WeakMap', 'WeakSet', 'ArrayBuffer', 'SharedArrayBuffer', 'Atomics', 'DataView', 'JSON', 'Promise', 'Generator', 'GeneratorFunction', 'Reflect', 'Proxy', 'arguments' ];
 
-// Assume req_func = ['attack','defend']
-// globalsArr is essentially = ['common + attack + defend', 'common + attack', 'common + defend'] api
 function versusProcess(code, globalsArr, req_func) {
+    /*
+        Allows only required functions as global variables, nothing more.
+
+        params code         :User's code. A single string of 
+                             attack and defend code actually
+        params globalsArr   [api, attack_api, defend_api]
+        params req_func     :['attack','defend']
+        
+
+    */
 	if (globalsArr.length < 3)
 		throw new Error('Globals doesn\'t have enough elements!');
 
 	var warn = [];
-
+    // Parse the whole code in the context of whole goddamn api
 	warn = process(code, globalsArr[0], req_func);
-	
 	var jsHintExport = require('jshint').JSHINT,
 		res = jsHintExport(code, options, truthize(globalsArr[0]));
 
 	var functionData = jsHintExport.data().functions;
 	var jsHintData = jsHintExport.data();
-	console.log(jsHintData);
-
+	//console.log(jsHintData);
 	if (EraseGlobals) {
-		for (var i = 0; i < jsHintData.globals.length; i++) {
-			var name = jsHintData.globals[i];
+		jsHintData.globals.forEach(function(name){
 			var nameIsIn = false;
-
 			for (var j = 0; j < req_func.length; j++) {
 				if (name === req_func[j]) {
 					nameIsIn = true;
@@ -169,7 +172,7 @@ function versusProcess(code, globalsArr, req_func) {
 					type: 'warning',
 					raw: 'Extra global defined'
 				});
-		}
+		});
 	}
 	var warnIndex = warn.length;
 
@@ -189,11 +192,10 @@ function versusProcess(code, globalsArr, req_func) {
 			});
 		}
 
-		var attackCode = getFunctionCode(code, req_func[j], lineInfo);
-		// console.log(attackCode);
-		var attackWarn;
-		attackWarn = process(attackCode, globalsArr[j + 1], [req_func[j]]);
-		warn = warn.concat(attackWarn);
+		var childCode = getFunctionCode(code, req_func[j], lineInfo);
+		var childWarn = process(childCode, globalsArr[j + 1], [req_func[j]]);
+        attack_and_defend_code[j] = childCode;  // 0->defend, 1-> attack
+		warn = warn.concat(childWarn);
 
 		if (warn.length > warnIndex) {
 			for (var i = warnIndex; i < warn.length; i++) {
@@ -203,35 +205,6 @@ function versusProcess(code, globalsArr, req_func) {
 			warnIndex = warn.length;
 		}
 	}
-
-	/*
-		lineInfo = getLineData(functionData, req_func[1]);
-		if (lineInfo === 0) {
-			warn.push({
-				row: 0,
-				text: 'Function ' + req_func[1] + ' is not defined',
-				column: 1,
-				type: 'warning',
-				raw: 'Required function not defined'
-			});
-		}
-		warnIndex = warn.length;
-
-		var defendCode = getFunctionCode(code, req_func[1], lineInfo);
-		console.log(defendCode);
-
-		var defendWarn = warn.concat(process(defendCode, globalsArr[2], [req_func[1]]));
-		warn = defendWarn;
-
-		if (warn.length > warnIndex) {
-			for (var i = warnIndex; i < warn.length; i++) {
-				var warnMessage = warn[i];
-				warnMessage.row += lineInfo.line - 1;
-			}
-			return warn;
-		}
-	*/
-
 	return warn;
 }
 
@@ -271,3 +244,4 @@ function process(code, globals, req_func) {
 module.exports.process = process;
 module.exports.versusProcess = versusProcess;
 module.exports.getFunctionCode = getCode;
+module.exports.adCode = attack_and_defend_code
