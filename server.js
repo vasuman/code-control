@@ -64,8 +64,8 @@ app.use(express.errorHandler());
 /* DATA REGION */
 const PORT = process.env.PORT || 8000;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost/code';
-const DEFAULT_ATTACK_CODE = 'function attack(params) {\n // TODO: insert attack code here\n}';
-const DEFAULT_DEFEND_CODE = 'function defend(params) {\n // TODO: insert defend code here\n}';
+const DEFAULT_ATTACK_CODE = "function attack(params) {\n // TODO: insert attack code here\n return {action: 'rest'};}";
+const DEFAULT_DEFEND_CODE = "function defend(params) {\n // TODO: insert defend code here\n return {action: 'rest'};}";
 const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
 const DEF_LVL = [ new SelectOption('Battle', 'battle') ];
 const START_EXP = 10;
@@ -111,7 +111,7 @@ function loadData() {
             if(err) {
                 throw err;
             }
-            val.pop()[key.pop()] = d;
+            //val.pop()[key.pop()] = d;
             if(file.length > 0) {
                 fs.readFile(file.pop(), doneFRead(file, val, key));
             } else {
@@ -121,8 +121,6 @@ function loadData() {
     }
     fs.readFile('./simulation/swarm-code.js', { encoding: 'utf8' }, doneFRead([], [swarmChar], ['code']))
 }
-/* END DATA */
-
 function isRested(char) {
     return (Date.now() - char.lastPlayed) > REST_INTERVAL
 }
@@ -473,9 +471,6 @@ function charPage(req, res) {
         if(!char) {
             return res.redirect('/404');
         }
-        // console.log(req.user);
-        // console.log("####################");
-        // console.log(char);
         res.render('info_char', { user: req.user, char: char, allowed_maps: DEF_MAP, train_level: TRAIN_DEF, vs_level: DEF_LVL });
     }
     models.Character.findOne({ name: req.params.cname }).
@@ -572,14 +567,8 @@ function saveChar(req, res) {
         if(!req.user || !char.owner.equals(req.user._id)) {
             return res.redirect('/login_failed');
         }
-        /* DATA REGION */
-        // errs = linter.process(req.body.code, require('./simulation/api'), ['update']);
-
-		errs = linter.versusProcess(req.body.code, [require('./simulation/api'), require('./simulation/defend_api'), require('./simulation/attack_api')], ['defend', 'attack']);
-		// console.log(linter.getFunctionCode(req.body.code, require('./simulation/api'), 'attack'));
-
-        /* END DATA */
-        char.code = linter.adCode;
+        errs = linter.versusProcess(req.body.code, [require('./simulation/api'), require('./simulation/defend_api'), require('./simulation/attack_api')], ['defend', 'attack']);
+		char.code = linter.adCode;
         char.passed = (errs.length == 0);
         char.save(doneSave);
     }

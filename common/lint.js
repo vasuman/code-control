@@ -1,5 +1,5 @@
-const DEFAULT_ATTACK_CODE = 'function attack(params) {\n // TODO: insert attack code here\n}';
-const DEFAULT_DEFEND_CODE = 'function defend(params) {\n // TODO: insert defend code here\n}';
+const DEFAULT_ATTACK_CODE = "function attack(params) {\n // TODO: insert attack code here\n return {action: 'rest'};}";
+const DEFAULT_DEFEND_CODE = "function defend(params) {\n // TODO: insert defend code here\n return {action: 'rest'};}";
 
 var options = {
     undef: true,
@@ -146,7 +146,6 @@ function versusProcess(code, globalsArr, req_func) {
 
 	var functionData = jsHintExport.data().functions;
 	var jsHintData = jsHintExport.data();
-	//console.log(jsHintData);
 	if (EraseGlobals) {
 		jsHintData.globals.forEach(function(name){
 			var nameIsIn = false;
@@ -211,6 +210,7 @@ function versusProcess(code, globalsArr, req_func) {
 function process(code, globals, req_func) {
     var j = require('jshint').JSHINT, i,
     res = j(code, options, truthize(globals)), warn = [], errors, f;
+
     if(!res) {
         var errors = j.data().errors, e;
         for(i = 0; i < errors.length; i++) {
