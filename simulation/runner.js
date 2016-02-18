@@ -1,7 +1,10 @@
 var vm = require('vm'),
 linter = require('../common/lint.js'),
 child_proc = require('child_process');
-
+var req_func = {
+    0 : 'defend',
+    1 : 'attack'
+}
 function SandboxException(i, m) {
     this.m = m;
     this.i = i;
@@ -39,6 +42,7 @@ function Runner(api, code, cBack, errBack, timeLimit) {
         return function(m) {
             var type = m.type, data = m.data;
             if(type == 'init_done') {
+                console.log("In runner MSG Handler");
                 clearTimeout(proc[i].timeout);
                 proc[i].state = DONE;
                 setImmediate(cBack);
@@ -69,7 +73,7 @@ function Runner(api, code, cBack, errBack, timeLimit) {
     }
 
     for(i = 0; i < code.length; i++) {
-        var err = linter.process(code[i], require(api), ['update']);
+        var err = linter.process(code[i], require(api[i]), [req_func[i]]);
         if(err.length > 0) {
             setImmediate(errBack, i, new Error('Code failed to lint ' + err[0].text));
             return;
@@ -79,10 +83,10 @@ function Runner(api, code, cBack, errBack, timeLimit) {
         proc[i].log = '';
         proc[i].p = child_proc.fork('./simulation/sandbox.js', [], {silent: true});
         proc[i].p.on('message', messageHandler(i));
-        proc[i].p.send({ type: 'init_context', data: api });
+        proc[i].p.send({ type: 'init_context', data: api[i] });
         proc[i].state = INIT;
         proc[i].timeout = setTimeout(timeoutKill(i), timeLimit);
-        proc[i].p.send({ type: 'init_code', data: code[i] });
+        proc[i].p.send({ type: 'init_code', data: code[i][i] });
         proc[i].p.stdout.on('data', appendToLog(i));
     }
 

@@ -87,7 +87,7 @@ const REST_INTERVAL = 1000 * 120;
 
 var swarmChar = {
     id: -1,
-    code: '',
+    code: [DEFAULT_DEFEND_CODE, DEFAULT_ATTACK_CODE],
     getHealth: function() { return 30; },
     getAttack: function() { return 5; }
 }
@@ -152,9 +152,7 @@ function doTrain(req, res) {
             return res.redirect('/not_permit');
         }
 
-		//ASH : REMEMBER TO REMOVE
-		//
-        if(!isValidMap(req.body.map)) {
+		if(!isValidMap(req.body.map)) {
             return res.redirect('/404');
         }
         jsonPath = path.join('./simulation', req.body.map);

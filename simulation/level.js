@@ -131,9 +131,11 @@ function AbstractLevel(chars, jsonPath, finishCb) {
 
     function run() {
         var code = chars.map(function(x) {
-            return x.code;
+            return x.code;  // x.code -> [defend, attack]
         });
-        runner = new Runner('./api', code, loadMap, errBack, 1000);
+        // Don't pass ./api.js here. Let defend_api and attack_api
+        // be self contained
+        runner = new Runner(['./defend_api', './attack_api'], code, loadMap, errBack, 1000);
     }
     this.run = run;
 
@@ -229,7 +231,7 @@ function AbstractLevel(chars, jsonPath, finishCb) {
     loadMap.count = 0;
 
     function fReadCback(map) {
-		self.def = map;
+        self.def = map;
         self.grid = new Grid(self.def.height, self.def.width);
         // Building tilesets
         for(key in self.def.tiledata) {
@@ -252,6 +254,7 @@ function AbstractLevel(chars, jsonPath, finishCb) {
         addEvent('death', e);
     }
     this.deathEvent = deathEvent;
+    
     function act(ent) {
         if(ent == null) {
             ent = updateList.getHead();

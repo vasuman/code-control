@@ -29,7 +29,6 @@ function doneSave() {
     if(this.status != 200) {
         console.log('Server Error');
     } else {
-        console.log(this.response);
         var resp = JSON.parse(this.response);
         if(resp.status == 0) {
             console.log('Success');
