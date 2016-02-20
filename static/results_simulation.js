@@ -45,18 +45,7 @@ function initElements() {
     	ctx.textBaseline = 'middle';
 		setHoverFunction(i);
 	}
-//    prevButton = document.getElementById('prev-button');
-//    nextButton = document.getElementById('next-button');
-//    playButton = document.getElementById('play-button');
-//    pauseButton = document.getElementById('pause-button');
-//    resetButton = document.getElementById('reset-button');
-//    prevButton.onclick = prevFrame;
-//    nextButton.onclick = nextFrame;
-//    playButton.onclick = beginPlay;
-//    pauseButton.onclick = pausePlay;
-//    resetButton.onclick = resetPlay;
     setImmediate(render);
-//    pausePlay();
 }
 
 function render() {

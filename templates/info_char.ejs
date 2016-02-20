@@ -65,12 +65,18 @@
             <% } %>
     </div>
     <% } %>
+	<br>
     <% if(char.matches.length > 0) { %>
     <div id = "recent-matches" class = "col-lg-4 well">
         <h3> Matches </h3>
         <% char.matches.forEach(function(match) { %>
+		<div class="container-sim">
 		<canvas class="mini-replay"></canvas>
+		<div class = "overlay">
         <% if(match.type == 'train') { %>
+			<div class = "match-train match-text">
+				<%- link_to('training', '/m/' + match._id) %>
+			</div>
         <% } else { %>
             <% var outcome; %>
             <% if(!match.result) { %>
@@ -78,10 +84,12 @@
             <% } else { %>
                 <% outcome = (match.result.equals(char._id)) ? 'win' : 'lose'; %>
             <% } %>
-            <div class = "match-<%= outcome %> overlay">
+            <div class = "match-<%= outcome %> match-text">
                 <%- link_to(outcome, '/m/' + match._id) %> 
             </div>
         <% } %>
+		</div>
+		</div>
         <% }) %>
     </div>
     </div>
