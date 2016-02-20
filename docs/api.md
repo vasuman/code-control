@@ -30,6 +30,7 @@ An object containing constants representing the directions,
 *Parameters*: `params`, `point`
 
 Function that returns whether a certain point is within the bounds of the map.
+`params` has details about entities and is made available as an argument to both `attack` and `defend` functions.
 
 ## getAt
 
