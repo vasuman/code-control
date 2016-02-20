@@ -169,9 +169,9 @@ function doTrain(req, res) {
     }
 	function sim1DoneCb(err, r) {
 		if(err) {
-			return res.send(err);
+            return res.send(err);
 		}
-		results.push(r);
+        results.push(r);
 		new SwarmLevel(char, swarmChar, myMap, ATTACK, simDoneCb);
 	}
     function simDoneCb(err, r) {

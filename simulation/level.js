@@ -111,14 +111,6 @@ function BattleLevel(charA, charB, jsonPath, finishCb) {
 
 util.inherits(BattleLevel, AbstractLevel);
 
-/* CHAR IFACE */
-
-/* getAttack()
- * getHealth()
- * code
- * id
- */
-
 function AbstractLevel(chars, myMap, round, finishCb) {
     var entities = {},
     updateList = new LinkList, moveDel = [],
@@ -135,10 +127,8 @@ function AbstractLevel(chars, myMap, round, finishCb) {
 
     function run() {
         var code = chars.map(function(x) {
-            return x.code;  // x.code -> [defend, attack]
+            return x.code;
         });
-        // Don't pass ./api.js here. Let defend_api and attack_api
-        // be self contained
         runner = new Runner(['./defend_api', './attack_api'], code, round, loadMap, errBack, 1000);
     }
     this.run = run;
@@ -226,18 +216,17 @@ function AbstractLevel(chars, myMap, round, finishCb) {
         };
     }
 
-    function loadMap(Round) {
+    function loadMap() {
         if(++loadMap.count < chars.length) {
             return;
         }
-		setImmediate(fReadCback, round);
+        setImmediate(fReadCback);
     }
     loadMap.count = 0;
 
-    function fReadCback(Round) {
+    function fReadCback() {
         self.def = myMap;
         self.grid = new Grid(self.def.height, self.def.width);
-        // Building tilesets
         for(key in self.def.tiledata) {
             if(self.def.tiledata.hasOwnProperty(key)) {
                 self.tSet[key] = new Tile(self.def.tiledata[key], key);
@@ -245,7 +234,7 @@ function AbstractLevel(chars, myMap, round, finishCb) {
   		} 
         self.grid.loadTilemap(self.def.data, self.tSet);
         self.init();
-        act(null, Round);
+        act(null);
     }
 
     function destroy(e) {
@@ -259,16 +248,13 @@ function AbstractLevel(chars, myMap, round, finishCb) {
     }
     this.deathEvent = deathEvent;
     
-    function act(ent, Round) {
+    function act(ent) {
         if(ent == null) {
             ent = updateList.getHead();
         }
-        if(updateList.isEnd(ent)) {
+        if(updateList.isEnd(ent)){
             self.turn += 1;
             self.nextIter();
-            // LOOP DONE
-            // UPDATE REST!?
-            // ADD HOOK for next
             if(self.isFinished()) {
                 self.gameOver();
                 return false;
@@ -276,7 +262,7 @@ function AbstractLevel(chars, myMap, round, finishCb) {
         }
         if(ent instanceof Controllable) {
             try {
-                runner.runCode(ent.team, getParams(ent), updateEntCallback(ent), req_func[Round], 2000);
+                runner.runCode(ent.team, getParams(ent), updateEntCallback(ent), 2000);
             } catch(e) {
                 setImmediate(finishCb, e, ent.team);
             }

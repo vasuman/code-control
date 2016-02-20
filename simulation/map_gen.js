@@ -52,7 +52,6 @@ function GenerateMap(cback) {
 	this.map = (JSON.parse(JSON.stringify(mapTemplate)));
 
 	function initMap () {
-		console.log("generating map...");
 		self.grid = new Array(size_y);
 		for (var i=0;i<size_y;i++) {
 			self.grid[i] = new Array(size_x);

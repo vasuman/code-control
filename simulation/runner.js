@@ -42,10 +42,9 @@ function Runner(api, code, round, cBack, errBack, timeLimit) {
         return function(m) {
             var type = m.type, data = m.data;
             if(type == 'init_done') {
-                console.log("In runner MSG Handler");
                 clearTimeout(proc[i].timeout);
                 proc[i].state = DONE;
-                setImmediate(cBack, round);
+                setImmediate(cBack);
             } else if(type == 'result') {
                 clearTimeout(proc[i].timeout);
                 proc[i].callback(true, data);
@@ -73,13 +72,13 @@ function Runner(api, code, round, cBack, errBack, timeLimit) {
     }
 
     for(i = 0; i < code.length; i++) {
-		console.log(code[i][round] +" "+ api[round] +" "+ req_func[round]);
-        var err = linter.process(code[i][round], require(api[round]), [req_func[round]]);
+		var err = linter.process(code[i][round], require(api[round]), [req_func[round]]);
         if(err.length > 0) {
             setImmediate(errBack, i, new Error('Code failed to lint ' + err[0].text));
             return;
         }
         proc[i] = {};
+        proc[i].round = round;
         proc[i].q = [];
         proc[i].log = '';
         proc[i].p = child_proc.fork('./simulation/sandbox.js', [], {silent: true});
@@ -92,16 +91,15 @@ function Runner(api, code, round, cBack, errBack, timeLimit) {
 		round = (round == 1)?0:1;
     }
 
-    function runCode(i, input, cback, f_name, timeLimit) {
-		console.log("fname: " + fname + " , input: " + input);
-        if(proc[i].state != DONE) {
+    function runCode(i, input, cback, timeLimit) {
+		if(proc[i].state != DONE) {
             proc[i].q.push(arguments);
         }
         proc[i].state = RUN;
         proc[i].callback = cback;
         proc[i].p.send({ type: 'load_param', data: input });
         proc[i].timeout = setTimeout(timeoutKill(i), timeLimit);
-        proc[i].p.send({ type: 'run_code', data: f_name });
+        proc[i].p.send({ type: 'run_code', data: req_func[proc[i].round] });
     }
     this.runCode = runCode;
 
