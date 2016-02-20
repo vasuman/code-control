@@ -365,7 +365,7 @@ function docs(req, res) {
         return markdown(text);
     });
     res.render('docs.ejs', {
-            user: null, 
+            user: req.user,
             intro: mdHTML[0], 
             update: mdHTML[1], 
             api: mdHTML[2], 
