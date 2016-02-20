@@ -162,7 +162,7 @@ function doTrain(req, res) {
 		myMap = gen_map;
         if(req.body.level == 'swarm') {
             var SwarmLevel = require('./simulation/level').SwarmTraining;
-            new SwarmLevel(char, swarmChar, jsonPath, simDoneCb);
+            new SwarmLevel(char, swarmChar, myMap, simDoneCb);
         } else {
             return res.redirect('/404');
         }

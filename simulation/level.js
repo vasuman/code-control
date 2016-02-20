@@ -24,11 +24,11 @@ function randInt(a, b) {
     return a + Math.floor(Math.random() * (b - a));
 }
 
-function SwarmTraining(char, swarm, jsonPath, finishCb) {
+function SwarmTraining(char, swarm, myMap, finishCb) {
     var self = this,
     pChar, spawned = [];
 
-    AbstractLevel.call(this, [char, swarm], jsonPath, finishCb);
+    AbstractLevel.call(this, [char, swarm], myMap, finishCb);
 
     function isFinished() {
         return self.turn > MAX_TURNS || pChar.dead;
@@ -115,7 +115,7 @@ util.inherits(BattleLevel, AbstractLevel);
  * id
  */
 
-function AbstractLevel(chars, jsonPath, finishCb) {
+function AbstractLevel(chars, myMap, finishCb) {
     var entities = {},
     updateList = new LinkList, moveDel = [],
     self = this,
@@ -226,12 +226,12 @@ function AbstractLevel(chars, jsonPath, finishCb) {
         if(++loadMap.count < chars.length) {
             return;
         }
-		require("./map_gen").GenerateMap(fReadCback);
+		setImmediate(fReadCback);
     }
     loadMap.count = 0;
 
-    function fReadCback(map) {
-        self.def = map;
+    function fReadCback() {
+        self.def = myMap;
         self.grid = new Grid(self.def.height, self.def.width);
         // Building tilesets
         for(key in self.def.tiledata) {
