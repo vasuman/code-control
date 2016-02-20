@@ -71,9 +71,6 @@
         <% char.matches.forEach(function(match) { %>
 		<canvas class="mini-replay"></canvas>
         <% if(match.type == 'train') { %>
-            <div class = "train overlay">
-                <%- link_to('training', '/m/' + match._id) %>
-            </div>
         <% } else { %>
             <% var outcome; %>
             <% if(!match.result) { %>

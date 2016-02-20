@@ -64,8 +64,8 @@ app.use(express.errorHandler());
 /* DATA REGION */
 const PORT = process.env.PORT || 8000;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost/code';
-const DEFAULT_ATTACK_CODE = "function attack(params) {\n // TODO: insert attack code here\n return {action: 'rest'};}";
-const DEFAULT_DEFEND_CODE = "function defend(params) {\n // TODO: insert defend code here\n return {action: 'rest'};}";
+const DEFAULT_ATTACK_CODE = "function attack(params) {\n // TODO: insert attack code here\n return {action: 'move',dir:1};}";
+const DEFAULT_DEFEND_CODE = "function defend(params) {\n // TODO: insert defend code here\n return {action: 'move',dir:0};}";
 const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
 const DEF_LVL = [ new SelectOption('Battle', 'battle') ];
 const START_EXP = 10;
@@ -82,7 +82,7 @@ const DEF_MAP = [
     new SelectOption('Glob', 'glob.json'),
     new SelectOption('Jimk', 'jimk.json')
 ];
-
+const DEFEND = 0, ATTACK = 1;
 const REST_INTERVAL = 1000 * 120;
 
 var swarmChar = {
@@ -143,7 +143,7 @@ function isValidMap(map) {
 }
 
 function doTrain(req, res) {
-    var char, jsonPath, myMap, results = [];
+    var char, jsonPath, myMap, results = [], SwarmLevel;
     function charFound(ch) {
         char = ch;
         if(!(req.user) || !(char.owner.equals(req.user._id))) {
@@ -161,8 +161,8 @@ function doTrain(req, res) {
 	function afterMapGen(gen_map) {
 		myMap = gen_map;
         if(req.body.level == 'swarm') {
-            var SwarmLevel = require('./simulation/level').SwarmTraining;
-            new SwarmLevel(char, swarmChar, myMap, simDoneCb);
+            SwarmLevel = require('./simulation/level').SwarmTraining;
+            new SwarmLevel(char, swarmChar, myMap, DEFEND, sim1DoneCb);
         } else {
             return res.redirect('/404');
         }
@@ -172,7 +172,7 @@ function doTrain(req, res) {
 			return res.send(err);
 		}
 		results.push(r);
-		new SwarmLevel(char, swarmChar, jsonPath, simDoneCb);
+		new SwarmLevel(char, swarmChar, myMap, ATTACK, simDoneCb);
 	}
     function simDoneCb(err, r) {
         if(err) {
@@ -185,8 +185,8 @@ function doTrain(req, res) {
             type: 'train',
             map: r.map,
             when: Date.now(),
-            result: r.score,
-            replay: r.replay
+            result: [results[0].score, results[1].score],
+            replay: [results[0].replay, results[1].replay]
         });
         m.save(function(err) {
             if(err) {

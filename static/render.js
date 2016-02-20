@@ -1,7 +1,8 @@
 var canvas, ctx, logTable, nextButton, prevButton, playButton, pauseButton,
 resetButton, playTime = 0,
 state, seek = 0, dir, delT = 0, entities = {}, bgCanvas,
-images = {}, prevTime, map, replay, dead = {};
+images = {}, prevTime, map, replay, dead = {},
+replayArray, match1, match2;
 
 const LOADING = 0, ERROR = 1, DONE = 2;
 
@@ -18,7 +19,7 @@ function downloadLink() {
 }
 
 function initElements() {
-    canvas = document.getElementById('render-canvas');
+   	canvas = document.getElementById('render-canvas');
     ctx = canvas.getContext('2d');
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -27,13 +28,29 @@ function initElements() {
     playButton = document.getElementById('play-button');
     pauseButton = document.getElementById('pause-button');
     resetButton = document.getElementById('reset-button');
+	match1 = document.getElementById('match1');
+	match2 = document.getElementById('match2');
     map = JSON.parse(document.getElementById('map-json').innerHTML);
-    replay = JSON.parse(document.getElementById('replay-json').innerHTML);
+    replayArray = JSON.parse(document.getElementById('replay-json').innerHTML);
+	replay = replayArray[0];
     prevButton.onclick = prevFrame;
     nextButton.onclick = nextFrame;
     playButton.onclick = beginPlay;
     pauseButton.onclick = pausePlay;
     resetButton.onclick = resetPlay;
+	match1.onclick = function() {
+		resetPlay();
+		replay = replayArray[0];
+		match1.style.backgroundColor = "yellow";
+		match2.style.backgroundColor = "white";
+	};
+	match2.onclick = function() {
+		resetPlay();
+		replay = replayArray[1];
+		match2.style.backgroundColor = "yellow";
+		match1.style.backgroundColor = "white";
+	};
+
     downloadLink();
     setImmediate(render);
     pausePlay();

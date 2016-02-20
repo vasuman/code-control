@@ -11,3 +11,17 @@
 	padding: 10px 10px 10px 10px;
 	float: left;
 }
+
+.match_info_container {
+	border: 5px solid white;
+}
+
+#match1 {
+	background-color: yellow;
+	float: left;
+}
+
+#match2 {
+	background-color: white;
+	float: right;
+}

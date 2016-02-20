@@ -20,7 +20,7 @@ TimeoutException.prototype.toString = function() {
 }
 
 const INIT = 0, DONE = 1, RUN = 2, KILLED = 3;
-function Runner(api, code, cBack, errBack, timeLimit) {
+function Runner(api, code, round, cBack, errBack, timeLimit) {
     var proc = [], cback = [], i;
 
     function timeoutKill(i) {
@@ -45,7 +45,7 @@ function Runner(api, code, cBack, errBack, timeLimit) {
                 console.log("In runner MSG Handler");
                 clearTimeout(proc[i].timeout);
                 proc[i].state = DONE;
-                setImmediate(cBack);
+                setImmediate(cBack, round);
             } else if(type == 'result') {
                 clearTimeout(proc[i].timeout);
                 proc[i].callback(true, data);
@@ -73,7 +73,8 @@ function Runner(api, code, cBack, errBack, timeLimit) {
     }
 
     for(i = 0; i < code.length; i++) {
-        var err = linter.process(code[i][i], require(api[i]), [req_func[i]]);
+		console.log(code[i][round] +" "+ api[round] +" "+ req_func[round]);
+        var err = linter.process(code[i][round], require(api[round]), [req_func[round]]);
         if(err.length > 0) {
             setImmediate(errBack, i, new Error('Code failed to lint ' + err[0].text));
             return;
@@ -83,14 +84,16 @@ function Runner(api, code, cBack, errBack, timeLimit) {
         proc[i].log = '';
         proc[i].p = child_proc.fork('./simulation/sandbox.js', [], {silent: true});
         proc[i].p.on('message', messageHandler(i));
-        proc[i].p.send({ type: 'init_context', data: api[i] });
+        proc[i].p.send({ type: 'init_context', data: api[round] });
         proc[i].state = INIT;
         proc[i].timeout = setTimeout(timeoutKill(i), timeLimit);
-        proc[i].p.send({ type: 'init_code', data: code[i][i] });
+        proc[i].p.send({ type: 'init_code', data: code[i][round] });
         proc[i].p.stdout.on('data', appendToLog(i));
+		round = (round == 1)?0:1;
     }
 
     function runCode(i, input, cback, f_name, timeLimit) {
+		console.log("fname: " + fname + " , input: " + input);
         if(proc[i].state != DONE) {
             proc[i].q.push(arguments);
         }
@@ -98,7 +101,7 @@ function Runner(api, code, cBack, errBack, timeLimit) {
         proc[i].callback = cback;
         proc[i].p.send({ type: 'load_param', data: input });
         proc[i].timeout = setTimeout(timeoutKill(i), timeLimit);
-        proc[i].p.send({ type: 'run_code', data: f_name[i] });
+        proc[i].p.send({ type: 'run_code', data: f_name });
     }
     this.runCode = runCode;
 

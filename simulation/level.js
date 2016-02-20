@@ -10,6 +10,10 @@ Grid = stuff.Grid,
 Tile = stuff.Tile,
 LinkList = stuff.LinkList,
 Point = stuff.Point;
+var req_func = {
+	0 : 'defend',
+	1 : 'attack'
+}
 
 const MAX_TURNS = 100, MAX_ERR = 101;
 function Player(id) {
@@ -24,11 +28,11 @@ function randInt(a, b) {
     return a + Math.floor(Math.random() * (b - a));
 }
 
-function SwarmTraining(char, swarm, myMap, finishCb) {
+function SwarmTraining(char, swarm, myMap, round, finishCb) {
     var self = this,
     pChar, spawned = [];
 
-    AbstractLevel.call(this, [char, swarm], myMap, finishCb);
+    AbstractLevel.call(this, [char, swarm], myMap, round, finishCb);
 
     function isFinished() {
         return self.turn > MAX_TURNS || pChar.dead;
@@ -115,7 +119,7 @@ util.inherits(BattleLevel, AbstractLevel);
  * id
  */
 
-function AbstractLevel(chars, myMap, finishCb) {
+function AbstractLevel(chars, myMap, round, finishCb) {
     var entities = {},
     updateList = new LinkList, moveDel = [],
     self = this,
@@ -135,7 +139,7 @@ function AbstractLevel(chars, myMap, finishCb) {
         });
         // Don't pass ./api.js here. Let defend_api and attack_api
         // be self contained
-        runner = new Runner(['./defend_api', './attack_api'], code, loadMap, errBack, 1000);
+        runner = new Runner(['./defend_api', './attack_api'], code, round, loadMap, errBack, 1000);
     }
     this.run = run;
 
@@ -222,15 +226,15 @@ function AbstractLevel(chars, myMap, finishCb) {
         };
     }
 
-    function loadMap() {
+    function loadMap(Round) {
         if(++loadMap.count < chars.length) {
             return;
         }
-		setImmediate(fReadCback);
+		setImmediate(fReadCback, round);
     }
     loadMap.count = 0;
 
-    function fReadCback() {
+    function fReadCback(Round) {
         self.def = myMap;
         self.grid = new Grid(self.def.height, self.def.width);
         // Building tilesets
@@ -238,10 +242,10 @@ function AbstractLevel(chars, myMap, finishCb) {
             if(self.def.tiledata.hasOwnProperty(key)) {
                 self.tSet[key] = new Tile(self.def.tiledata[key], key);
             }
-        }
+  		} 
         self.grid.loadTilemap(self.def.data, self.tSet);
         self.init();
-        act(null);
+        act(null, Round);
     }
 
     function destroy(e) {
@@ -255,7 +259,7 @@ function AbstractLevel(chars, myMap, finishCb) {
     }
     this.deathEvent = deathEvent;
     
-    function act(ent) {
+    function act(ent, Round) {
         if(ent == null) {
             ent = updateList.getHead();
         }
@@ -272,7 +276,7 @@ function AbstractLevel(chars, myMap, finishCb) {
         }
         if(ent instanceof Controllable) {
             try {
-                runner.runCode(ent.team, getParams(ent), updateEntCallback(ent), ['defend', 'attack'], 2000);
+                runner.runCode(ent.team, getParams(ent), updateEntCallback(ent), req_func[Round], 2000);
             } catch(e) {
                 setImmediate(finishCb, e, ent.team);
             }
