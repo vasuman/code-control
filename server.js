@@ -143,7 +143,7 @@ function isValidMap(map) {
 }
 
 function doTrain(req, res) {
-    var char, jsonPath;
+    var char, jsonPath, myMap, results = [];
     function charFound(ch) {
         char = ch;
         if(!(req.user) || !(char.owner.equals(req.user._id))) {
@@ -154,6 +154,12 @@ function doTrain(req, res) {
             return res.redirect('/404');
         }
         jsonPath = path.join('./simulation', req.body.map);
+
+		var mapper = require("./simulation/map_gen").GenerateMap;
+		new mapper(afterMapGen);
+	}
+	function afterMapGen(gen_map) {
+		myMap = gen_map;
         if(req.body.level == 'swarm') {
             var SwarmLevel = require('./simulation/level').SwarmTraining;
             new SwarmLevel(char, swarmChar, jsonPath, simDoneCb);
@@ -161,11 +167,19 @@ function doTrain(req, res) {
             return res.redirect('/404');
         }
     }
+	function sim1DoneCb(err, r) {
+		if(err) {
+			return res.send(err);
+		}
+		results.push(r);
+		new SwarmLevel(char, swarmChar, jsonPath, simDoneCb);
+	}
     function simDoneCb(err, r) {
         if(err) {
             console.log(err, r);
             return res.send(err);
         }
+		results.push(r);
         var m = new models.Match({
             contenders: [char],
             type: 'train',
