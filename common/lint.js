@@ -147,22 +147,20 @@ function versusProcess(code, globalsArr, req_func) {
 	var functionData = jsHintExport.data().functions;
 	var jsHintData = jsHintExport.data();
 	if (EraseGlobals) {
+		var nameIsIn = false;
 		jsHintData.globals.forEach(function(name){
-			var nameIsIn = false;
 			for (var j = 0; j < req_func.length; j++) {
 				if (name === req_func[j]) {
 					nameIsIn = true;
-					break;
 				}
 			}
 
 			for (var j = 0; j < ValidGlobalsList.length; j++) {
 				if (name === ValidGlobalsList[j]) {
 					nameIsIn = true;
-					break;
 				}
 			}
-			
+		});	
 			if (!nameIsIn)
 				warn.push({
 					row: 0,
@@ -171,7 +169,7 @@ function versusProcess(code, globalsArr, req_func) {
 					type: 'warning',
 					raw: 'Extra global defined'
 				});
-		});
+		
 	}
 	var warnIndex = warn.length;
 
