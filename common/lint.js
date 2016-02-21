@@ -95,7 +95,6 @@ function getLineData(functionArray, name) {
             lineInfo.lastcharacter = func.lastcharacter;
         }
     });
-
 	if (funcPresent)
 		return lineInfo;
 	else 
@@ -120,9 +119,16 @@ function getCode(code, globals, name) {
 	var functionCode = getFunctionCode(code, name, lineInfo);
 	return functionCode;
 }
-
+function array_to_bool_dict(array){
+	var dict = {}
+	array.forEach(function(el){
+		dict[el] = true;
+	});
+	return dict;	
+}
 const EraseGlobals = true;
 const ValidGlobalsList = ['Array', 'Math', 'Function', 'Object', 'String', 'Infinity', 'NaN', 'undefined', 'null', 'Boolean', 'Symbol', 'Error', 'EvalError', 'InternalError', 'RangeError', 'ReferenceError', 'SyntaxError', 'TypeError', 'URIError', 'Number', 'Math', 'Date', 'RegExp', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray', 'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array', 'Float32Array', 'Float64Array', 'Map', 'Set', 'WeakMap', 'WeakSet', 'ArrayBuffer', 'SharedArrayBuffer', 'Atomics', 'DataView', 'JSON', 'Promise', 'Generator', 'GeneratorFunction', 'Reflect', 'Proxy', 'arguments' ];
+var validGlobalsDict = array_to_bool_dict(ValidGlobalsList);	// Too lazy to modify ValidGlobalsList
 
 function versusProcess(code, globalsArr, req_func) {
     /*
@@ -138,48 +144,34 @@ function versusProcess(code, globalsArr, req_func) {
 	if (globalsArr.length < 3)
 		throw new Error('Globals doesn\'t have enough elements!');
 
-	var warn = [];
-    // Parse the whole code in the context of whole goddamn api
-	warn = process(code, globalsArr[0], req_func);
+	var warn = process(code, globalsArr[0], req_func);
+	var globals = truthize(globalsArr[0]);
 	var jsHintExport = require('jshint').JSHINT,
-		res = jsHintExport(code, options, truthize(globalsArr[0]));
-
+		res = jsHintExport(code, options, globals);
 	var functionData = jsHintExport.data().functions;
 	var jsHintData = jsHintExport.data();
-	if (EraseGlobals) {
-		var nameIsIn = false;
-		jsHintData.globals.forEach(function(name){
-			for (var j = 0; j < req_func.length; j++) {
-				if (name === req_func[j]) {
-					nameIsIn = true;
-				}
-			}
+	
+	// discard all the invalid global functions
+    var req_func_dict = array_to_bool_dict(req_func);
+    jsHintData.globals.forEach(function(glob){
+    	console.log(glob);
+    	console.log(globals[glob]);console.log(glob in req_func_dict);console.log(glob in validGlobalsDict);
+    	if(!(globals[glob] || (glob in req_func_dict) || (glob in validGlobalsDict))){
+  			warn.push({ 
+                row: 0, 
+                text: glob + ' can not be used',
+                column: 1,
+                type: 'warning',
+                raw: 'Invalid access to function'
+            });	
+    	}
+    });
 
-			for (var j = 0; j < ValidGlobalsList.length; j++) {
-				if (name === ValidGlobalsList[j]) {
-					nameIsIn = true;
-				}
-			}
-		});	
-			if (!nameIsIn)
-				warn.push({
-					row: 0,
-					text: name + ' should not be defined',
-					column: 1,
-					type: 'warning',
-					raw: 'Extra global defined'
-				});
-		
-	}
 	var warnIndex = warn.length;
-
-	// Search and lint all required functions
 	for (var j = 0; j < req_func.length; j++) {
-
 		var lineInfo = getLineData(functionData, req_func[j]); 
 		if (lineInfo === 0) {
 			continue;
-			// The below warning is taken care of in the first part.
 			warn.push({
 				row: 0,
 				text: 'Function ' + req_func[j] + ' is not defined',
@@ -206,9 +198,9 @@ function versusProcess(code, globalsArr, req_func) {
 }
 
 function process(code, globals, req_func) {
-    var j = require('jshint').JSHINT, i,
-    res = j(code, options, truthize(globals)), warn = [], errors, f;
-
+	globals = truthize(globals);
+	var j = require('jshint').JSHINT, i,
+    res = j(code, options, globals), warn = [], errors, f;
     if(!res) {
         var errors = j.data().errors, e;
         for(i = 0; i < errors.length; i++) {
@@ -225,7 +217,8 @@ function process(code, globals, req_func) {
         if(req_func) {
             var f = makeMap(j.data().functions);
             for(i = 0; i < req_func.length; i++) {
-                if(!(req_func[i] in f)) {
+                // attack and defend must be present in player's code
+                if(!(req_func[i] in f)){
                     warn.push({ 
                         row: 0, 
                         text: 'Function ' + req_func[i] + ' is not defined',
