@@ -149,12 +149,6 @@ function doTrain(req, res) {
         if(!(req.user) || !(char.owner.equals(req.user._id))) {
             return res.redirect('/not_permit');
         }
-
-		if(!isValidMap(req.body.map)) {
-            return res.redirect('/404');
-        }
-        jsonPath = path.join('./simulation', req.body.map);
-
 		var mapper = require("./simulation/map_gen").GenerateMap;
 		new mapper(afterMapGen);
 	}

@@ -45,8 +45,7 @@
                     <%- form_tag('/c/' + char.name + '/train' ) %>
                     <%- label_for('level') %>
                     <%- select_tag('level', train_level, { class: "form-control" }) %>
-                    <%- label_for('map') %>
-                    <%- select_tag('map', allowed_maps, { class: "form-control" }) %>
+                    
                     <br />
                     <%- submit_tag('Train', { class: "btn btn-success" }) %>
                     <%- form_end_tag() %>
