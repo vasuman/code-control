@@ -238,7 +238,7 @@ function getMatchesBetween(charA, charB) {
 }
 
 function challenge(req, res) {
-    var charA, charB, jsonPath, payoff;
+    var charA, charB, jsonPath, payoff, results = [], BattleLevel, myMap;
     function charFound(err, ch) {
         if(err) {
             throw err;
@@ -267,13 +267,33 @@ function challenge(req, res) {
             payoff = 0;
         }
         jsonPath = path.join('./simulation', map);
+		
+		var mapper = require("./simulation/map_gen").GenerateMap;
+		new mapper(afterMapGen);
+	}
+	function afterMapGen(gen_map) {
+		myMap = gen_map;
         if(req.body.level == 'battle') {
-            var BattleLevel = require('./simulation/level').BattleLevel;
-            new BattleLevel(charA, charB, jsonPath, simDoneCb);
+            BattleLevel = require('./simulation/level').BattleLevel;
+            new BattleLevel(charA, charB, jsonPath, DEFEND, sim1DoneCb);
         } else {
             return res.redirect('/404');
         }
     }
+	function sim1DoneCb(err, r) {
+		if(err) {
+			console.log(err, r);
+            var reason = ''
+            if(r == 1) {
+                reason = 'Error in your code - ';
+            } else {
+                reason = 'Error in other character code - ';
+            }
+            return res.send(reason + err);
+		}
+		results.push(r);
+        new BattleLevel(charA, charB, jsonPath, ATTACK, simDoneCb);
+	}
     function simDoneCb(err, r) {
         if(err) {
             console.log(err, r);
@@ -285,21 +305,20 @@ function challenge(req, res) {
             }
             return res.send(reason + err);
         }
+		results.push(r);
         var m = new models.Match({
             contenders: [charA, charB],
             type: 'versus',
             map: r.map,
             when: Date.now(),
-            result: r.winner,
-            replay: r.replay,
+            result: [results[0].winner, results[1].winner],
+            replay: [results[0].replay, results[1].replay],
             expr: payoff
         });
-        if(r.winner) {
-            if(r.winner.equals(charA._id)) {
-                charA.experience += payoff;
-            } else if(r.winner.equals(charB._id)) {
-                charB.experience += payoff;
-            }
+        if(results[0].winner.equals(charA._id) && results[1].winner.equals(charA._id)) {
+            charA.experience += payoff;
+        } else if(results[0].winner.equals(charB._id) && results[1].winner.equals(charB._id)) {
+            charB.experience += payoff;
         }
         m.save(function(err) {
             if(err) {

@@ -15,6 +15,7 @@ var req_func = {
 	1 : 'attack'
 }
 
+const DEFEND = 0, ATTACK = 1;
 const MAX_TURNS = 100, MAX_ERR = 101;
 function Player(id) {
     this.id = id;
@@ -72,10 +73,10 @@ function SwarmTraining(char, swarm, myMap, round, finishCb) {
 
 util.inherits(SwarmTraining, AbstractLevel);
 
-function BattleLevel(charA, charB, jsonPath, finishCb) {
+function BattleLevel(charA, charB, myMap, round, finishCb) {
     var self = this, aP, bP;
 
-    AbstractLevel.call(this, [charA, charB], jsonPath, finishCb);
+    AbstractLevel.call(this, [charA, charB], myMap, round, finishCb);
 
     function getNumEnt(x) {
         return Object.keys(self.players[x].ents).length;
@@ -87,12 +88,10 @@ function BattleLevel(charA, charB, jsonPath, finishCb) {
     this.isFinished = isFinished;
 
     function gameOver() {
-        if(bP.dead) {
+        if((bP.round == DEFEND && bP.dead) || (bP.round == ATTACK && !aP.dead)) {
             setImmediate(finishCb, null, { winner: charA._id, replay: self.replay, map: JSON.stringify(self.def) });
-        } else if(aP.dead) {
+		} else if((aP.round == DEFEND && aP.dead) || (aP.round == ATTACK && !bP.dead)) {
             setImmediate(finishCb, null, { winner: charB._id, replay: self.replay, map: JSON.stringify(self.def) });
-        } else {
-            setImmediate(finishCb, null, { winner: null, replay: self.replay, map: JSON.stringify(self.def) });
         }
     }
     this.gameOver = gameOver;
