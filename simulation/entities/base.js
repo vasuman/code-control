@@ -1,7 +1,8 @@
 var stuff = require('../stuff'),
 	Direction = stuff.Direction,
 	Side = stuff.Side,
-	Point = stuff.Point;
+	Point = stuff.Point,
+    Bomb = stuff.Bomb;
 var globalEntIdx = 0;
 
 function ControlException(reason) {
@@ -12,7 +13,7 @@ ControlException.prototype.toString = function() {
     return "ControlException: {Invalid Return} " + this.reason;
 }
 
-function Controllable(team, p, level, health, attack_damage, round) {
+function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
     var self = this;
     this.type = 'warrior';
     this.health = health;
@@ -42,6 +43,45 @@ function Controllable(team, p, level, health, attack_damage, round) {
         }
         return nextPos;
     }
+
+	this.bombInfo = bombInfo;
+	this.side = round;
+
+	this.itemsAtPos = {
+		arr: [],
+		type: 'items'
+	};
+
+    this.bombAtPos = false;
+    	
+    function explosion(center, radius, damage) {
+        var obj = level.grid.get(center);
+        if (obj instanceof Controllable)
+            obj.damage(damage);
+
+        var topLeft = new Point(center.i - 1, center.j - 1);
+        var diameter = 2 * radius;
+        var pointInConsideration = new Point(0, 0);
+
+        for (var i = 0; i < diameter; i++) {
+            for (var j = 0; j < diameter; j++) {
+                pointInConsideration = new Point(i + topLeft.i, j + topLeft.j);
+                if (!level.grid.isValid(pointInConsideration))
+                    continue;
+
+                obj = level.grid.get(pointInConsideration);
+                if (obj instanceof Controllable)
+                    obj.damage(damage);
+
+                /*
+                    if (obj instanceof Bomb) {
+                        level.removeBombEvent(obj.pos, obj);
+                    }
+                */
+            }
+        }
+    }
+
     function update(result) {
         if(!(result instanceof Object)) {
             throw new ControlException('Must return an object!');
@@ -57,14 +97,96 @@ function Controllable(team, p, level, health, attack_damage, round) {
                 return;
             }
             var occ = level.grid.get(nextPos);
-            if(occ) {
-                warnLog('position - ' + nextPos + ' already occupied by, ' + occ);
+            /*
+                if(occ) {
+                    warnLog('position - ' + nextPos + ' already occupied by, ' + occ);
+                    return;
+                }
+            */
+
+            if (occ.type == 'tile') {
+                warnLog("Running into a frickin' wall");
                 return;
             }
-            level.grid.put(self.pos, 0);
+
+            if (occ.type == 'warrior') {
+                return;
+            }
+
+            var didPlaceBomb = self.bombAtPos;
+            var bomb;
+
+            if (self.bombAtPos) {
+                bomb = new Bomb(self.side, self.bombInfo.damage, self.bombInfo.lifetime, self.bombInfo.radius, self.pos);
+                level.grid.put(self.pos, bomb);
+                self.bombAtPos = false;
+                // Bomb add event
+                // level.addBombEvent(self.pos, bomb);
+                // Different Event end here
+
+            } else {
+                level.grid.put(self.pos, 0);
+            }
+
+            /*
+                How do we handle this?
+                Two bools:
+                    BombPlaced
+                    BombExploded
+
+                and related data
+                    BombPlaced
+                        placedPos
+                        placedBomb
+
+                    BombExploded
+                        explodePos
+                        explodeBomb
+            */
+
+            var eventData = {};
+            eventData.placed = didPlaceBomb;
+            if (didPlaceBomb) {
+                eventData.placedPos = self.pos;
+                eventData.placedBomb = bomb;
+            }
+            var didExplode = false;
+
+            if (occ.type == 'Player Item' && occ.kind == 'bomb') {
+                // If bombs don't attack everyone, add shit here.
+                
+                self.damage(occ.damage);
+                // explosion(self.pos, occ.radius, occ.damage);
+                // Bomb remove event
+                // level.removeBombEvent(occ.pos, occ);
+                didExplode = true;
+                // Different Event end here
+            }
+
+            eventData.explode = didExplode;
+            if (didExplode) {
+                eventData.explodePos = nextPos;
+                eventData.explodeBomb = occ;
+            }
+
+            eventData.move = {};
+            eventData.move.idx = self.idx;
+            eventData.move.nextPos = nextPos;
+            eventData.move.pos = self.pos;
+
+            level.bombEvent(eventData);
+
             level.grid.put(nextPos, self);
-            level.moveEvent(self.idx, nextPos, self.pos);
             self.pos = nextPos;
+            /*
+                if (didPlaceBomb) {
+
+                } else {
+                        level.grid.put(nextPos, self);
+                        level.moveEvent(self.idx, nextPos, self.pos);
+                        self.pos = nextPos;
+                }
+            */
         } else if(action == 'rest') {
             // PASS
         } else if(action == 'attack') {
@@ -83,6 +205,16 @@ function Controllable(team, p, level, health, attack_damage, round) {
                 warnLog('no entity @ - ', attackPos);
             }
             occ.damage(attack_damage);
+        } else if (action == 'plant bomb') {
+            if (self.bombInfo.capacity <= 0)
+                return;
+
+            if (self.side == Side.Defend)
+                return;
+
+            self.bombInfo.capacity -= 1;
+            self.bombAtPos = true;
+
         } else {
             throw new ControlException('`' + action + '` is not a valid action');
         }

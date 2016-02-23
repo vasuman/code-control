@@ -1,15 +1,17 @@
 var fs = require('fs'),
-util = require('util');
-stuff = require('./stuff'),
-run = require('./runner'),
-baseEnt = require('./entities/base'),
-Runner = run.Runner,
-Controllable = baseEnt.Controllable,
-ControlException = baseEnt.ControlException,
-Grid = stuff.Grid,
-Tile = stuff.Tile,
-LinkList = stuff.LinkList,
-Point = stuff.Point;
+	util = require('util');
+	stuff = require('./stuff'),
+	run = require('./runner'),
+	baseEnt = require('./entities/base'),
+	Runner = run.Runner,
+	Controllable = baseEnt.Controllable,
+	ControlException = baseEnt.ControlException,
+	Grid = stuff.Grid,
+	Tile = stuff.Tile,
+	LinkList = stuff.LinkList,
+	Bomb = stuff.Bomb,
+	Point = stuff.Point;
+
 var req_func = {
 	0 : 'defend',
 	1 : 'attack'
@@ -23,7 +25,13 @@ function Player(id) {
     this.errCount = 0;
 }
 
-const P_A = 0, P_B = 1;
+const P_A = 0, P_B = 1,
+	BOMB_DEFAULT = {
+	  capacity: 15,
+	  damage: 10,
+	  lifetime: -1,
+	  radius: 1
+	};
 
 function randInt(a, b) {
     return a + Math.floor(Math.random() * (b - a));
@@ -56,14 +64,14 @@ function SwarmTraining(char, swarm, myMap, round, finishCb) {
     this.gameOver = gameOver;
 
     function init() {
-        pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack(), round)
-        spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2));
+        pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack(), round, BOMB_DEFAULT);
+        spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, BOMB_DEFAULT));
     }
     this.init = init;
 
     function nextIter() {
-        if(self.turn % 5 == 0) {
-            spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2));
+        if(self.turn % 500 == 0) {
+            spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, BOMB_DEFAULT));
         }
     }
     this.nextIter = nextIter;
@@ -97,8 +105,8 @@ function BattleLevel(charA, charB, myMap, round, finishCb) {
     this.gameOver = gameOver;
 
     function init() {
-        aP = new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack(), round);
-        bP = new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack(), (round + 1) % 2);
+        aP = new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack(), round, BOMB_DEFAULT);
+        bP = new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack(), (round + 1) % 2, BOMB_DEFAULT);
     }
     this.init = init;
     
@@ -137,6 +145,11 @@ function AbstractLevel(chars, myMap, round, finishCb) {
     }
     this.spawnEvent = spawnEvent;
 
+    function bombEvent(data) {
+        addEvent('bomb', data);
+    }
+    this.bombEvent = bombEvent;
+
     function getSpawn() {
         var p = {};
         do {
@@ -165,6 +178,27 @@ function AbstractLevel(chars, myMap, round, finishCb) {
         });
     }
     this.moveEvent = moveEvent;
+
+	function addBombEvent(pos, bomb) {
+		addEvent('bombAdd', {
+			pos: pos	
+		});
+	}
+	this.addBombEvent = addBombEvent;
+
+	function removeBombEvent(pos, bomb) {
+		addEvent('bombRemove', {
+			pos: pos	
+		});
+	}
+	this.removeBombEvent = removeBombEvent;
+
+	function updateBomb(bomb) {
+		var res = bomb.update();
+		if (!res) {
+			removeBombEvent(bomb.pos, bomb);
+		}
+	}
 
     function addEvent(type, data) {
         var event = {};
@@ -251,6 +285,11 @@ function AbstractLevel(chars, myMap, round, finishCb) {
         if(ent == null) {
             ent = updateList.getHead();
         }
+
+		if (ent instanceof Bomb) {
+			updateBomb(ent);
+		}
+
         if(updateList.isEnd(ent)){
             self.turn += 1;
             self.nextIter();
