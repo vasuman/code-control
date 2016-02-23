@@ -10,6 +10,7 @@ function Map(level, jsonPath) {
 }
 
 var matchSchema = new Schema({
+	initiator: { type: Schema.Types.ObjectId, ref: 'Character' },
     contenders: [{ type: Schema.Types.ObjectId, ref: 'Character' }],
     type: { type: String, enum: MATCH_TYPES },
     map: String,

@@ -31,24 +31,36 @@ function initElements() {
     resetButton = document.getElementById('reset-button');
 	match1 = document.getElementById('match1');
 	match2 = document.getElementById('match2');
+    switch_attack_defend= document.getElementById('switch_attack_and_defend').innerHTML.trim();
     map = JSON.parse(document.getElementById('map-json').innerHTML);
     replayArray = JSON.parse(document.getElementById('replay-json').innerHTML);
-	replay = replayArray[0];
+    if(switch_attack_defend.trim()=="true")
+        replay = replayArray[1];
+    else 
+        replay = replayArray[0];
     prevButton.onclick = prevFrame;
     nextButton.onclick = nextFrame;
     playButton.onclick = beginPlay;
     pauseButton.onclick = pausePlay;
     resetButton.onclick = resetPlay;
 	match1.onclick = function() {
+        window.scrollTo(0,document.body.scrollHeight);
 		resetPlay();
-		replay = replayArray[0];
-		match1.style.backgroundColor = "yellow";
+        if(switch_attack_defend=="true")
+            replay = replayArray[1];
+		else 
+            replay = replayArray[0];
+		match1.style.backgroundColor = "rgb(225,225,225)";
 		match2.style.backgroundColor = "white";
 	};
 	match2.onclick = function() {
+        window.scrollTo(0,document.body.scrollHeight);
 		resetPlay();
-		replay = replayArray[1];
-		match2.style.backgroundColor = "yellow";
+        if(switch_attack_defend=="true")
+            replay = replayArray[0];
+        else 
+            replay = replayArray[1];
+		match2.style.backgroundColor = "rgb(225,225,225)";
 		match1.style.backgroundColor = "white";
 	};
 
