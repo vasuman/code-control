@@ -53,6 +53,18 @@
 	border: 5px solid white;
 }
 
+.global_match_info_container{
+	text-align: center;
+}
+
+#challenger_link > a {
+	color: red;
+}
+
+#own_character_link > a{
+	color: blue;
+}
+
 #match1 {
 	background-color: yellow;
 	float: left;
