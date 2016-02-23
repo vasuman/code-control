@@ -203,15 +203,6 @@ function doTrain(req, res) {
     }
 }
 
-function doSelfTrain(req, res){
-    if (req.body.level === "char"){
-        return res.send(req.body);
-    }
-    else{
-        return res.redirect('/404');  
-    }
-}
-
 function isPlaying(match, char) {
     if(match.type != 'versus' || match.result == null) {
         return false;
@@ -523,12 +514,14 @@ function charPage(req, res) {
             return res.redirect('/404');
         }
         var charNameList = [], _i = 0 ;
-        
-        req.user.chars.forEach(function(data){
-            if (data.name != req.params.cname ) // avoids challenging self
-                charNameList.push( new SelectOption( data.name, _i ) );
-            _i++;
-        });
+       
+		if (req.user) {
+			req.user.chars.forEach(function(data){
+				if (data.name != req.params.cname ) // avoids challenging self
+				charNameList.push( new SelectOption( data.name, _i ) );
+			_i++;
+			});
+		}
         res.render('info_char', { user: req.user, char: char, charNameList: charNameList, train_level: TRAIN_DEF, vs_level: DEF_LVL });
     }
     models.Character.findOne({ name: req.params.cname }).
@@ -684,7 +677,6 @@ app.get('/not_permit', notPermit);
 app.get('/leaderboard', leaderboard);
 app.post('/char/params', createChar);
 app.post('/c/:cname/train', doTrain);
-app.post('/c/:cname/self', doSelfTrain);
 app.post('/c/:cname/challenge', challenge);
 app.post('/c/:cname/save', saveChar);
 app.post('/c/verifyCode', verifyCode);
