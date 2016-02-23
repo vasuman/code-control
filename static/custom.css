@@ -1,3 +1,9 @@
+/* For info_char page */
+#char_label, #uchar{
+	display:none;
+}
+
+/* END */
 .centered {
     float: none;
     margin: 0 auto;
@@ -51,6 +57,18 @@
 
 .match_info_container {
 	border: 5px solid white;
+}
+
+.global_match_info_container{
+	text-align: center;
+}
+
+#challenger_link > a {
+	color: red;
+}
+
+#own_character_link > a{
+	color: blue;
 }
 
 #match1 {
