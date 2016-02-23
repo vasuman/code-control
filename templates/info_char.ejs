@@ -52,7 +52,7 @@
                             <% }); %>
                         </select>
                         <label for="uchar" id="char_label" ></label>
-                        <select form="action_form" class = "form-control" name="uchar" id = "uchar" >
+                        <select form="action_form" class = "form-control" name="uchar" id = "uchar_self" >
                             <option value="">--Select--</option>
                             <% charNameList.forEach(function(val){ %>
                                 <option value = "<%= val.value %>" id = "<%= val.text %>"  ><%= val.text %></option>
@@ -115,7 +115,7 @@
     <script>
         (function(){
             var level = document.getElementById('level'),
-                chars = document.getElementById('uchar'),
+                chars = document.getElementById('uchar_self'),
                 char_label = document.getElementById('char_label'),
                 action_form = document.getElementById('action_form'),
                 error_msg = document.getElementById('error_msg');
