@@ -154,8 +154,6 @@ function versusProcess(code, globalsArr, req_func) {
 	// discard all the invalid global functions
     var req_func_dict = array_to_bool_dict(req_func);
     jsHintData.globals.forEach(function(glob){
-    	console.log(glob);
-    	console.log(globals[glob]);console.log(glob in req_func_dict);console.log(glob in validGlobalsDict);
     	if(!(globals[glob] || (glob in req_func_dict) || (glob in validGlobalsDict))){
   			warn.push({ 
                 row: 0, 
