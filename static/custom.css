@@ -64,19 +64,21 @@
 }
 
 #challenger_link > a {
-	color: red;
-}
-
-#own_character_link > a{
 	color: blue;
 }
 
+#own_character_link > a{
+	color: red;
+}
+
 #match1 {
-	background-color: yellow;
+	cursor: pointer;
+	background-color: rgb(225,225,225);
 	float: left;
 }
 
 #match2 {
+	cursor: pointer;
 	background-color: white;
 	float: right;
 }
