@@ -1,5 +1,5 @@
 /* For info_char page */
-#char_label, #chars{
+#char_label, #uchar{
 	display:none;
 }
 
