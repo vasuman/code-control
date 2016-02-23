@@ -88,9 +88,9 @@ function BattleLevel(charA, charB, myMap, round, finishCb) {
     this.isFinished = isFinished;
 
     function gameOver() {
-        if((bP.round == DEFEND && bP.dead) || (bP.round == ATTACK && !aP.dead)) {
+        if((bP.round == DEFEND && bP.dead) || (aP.round == DEFEND && !aP.dead)) {
             setImmediate(finishCb, null, { winner: charA._id, replay: self.replay, map: JSON.stringify(self.def) });
-		} else if((aP.round == DEFEND && aP.dead) || (aP.round == ATTACK && !bP.dead)) {
+		} else if((aP.round == DEFEND && aP.dead) || (bP.round == DEFEND && !bP.dead)) {
             setImmediate(finishCb, null, { winner: charB._id, replay: self.replay, map: JSON.stringify(self.def) });
         }
     }
