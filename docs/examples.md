@@ -2,20 +2,20 @@
 
 ## Sleepy
 
-    function update(params) {
+    function defend(params) {
         return { action: 'rest' };    
     }
 
 ## Jerky
     
-    function update(params) {
+    function defend(params) {
         var dir = Math.floor(Math.random() * 4);  
         return { action: 'move', dir: dir };
     }
 
 ## Seek and Destroy
 
-    function update(params) {
+    function attack(params) {
         var enemyEntity;
         for(var key in params.entities) {
             if(params.entities.hasOwnProperty(key)) {
@@ -41,3 +41,5 @@
         }
         return { action: 'rest' };
     }
+
+> Note that you must write code for both `attack` and `defend` function before submitting the code
