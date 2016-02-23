@@ -5,6 +5,9 @@ var stuff = require('../stuff'),
     Bomb = stuff.Bomb;
 var globalEntIdx = 0;
 
+// COPIED DIRECTLY FROM STUFF
+
+
 function ControlException(reason) {
     this.reason = reason;
 }
@@ -46,6 +49,7 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
 
 	this.bombInfo = bombInfo;
 	this.side = round;
+    console.log(bombInfo);
 
 	this.itemsAtPos = {
 		arr: [],
@@ -91,6 +95,7 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
         }
         var action = result.action;
         if(action == 'move') {
+            console.log('start');
             var nextPos = moveSafe(self.pos, result);
             if(!level.grid.isValid(nextPos)) {
                 warnLog('attempting to move to invalid position');
@@ -126,7 +131,10 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
 
             } else {
                 level.grid.put(self.pos, 0);
+
             }
+
+            console.log(level.grid.get(self.pos));
 
             /*
                 How do we handle this?
@@ -144,7 +152,7 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
                         explodeBomb
             */
 
-            var eventData = {};
+            var eventData = { };
             eventData.placed = didPlaceBomb;
             if (didPlaceBomb) {
                 eventData.placedPos = self.pos;
@@ -155,11 +163,12 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
             if (occ.type == 'Player Item' && occ.kind == 'bomb') {
                 // If bombs don't attack everyone, add shit here.
                 
-                self.damage(occ.damage);
+                // self.damage(occ.damage);
                 // explosion(self.pos, occ.radius, occ.damage);
                 // Bomb remove event
                 // level.removeBombEvent(occ.pos, occ);
                 didExplode = true;
+                damage(occ.damage);
                 // Different Event end here
             }
 
@@ -178,6 +187,7 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
 
             level.grid.put(nextPos, self);
             self.pos = nextPos;
+
             /*
                 if (didPlaceBomb) {
 
@@ -186,7 +196,12 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
                         level.moveEvent(self.idx, nextPos, self.pos);
                         self.pos = nextPos;
                 }
+
+                level.grid.put(nextPos, self);
+                level.moveEvent(self.idx, nextPos, self.pos);
+                self.pos = nextPos;
             */
+
         } else if(action == 'rest') {
             // PASS
         } else if(action == 'attack') {
@@ -212,8 +227,11 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
             if (self.side == Side.Defend)
                 return;
 
-            self.bombInfo.capacity -= 1;
-            self.bombAtPos = true;
+            if (self.bombAtPos)
+                return;
+
+            this.bombInfo.capacity -= 1;
+            this.bombAtPos = true;
 
         } else {
             throw new ControlException('`' + action + '` is not a valid action');

@@ -33,6 +33,15 @@ const P_A = 0, P_B = 1,
 	  radius: 1
 	};
 
+function getDefaultBombParams() {
+    return {
+        capacity: BOMB_DEFAULT.capacity,
+        damage: BOMB_DEFAULT.damage,
+        lifetime: BOMB_DEFAULT.lifetime,
+        radius: BOMB_DEFAULT.radius
+    }
+}
+
 function randInt(a, b) {
     return a + Math.floor(Math.random() * (b - a));
 }
@@ -64,14 +73,14 @@ function SwarmTraining(char, swarm, myMap, round, finishCb) {
     this.gameOver = gameOver;
 
     function init() {
-        pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack(), round, BOMB_DEFAULT);
-        spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, BOMB_DEFAULT));
+        pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack(), round, getDefaultBombParams());
+        spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultBombParams()));
     }
     this.init = init;
 
     function nextIter() {
         if(self.turn % 500 == 0) {
-            spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, BOMB_DEFAULT));
+            spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultBombParams()));
         }
     }
     this.nextIter = nextIter;
@@ -105,8 +114,8 @@ function BattleLevel(charA, charB, myMap, round, finishCb) {
     this.gameOver = gameOver;
 
     function init() {
-        aP = new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack(), round, BOMB_DEFAULT);
-        bP = new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack(), (round + 1) % 2, BOMB_DEFAULT);
+        aP = new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack(), round, getDefaultBombParams());
+        bP = new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack(), (round + 1) % 2, getDefaultBombParams());
     }
     this.init = init;
     
@@ -145,6 +154,16 @@ function AbstractLevel(chars, myMap, round, finishCb) {
     }
     this.spawnEvent = spawnEvent;
 
+    function addBombEvent(pos, bomb) {
+        addEvent('bombAdd', pos);
+    }
+    this.addBombEvent = addBombEvent;
+
+    function removeBombEvent(pos, bomb) {
+        addEvent('bombRemove', pos);
+    }
+    this.removeBombEvent = removeBombEvent;
+
     function bombEvent(data) {
         addEvent('bomb', data);
     }
@@ -178,27 +197,6 @@ function AbstractLevel(chars, myMap, round, finishCb) {
         });
     }
     this.moveEvent = moveEvent;
-
-	function addBombEvent(pos, bomb) {
-		addEvent('bombAdd', {
-			pos: pos	
-		});
-	}
-	this.addBombEvent = addBombEvent;
-
-	function removeBombEvent(pos, bomb) {
-		addEvent('bombRemove', {
-			pos: pos	
-		});
-	}
-	this.removeBombEvent = removeBombEvent;
-
-	function updateBomb(bomb) {
-		var res = bomb.update();
-		if (!res) {
-			removeBombEvent(bomb.pos, bomb);
-		}
-	}
 
     function addEvent(type, data) {
         var event = {};
