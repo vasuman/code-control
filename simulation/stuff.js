@@ -5,6 +5,11 @@ var Direction = {
     R: 3,
 }
 
+const Side = {
+	'Defend': 0,
+	'Attack': 1
+};
+
 function LinkList() {
     var self = this,
     head = null, tail = null;
@@ -243,3 +248,4 @@ module.exports.Direction = Direction;
 module.exports.Tile = Tile;
 module.exports.getMove = getMove;
 module.exports.LinkList = LinkList;
+module.exports.Side = Side;
