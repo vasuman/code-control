@@ -181,6 +181,7 @@ function doTrain(req, res) {
         }
 		results.push(r);
         var m = new models.Match({
+			initiator: char,
             contenders: [char],
             type: 'train',
             map: r.map,
@@ -307,6 +308,7 @@ function challenge(req, res) {
         }
 		results.push(r);
         var m = new models.Match({
+			initiator: charB,
             contenders: [charA, charB],
             type: 'versus',
             map: r.map,
