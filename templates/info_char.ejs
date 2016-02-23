@@ -2,6 +2,7 @@
 <head>
 <%- include req %>
 <title> Character <%= char.name %> </title>
+<% var swarm_action = '/c/' + char.name + '/train' %>
 </head>
 <body>
 <%- include header %>
@@ -42,14 +43,26 @@
         <h3> Actions </h3>
             <% var char_opts = valify(user.chars, char); %>
             <% if(isOwner) { %>
-                    <%- form_tag('/c/' + char.name + '/train' ) %>
-                    <%- label_for('level') %>
-                    <%- select_tag('level', train_level, { class: "form-control" }) %>
-                    <%- label_for('map') %>
-                    <%- select_tag('map', allowed_maps, { class: "form-control" }) %>
+                    
+                    <form method = "post" action = "<%='/c/' + char.name + '/train'%>" id = "action_form" >
+                        <label for="level"></label>
+                        <select form="action_form" class = "form-control" name="level" id = "level"  >
+                            <% train_level.forEach(function(val){ %>
+                                <option value = "<%= val.value %>" id = "<%= val.text %>" ><%= val.text %></option>
+                            <% }); %>
+                        </select>
+                        <label for="uchar" id="char_label" ></label>
+                        <select form="action_form" class = "form-control" name="uchar" id = "uchar" >
+                            <option value="">--Select--</option>
+                            <% charNameList.forEach(function(val){ %>
+                                <option value = "<%= val.value %>" id = "<%= val.text %>"  ><%= val.text %></option>
+                            <% }); %>
+                        </select>
+                        <span style="color:red;" id="error_msg" ></span>
                     <br />
-                    <%- submit_tag('Train', { class: "btn btn-success" }) %>
-                    <%- form_end_tag() %>
+                    <input type="submit" id="train" class="btn btn-success" ></input>
+                    </form>
+
                 <% } else if(char_opts.length > 0) { %>
                     <%- form_tag('/c/' + char.name + '/challenge') %>
                     <%- label_for('level') %>
@@ -98,5 +111,54 @@
 		<%- JSON.stringify(char.matches) %>
 	</script>
 	<script type="text/javascript" src="/results_simulation.js"></script>
+    
+    <script>
+        (function(){
+            var level = document.getElementById('level'),
+                chars = document.getElementById('uchar'),
+                char_label = document.getElementById('char_label'),
+                action_form = document.getElementById('action_form'),
+                error_msg = document.getElementById('error_msg');
+            
+            level.addEventListener('change', levelCb, false);
+            chars.addEventListener('change', charCb, false);
+            function levelCb(){
+                if (level.selectedOptions[0].value == "char"){
+                    action_form.action = location.pathname + "/challenge"
+                    chars.style.display = "block";
+                    char_label.style.display = "block";
+                    chars.setAttribute("required","true");
+
+                }else{
+
+                    action_form.action = location.pathname + "/train"
+                    chars.style.display = "none";
+                    char_label.style.display = "none";
+                    chars.removeAttribute("required");
+                }
+            }
+            function verifyChar(name) {
+                var saveXhr = new XMLHttpRequest();
+                saveXhr.onreadystatechange = function() {
+                    if(saveXhr.readyState == 4 && saveXhr.status == 200) {
+                      if(saveXhr.responseText === 'true'){
+                            error_msg.innerHTML = "Cool bro. Go ahead"
+                            error_msg.style.color = "green";
+                        }else{
+                            error_msg.innerHTML = "The code did not pass. Executing the user's last saved code"
+                            error_msg.style.color = "red";
+                        }
+                    }
+                };
+                saveXhr.open('POST', 'verifyCode', true);
+                saveXhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                saveXhr.send('char_name=' + encodeURIComponent(name));
+            }
+            function charCb(){
+                verifyChar(chars.selectedOptions[0].value);
+            }
+    })();
+
+    </script>
 </body>
 </html>

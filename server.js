@@ -70,7 +70,7 @@ const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
 const DEF_LVL = [ new SelectOption('Battle', 'battle') ];
 const START_EXP = 10;
 const START_LVL = 1;
-const TRAIN_DEF = [ new SelectOption('Swarm', 'swarm') ];
+const TRAIN_DEF = [ new SelectOption('Challenge Swarm', 'swarm'), new SelectOption('Challenge own chars', 'char') ];
 const EXP_DIFF = 50;
 const EXP_GAIN = 14;
 const MIN_EXP_GAIN = 1;
@@ -149,12 +149,6 @@ function doTrain(req, res) {
         if(!(req.user) || !(char.owner.equals(req.user._id))) {
             return res.redirect('/not_permit');
         }
-
-		if(!isValidMap(req.body.map)) {
-            return res.redirect('/404');
-        }
-        jsonPath = path.join('./simulation', req.body.map);
-
 		var mapper = require("./simulation/map_gen").GenerateMap;
 		new mapper(afterMapGen);
 	}
@@ -202,7 +196,20 @@ function doTrain(req, res) {
             });
         });
     }
-    getChar(req.params.cname, charFound);
+    if (req.body.level === "swarm")
+        getChar(req.params.cname, charFound);
+    else{
+        return res.redirect('/404'); 
+    }
+}
+
+function doSelfTrain(req, res){
+    if (req.body.level === "char"){
+        return res.send(req.body);
+    }
+    else{
+        return res.redirect('/404');  
+    }
 }
 
 function isPlaying(match, char) {
@@ -255,6 +262,9 @@ function challenge(req, res) {
         if(!charB) {
             return res.redirect('/not_permit');
         }
+        if(charB.name == req.params.cname){
+            return res.redirect('/not_permit');
+        }
         if(Math.abs(charB.experience - charA.experience) > EXP_DIFF) {
             return res.redirect('/not_permit');
         }
@@ -274,7 +284,7 @@ function challenge(req, res) {
 	}
 	function afterMapGen(gen_map) {
 		myMap = gen_map;
-        if(req.body.level == 'battle') {
+        if(req.body.level == 'battle' || req.body.level == 'char') {
             BattleLevel = require('./simulation/level').BattleLevel;
             new BattleLevel(charA, charB, myMap, DEFEND, sim1DoneCb);
         } else {
@@ -353,7 +363,13 @@ function challenge(req, res) {
             populate('owner').
             exec(charFound);
     }
-    models.Character.populate(req.user, { path: 'chars.matches', model: 'Match' }, userPoped);
+    
+    
+    if (req.body.level === "char" || req.body.level === "battle" ){
+        models.Character.populate(req.user, { path: 'chars.matches', model: 'Match' }, userPoped);
+    }else{
+        return res.redirect('/404');
+    }
 }
 
 function extend(target) {
@@ -506,7 +522,14 @@ function charPage(req, res) {
         if(!char) {
             return res.redirect('/404');
         }
-        res.render('info_char', { user: req.user, char: char, allowed_maps: DEF_MAP, train_level: TRAIN_DEF, vs_level: DEF_LVL });
+        var charNameList = [], _i = 0 ;
+        
+        req.user.chars.forEach(function(data){
+            if (data.name != req.params.cname ) // avoids challenging self
+                charNameList.push( new SelectOption( data.name, _i ) );
+            _i++;
+        });
+        res.render('info_char', { user: req.user, char: char, charNameList: charNameList, train_level: TRAIN_DEF, vs_level: DEF_LVL });
     }
     models.Character.findOne({ name: req.params.cname }).
         populate('owner').
@@ -637,6 +660,16 @@ function leaderboard(req, res) {
 function notPermit(req, res) {
     return res.send('Not permitted!');
 }
+
+function verifyCode(req, res){
+    models.Character.findOne({ name: req.user.chars[req.body.char_name].name}, function verifyCb(err, char){
+        if (err){
+            console.log(err);
+            res.send(false);
+        }
+        res.send(char.passed);
+    });
+}
 app.get('/docs', docs);
 app.get('/', renderPage('index'));
 app.get('/login', authHandle);
@@ -651,8 +684,10 @@ app.get('/not_permit', notPermit);
 app.get('/leaderboard', leaderboard);
 app.post('/char/params', createChar);
 app.post('/c/:cname/train', doTrain);
+app.post('/c/:cname/self', doSelfTrain);
 app.post('/c/:cname/challenge', challenge);
 app.post('/c/:cname/save', saveChar);
+app.post('/c/verifyCode', verifyCode);
 app.get('*', notFound);
 
 function startServer() {
