@@ -275,7 +275,7 @@ function challenge(req, res) {
 		myMap = gen_map;
         if(req.body.level == 'battle') {
             BattleLevel = require('./simulation/level').BattleLevel;
-            new BattleLevel(charA, charB, jsonPath, DEFEND, sim1DoneCb);
+            new BattleLevel(charA, charB, myMap, DEFEND, sim1DoneCb);
         } else {
             return res.redirect('/404');
         }
@@ -292,7 +292,7 @@ function challenge(req, res) {
             return res.send(reason + err);
 		}
 		results.push(r);
-        new BattleLevel(charA, charB, jsonPath, ATTACK, simDoneCb);
+        new BattleLevel(charA, charB, myMap, ATTACK, simDoneCb);
 	}
     function simDoneCb(err, r) {
         if(err) {

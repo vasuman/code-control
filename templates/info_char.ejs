@@ -82,7 +82,7 @@
             <% if(!match.result) { %>
                 <% outcome = 'draw' %>
             <% } else { %>
-                <% outcome = (match.result.equals(char._id)) ? 'win' : 'lose'; %>
+                <% outcome = (match.result[0].equals(char._id)) ? 'win' : 'lose'; %>
             <% } %>
             <div class = "match-<%= outcome %> match-text">
                 <%- link_to(outcome, '/m/' + match._id) %> 

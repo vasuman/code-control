@@ -27,7 +27,7 @@
         	<% if(match.result == null) { %>
             	Draw
         	<% } else { %>
-            	<b> Winner <%= find_char_id(match.result, match.contenders) %> </b><br>
+            	<b> Winner <%= find_char_id(match.result[0], match.contenders) %> </b><br>
             	Won <%= match.expr %> experience
         	<% } %>
     	<% } %>
@@ -59,7 +59,7 @@
         	<% if(match.result == null) { %>
             	Draw
         	<% } else { %>
-            	<b> Winner <%= find_char_id(match.result, match.contenders) %> </b><br>
+            	<b> Winner <%= find_char_id(match.result[1], match.contenders) %> </b><br>
             	Won <%= match.expr %> experience
         	<% } %>
     	<% } %>
