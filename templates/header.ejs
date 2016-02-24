@@ -7,6 +7,7 @@
         <li><a href = "/leaderboard">Leaderboard</a></li>
     <% if(user) { %>
         <li><%- link_to(user.pid, '/u/' + user.pid) %></li>
+		<li><%- link_to('Logout', '/logout') %></li>
     <% } else { %>
         <li><%- link_to('Login', '/login') %></li>
     <% } %>
