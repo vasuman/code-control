@@ -65,8 +65,8 @@ app.use(express.errorHandler());
 /* DATA REGION */
 const PORT = process.env.PORT || 8000;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost/code';
-const DEFAULT_ATTACK_CODE = "function attack(params) {\n // TODO: insert attack code here\n return {action: 'move',dir:1};}";
-const DEFAULT_DEFEND_CODE = "function defend(params) {\n // TODO: insert defend code here\n return {action: 'move',dir:0};}";
+const DEFAULT_ATTACK_CODE = "function attack(params) {\n\t// TODO: insert attack code here\n\treturn {\n\t\taction: 'rest'\n\t};\n}";
+const DEFAULT_DEFEND_CODE = "function defend(params) {\n\t// TODO: insert defend code here\n\treturn {\n\t\taction: 'rest'\n\t};\n}";
 const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
 const DEF_LVL = [ new SelectOption('Battle', 'battle') ];
 const START_EXP = 10;
