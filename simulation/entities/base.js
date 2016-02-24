@@ -21,7 +21,7 @@ ControlException.prototype.toString = function() {
     return "ControlException: {Invalid Return} " + this.reason;
 }
 
-function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
+function Controllable(team, p, level, health, attack_damage, round, params) {
     var self = this;
     this.type = 'warrior';
     this.health = health;
@@ -52,7 +52,7 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
         return nextPos;
     }
 
-	this.bombInfo = bombInfo;
+	this.bombInfo = params.bomb;
 	this.side = round;
     
 	this.itemsAtPos = {
@@ -61,6 +61,8 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
 	};
 
     this.bombAtPos = false;
+
+    this.explosionData = params.explosion;
     	
     function explosion(center, radius, damage) {
         var obj = level.grid.get(center);
@@ -230,10 +232,12 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
     function updateExplosiveRing(result, data) {
         var center = data.center,
             radius = data.radius,
-            damage = data.damage,
             ourSide = data.side,
             type = data.type,
-            killTrap = data.killTrap;
+            killTrap = data.killTrap,
+            toDamage = [],
+            toKill = [],
+            toRemove = [];
 
         var eventData = { };
 
@@ -241,58 +245,106 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
             eventData.type = 'constant';
 
             var topLeft = new Point(center.i - radius, center.j - radius),
-                toDamage = [],
-                toKill = [],
-                toRemove = [],
                 damageEnt = { },
                 diameter = 2 * radius,
+                damage = data.damage,
                 pointInConsideration;
 
             for (var i = 0; i < diameter; i++) {
                 for (var j = 0; j < diameter; j++) {
                     pointInConsideration = new Point(i + topLeft.i, j + topLeft.j);
-                    if (!level.grid.isValid(pointInConsideration))
-                        continue;
-
-                    obj = level.grid.get(pointInConsideration);
-                    if (obj instanceof Controllable) {
-                        if (obj.side == ourSide)
-                            continue;
-
-                        obj.health -= damage;
-                        if (obj.health < 1) 
-                            toKill.push(obj);
-
-                        damageEnt.idx = obj.idx;
-                        damageEnt.amt = Math.min(obj.health, damage);
-                        toDamage.push(damageEnt);
-                    }
-
-                    if (!killTrap)
-                        continue;
-
-                    if (obj.type == 'Player Item' && obj.kind == 'bomb') {
-                        toRemove.push(obj.pos);
-
-                        level.grid.put(obj.pos, 0);
-                    }
+                    analysePoint(pointInConsideration);      
                 }
             }
 
-            eventData.ents = toDamage;
-            eventData.bombs = toRemove;
-
-            level.explosionEvent(eventData);
             
-            // TODO: Merge kill event and explosion event
-            toKill.forEach(function (obj) {
-                obj.kill();
-            });
+        }
+
+        function analysePoint(point) {
+            if (!level.grid.isValid(point)) {
+                return;
+            }
+
+            var damageEnt = { };
+            var obj = level.grid.get(point);
+            if (obj instanceof Controllable) {
+                if (obj.side == ourSide) {
+                    point.j++;
+                    return;
+                }
+
+                obj.health -= damageCurr;
+                if (obj.health < 1) 
+                    toKill.push(obj);
+
+                damageEnt.idx = obj.idx;
+                damageEnt.amt = Math.min(obj.health, damageCurr);
+                toDamage.push(damageEnt);
+            }
+
+            if (!killTrap) {
+                return;
+            }
+
+            if (obj.type == 'Player Item' && obj.kind == 'bomb') {
+                toRemove.push(obj.pos);
+                level.grid.put(obj.pos, 0);
+            }
+        }
+
+        function linear() {
+            var iRadius = 1,
+                minDamage = data.minDamage,
+                maxDamage = data.maxDamage;
+
+            while (iRadius <= radius) {
+                var topLeft = new Point(center.i - iRadius, center.j - iRadius);
+                var topRight = new Point(center.i + iRadius, center.j - iRadius);
+                var bottomLeft = new Point(center.i - iRadius, center.j + iRadius);
+                var bottomRight = new Point(center.i + iRadius, center.j + iRadius);
+
+                var point = topLeft;
+                var damageCurr = maxDamage - (maxDamage - minDamage) * ((iRadius - 1) / (radius - 1));
+                while (point.i != topRight.i) {
+                    analysePoint(point);
+                    point.i++;
+                }
+
+                while (point.j != bottomRight.j) {
+                    analysePoint(point);
+                    point.j++;
+                }
+
+                while (point.i != bottomLeft.i) {
+                    analysePoint(point);
+                    point.i--;
+                }
+
+                while (point.j != topLeft.j) {
+                    analysePoint(point);
+                    point.j++;
+                }
+
+                iRadius++;
+            }
         }
 
         if (type == 'constant') {
             constant();
+        } else if (type == 'linear') {
+            linear();
         }
+
+        eventData.ents = toDamage;
+        eventData.bombs = toRemove;
+
+        level.explosionEvent(eventData);
+        
+        // TODO: Merge kill event and explosion event
+        toKill.forEach(function (obj) {
+            eventData.type = 'constant';
+            obj.kill();
+        });
     }
 
     function update(result) {
@@ -351,14 +403,30 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
 
             */
 
+            if(!('type' in result)) {
+                throw new ControlException('No "type" key in result in "explosive ring"');
+                return;
+            }
+
+            if (self.explosionData.capacity <= 0)
+                return;
+
+            self.explosionData.capacity--;
+
             var explosiveData = {
                 center: self.pos,
-                radius: 6,
-                damage: 20,
+                radius: self.explosionData.radius,
                 side: self.side,
-                type: 'constant',
+                type: result.type,
                 killTrap: true
             };
+
+            if (result.type == 'constant')
+                explosiveData.damage = self.explosionData.damage;
+            else {
+                explosiveData.minDamage = self.explosionData.minDamage;
+                explosiveData.maxDamage = self.explosionData.maxDamage;
+            }
             updateExplosiveRing(result, explosiveData);
 
         } else {

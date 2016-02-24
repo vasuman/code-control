@@ -31,7 +31,21 @@ const P_A = 0, P_B = 1,
 	  damage: 10,
 	  lifetime: -1,
 	  radius: 1
-	};
+	},
+    EXPLOSION_DEFAULT = {
+        capacity: 15,
+        radius: 6,
+        damage: 30,
+        minDamage: 10,
+        maxDamage: 30
+    }
+
+function getDefaultParams() {
+    return {
+        bomb: getDefaultBombParams(),
+        explosion: getDefaultExplosionParams()
+    }
+}
 
 function getDefaultBombParams() {
     return {
@@ -39,6 +53,16 @@ function getDefaultBombParams() {
         damage: BOMB_DEFAULT.damage,
         lifetime: BOMB_DEFAULT.lifetime,
         radius: BOMB_DEFAULT.radius
+    }
+}
+
+function getDefaultExplosionParams() {
+    return {
+        capacity: EXPLOSION_DEFAULT.capacity,
+        damage: EXPLOSION_DEFAULT.damage,
+        radius: EXPLOSION_DEFAULT.radius,
+        minDamage: EXPLOSION_DEFAULT.minDamage,
+        maxDamage: EXPLOSION_DEFAULT.maxDamage
     }
 }
 
@@ -73,14 +97,14 @@ function SwarmTraining(char, swarm, myMap, round, finishCb) {
     this.gameOver = gameOver;
 
     function init() {
-        pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack(), round, getDefaultBombParams());
-        spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultBombParams()));
+        pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack(), round, getDefaultParams());
+        spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultParams()));
     }
     this.init = init;
 
     function nextIter() {
         if(self.turn % 500 == 0) {
-            spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultBombParams()));
+            spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultParams()));
         }
     }
     this.nextIter = nextIter;
@@ -114,8 +138,8 @@ function BattleLevel(charA, charB, myMap, round, finishCb) {
     this.gameOver = gameOver;
 
     function init() {
-        aP = new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack(), round, getDefaultBombParams());
-        bP = new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack(), (round + 1) % 2, getDefaultBombParams());
+        aP = new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack(), round, getDefaultParams());
+        bP = new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack(), (round + 1) % 2, getDefaultParams());
     }
     this.init = init;
     

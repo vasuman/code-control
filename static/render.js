@@ -205,7 +205,7 @@ function getIndexOfPointArray(arr, pos) {
 function explosionHandler(nextEv, f, dir) {
     var data = nextEv.explosion;
 
-    function constant() {
+    function handle() {
         var ents = data.ents,
             bombs = data.bombs;
 
@@ -213,7 +213,7 @@ function explosionHandler(nextEv, f, dir) {
             var thisEnt = entities[ent.idx];
             if (!thisEnt)
                 return;
-            
+
             thisEnt.health -= f * ent.amt;
             thisEnt.flags.damaged = true;
         });
@@ -228,9 +228,8 @@ function explosionHandler(nextEv, f, dir) {
         });
     }
 
-    if (data.type == 'constant')
-        constant();
-
+    handle();
+    
     console.log(data);
     console.log(bombPositions);
 }
