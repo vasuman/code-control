@@ -5,70 +5,35 @@
 </head>
 <body>
 <%- include header %>
-
-<% if (user) { %>
-<% if (match.type != 'train') { %>
-	<% user.chars.forEach( function(c,i) { %>
-		<% if (c._id+'' == match.contenders[0]._id+'') { %>
-			<% x=true; %>
-		<% } else if (c._id+'' == match.contenders[1]._id+'') { %>
-			<% x=false; %>
-		<% } %>
-	<% }); %>
-<% } else { %>
-	<% x=true; %>
-<% } %>
-
-<% user.chars.forEach( function(c,i) { %>
-	<% if (c._id+'' == match.contenders[0]._id+'') { %>
-		<% xa=true; %>
-	<% } else if (c._id+'' == match.contenders[1]._id+'') { %>
-		<% xb=true; %>
-	<% } %>
-<% }); %>
-<% } %>
-
-<% if (!user) { %>
-	<% x = true; %>
-	<% xa = true; %>
-<% } %>
-
-
 <div class = "container centered">
     <div id = "info1">
             <b>Played</b> <%= format_date_t(match.when) %>
     </div>
-
-<div id="switch_attack_and_defend" style="display: none;"><% if (x) { %>true<% } else { %>false<% } %></div>
 	<div id="match1" class="match_info_container">
     	<div id = "result1" >
-    	<h2> Attack </h2>
      	<% if(match.type != 'train') { %>
-        	<% if(match.result[0]+'' != match.result[1]+'') { %>
-            	<% if(x==true) { %>
-                    <b><%= find_char_id(match.result[1], match.contenders) %> wins</b>
-                <% } else { %>
-                    <b><%= find_char_id(match.result[0], match.contenders) %> wins</b>
-                <% } %>
-        	<% } else { %>
-            	<b> Winner <%= find_char_id(match.result[0], match.contenders) %> </b><br>
-        	<% } %>
+			<h3> Defender: </h3>
+			<b><%= match.contenders[0].name %></b>
+			<h3> Attacker: </h3>
+			<b><%= match.contenders[1].name %></b><br>
+			<b><%= find_char_id(match.result[0], match.contenders) %> wins</b></br>
+        <% } else { %>
+			<h2> Defend </h2>
+            <b> Score <%= match.result[0] %> </b><br>
     	<% } %>
     	</div>
 	</div>
 	<div id="match2" class="match_info_container">
     	<div id = "result2" >
-    	<h2> Defend </h2>
-    	<% if(match.type != 'train') { %>
-        	<% if(match.result[0]+'' != match.result[1]+'') { %>
-            	<% if(x==false) { %>
-                    <b><%= find_char_id(match.result[1], match.contenders) %> wins</b>
-                <% } else { %>
-                    <b><%= find_char_id(match.result[0], match.contenders) %> wins</b>
-                <% } %>
-        	<% } else { %>
-            	<b> Winner <%= find_char_id(match.result[1], match.contenders) %> </b><br>
-        	<% } %>
+     	<% if(match.type != 'train') { %>
+			<h3> Defender: </h3>
+			<b><%= match.contenders[1].name %></b>
+			<h3> Attacker: </h3>
+			<b><%= match.contenders[0].name %></b><br>
+			<b><%= find_char_id(match.result[1], match.contenders) %> wins</b></br>
+        <% } else { %>
+			<h2> Defend </h2>
+            <b> Score <%= match.result[1] %> </b><br>
     	<% } %>
     	</div>
 	</div>
@@ -85,27 +50,14 @@
             <h3>Kill value <%= match.result %></h3>
         <% } else { %>
             <h1> 
-                <% if(match.contenders.length == 2) {%>
-                    <% match.contenders.forEach(function(contender, i) { %>
-                        <% if(i==0) { %>
-                            <span id="own_character_link"><%- link_to(match.contenders[1].name, '/c/' + match.contenders[1].name) %> </span> vs
-                        <% } else { %>
-                            <span  id="challenger_link"><%- link_to(match.contenders[0].name, '/c/' + match.contenders[0].name) %> </span>
-                        <% } %>
-                    <% }); %>
-                <% } else {%>
-                    <% match.contenders.forEach(function(contender, i) { %>
-                        <%- link_to(contender.name, '/c/' + contender.name) %> - Player <%= i + 1 %> 
-                    <% }); %>
-                <% } %>
+            	<span id="challenger_link"><%- link_to(match.contenders[0].name, '/c/' + match.contenders[0].name) %> </span> vs
+                <span id="own_character_link"><%- link_to(match.contenders[1].name, '/c/' + match.contenders[1].name) %> </span>
             </h1>
             <% if(match.result[0]+'' != match.result[1]+'') { %>
                 <h3>Draw</h3>
             <% } else { %>
                 <h3><b><%= find_char_id(match.result[1], match.contenders) %> Wins </b>
-                <% if(!(xa==true && xb==true)) { %>
                 (+<%= match.expr %> exp)</h3>
-                <% } %>
             <% } %>
         <% } %>
         </div>

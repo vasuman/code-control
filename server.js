@@ -18,7 +18,6 @@ app.set('port', process.env.PORT || 8000);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'templates'));
 
-
 app.use(express.static(path.join(__dirname, 'static')));
 app.use(express.cookieParser());
 
@@ -275,7 +274,15 @@ function challenge(req, res) {
 		var mapper = require("./simulation/map_gen").GenerateMap;
 		new mapper(afterMapGen);
 	}
-	function afterMapGen(gen_map) {
+	function afterMapGen(gen_map) {	
+		if (req.body.level == 'char') {
+			console.log("swap");
+			var temp = charA;
+			charA = charB;
+			charB = temp;
+		}
+		// NOW charB is challenger always
+
 		myMap = gen_map;
         if(req.body.level == 'battle' || req.body.level == 'char') {
             BattleLevel = require('./simulation/level').BattleLevel;
@@ -320,7 +327,14 @@ function challenge(req, res) {
             replay: [results[0].replay, results[1].replay],
             expr: payoff
         });
-	
+
+		// RESET
+		if (req.body.level == 'char') {
+			console.log("swap");
+			var temp = charA;
+			charA = charB;
+			charB = temp;
+		}	
 		if (charA.owner._id.toString() != charB.owner.toString()) {
 			if(results[0].winner.equals(charA._id) && results[1].winner.equals(charA._id)) {
 				charA.experience += payoff;
