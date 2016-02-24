@@ -8,9 +8,11 @@ passport = require('passport'),
 http = require('http'),
 path = require('path'),
 helpers = require('express-helpers')(app),
-PragyanStrategy = require('./auth/pragyan').PragyanStrategy,
-verifyCookie = require('./auth/verify').verifyCookie,
-markdown = require( "marked" );
+PragyanStrategy = require('passport-local').Strategy,
+authVerify = require('./auth/verify'),
+verifyCreds = authVerify.verifyCreds,
+customUserPass = authVerify.customUserPass,
+markdown = require('marked');
 
 app.set('port', process.env.PORT || 8000);
 app.set('view engine', 'ejs');
@@ -373,6 +375,13 @@ function extend(target) {
     return target;
 }
 
+function loginPage(req, res) {
+	if (req.user) {
+		return res.redirect('/');
+	}
+	res.render('login.ejs', { user: req.user });
+}
+
 function notFound(req, res) {
     res.render('404.ejs', { user: req.user });
     res.status(404);
@@ -449,7 +458,7 @@ function userPage(req, res) {
         exec(buildOther);
 }
 
-passport.use(new PragyanStrategy(verifyCookie));
+passport.use(new PragyanStrategy(customUserPass, verifyCreds));
 
 function renderPage(page) {
     return function(req, res) {
@@ -480,9 +489,9 @@ function initUserId(pid, done) {
         if(res) {
             return done(null, res);
         }
-        if(!(pid in ALLOWED_PIDS)) {
-            return done(new Error('Not registered'));
-        }
+//        if(!(pid in ALLOWED_PIDS)) {
+//            return done(new Error('Not registered'));
+//        }
         var user = new models.User({
             pid: pid,
             points: 0,
@@ -500,9 +509,10 @@ function initUserId(pid, done) {
 passport.serializeUser(getUserId);
 passport.deserializeUser(initUserId);
 
-var authHandle = passport.authenticate('pragyan', {
+var authHandle = passport.authenticate('local', {
     successRedirect: '/', 
-    failureRedirect: '/login_failed'
+    failureRedirect: '/login_failed',
+	failureFlash: true
 });
 
 function charPage(req, res) {
@@ -665,7 +675,7 @@ function verifyCode(req, res){
 }
 app.get('/docs', docs);
 app.get('/', renderPage('index'));
-app.get('/login', authHandle);
+app.get('/login', loginPage);
 app.get('/logout', doLogout);
 app.get('/m/:mid', matchPage);
 app.get('/u/:pid', userPage);
@@ -675,6 +685,7 @@ app.get('/char/create', createCharPage);
 app.get('/login_failed', noLogin);
 app.get('/not_permit', notPermit);
 app.get('/leaderboard', leaderboard);
+app.post('/login', authHandle);
 app.post('/char/params', createChar);
 app.post('/c/:cname/train', doTrain);
 app.post('/c/:cname/challenge', challenge);
