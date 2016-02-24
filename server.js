@@ -18,7 +18,6 @@ app.set('port', process.env.PORT || 8000);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'templates'));
 
-
 app.use(express.static(path.join(__dirname, 'static')));
 app.use(express.cookieParser());
 
@@ -275,11 +274,19 @@ function challenge(req, res) {
 		var mapper = require("./simulation/map_gen").GenerateMap;
 		new mapper(afterMapGen);
 	}
-	function afterMapGen(gen_map) {
+	function afterMapGen(gen_map) {	
+		if (req.body.level == 'char') {
+			console.log("swap");
+			var temp = charA;
+			charA = charB;
+			charB = temp;
+		}
+		// NOW charB is challenger always
+
 		myMap = gen_map;
         if(req.body.level == 'battle' || req.body.level == 'char') {
             BattleLevel = require('./simulation/level').BattleLevel;
-            new BattleLevel(charA, charB, myMap, DEFEND, sim1DoneCb);
+            new BattleLevel(charB, charA, myMap, DEFEND, sim1DoneCb);
         } else {
             return res.redirect('/404');
         }
@@ -296,7 +303,7 @@ function challenge(req, res) {
             return res.send(reason + err);
 		}
 		results.push(r);
-        new BattleLevel(charA, charB, myMap, ATTACK, simDoneCb);
+        new BattleLevel(charB, charA, myMap, ATTACK, simDoneCb);
 	}
     function simDoneCb(err, r) {
         if(err) {
@@ -312,7 +319,7 @@ function challenge(req, res) {
 		results.push(r);
         var m = new models.Match({
 			initiator: charB,
-            contenders: [charA, charB],
+            contenders: [charB, charA],
             type: 'versus',
             map: r.map,
             when: Date.now(),
@@ -320,7 +327,14 @@ function challenge(req, res) {
             replay: [results[0].replay, results[1].replay],
             expr: payoff
         });
-	
+
+		// RESET
+		if (req.body.level == 'char') {
+			console.log("swap");
+			var temp = charA;
+			charA = charB;
+			charB = temp;
+		}	
 		if (charA.owner._id.toString() != charB.owner.toString()) {
 			if(results[0].winner.equals(charA._id) && results[1].winner.equals(charA._id)) {
 				charA.experience += payoff;
@@ -407,9 +421,8 @@ function docs(req, res) {
     res.render('docs.ejs', {
             user: req.user,
             intro: mdHTML[0], 
-            update: mdHTML[1], 
-            api: mdHTML[2], 
-            examples: mdHTML[3]
+            api: mdHTML[1],  
+            examples: mdHTML[2]
     });
 }
 
