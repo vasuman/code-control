@@ -1,37 +1,43 @@
-# Introduction
+### Introduction
 
 **Code Control** is a versus event. Your aim is to code a character and defeat the other player.
 
-## Objective
+### Objective
 
-Each match has two rounds, `defend` and `attack`. To play a match you create a *character* which is controlled by a **double** entry point, the `attack` and `defend` loop. `function defend()` and `function attack()` executes the code for `defend` and `attack` rounds respectively. 
+Each match has two rounds, `defend` and `attack`. To play a match you create a *character* which is controlled by a **double** entry point, the `attack` and `defend` loop. Your `defend` and `attack` codes are run against `attack` and `defend` codes of other opponent respectively. Refer [api](#api) for more details.
 
-   ```javascript
-    function attack(params) {
-        // Write your attack code here
-    }
-    function defend(params){
-        // Write your defend code here
-    }
-    ```
+### A little about Game
 
-Here `params` represents the current state of the game and is the compulsory argument for `attack` and `defend`.
-Assume there is a match between `Ashutosh` and `Juan`. Now the match flow will be as below:
+Basically, there are two modes. `Training` and `Challenge`. 
 
->***Round 1*** : `Ashutosh` is `defending` and Juan is `attacking`. In this round Ashutosh's `attack` and Juan's `defend` function will be executed.
+* `Training` mode is when you test your code either by running against bot's code or by running against your own characters. Note that you can create multiple characters from your homepage. So if you want to compete with your own characters then just visit your homepage and choose a character to challenge it. To be able to challenge your own character's code, the character's code must pass a liniting test ( explained in next section ). The ability to challenge your own characters makes testing your code's standard fexible. For example, you can run a test with strong `attack` code of first character agains strong `defend` code of second character. This will give you a better idea about your code competency.  
+Challenging your own characters won't affect the leaderboard. So feel free to experiment with your code in this round. Later you can see the preview of all your matches in homepage. You can challenge your characters any number of times.
 
->***Round 2*** :  `Ashutosh` is `attacking` and Juan is `defending`. In this round Ashutosh's `defend` and Juan's `attack` function will be executed.
+* `Challenge` mode is when you get to actually challenge someone from leaderboard. You can challenge another player only if -
+    * The difference between the two player's experience is `<=` 50.
+    * The players do not have common owner.
+    * The time difference between the consecutive game play is `2 minutes`.
+Note that the above mentioned rules are not applicable for Training mode.
+
+Assume there is a match where `Osama` challenged `Obama`. Now the match flow will be as below:
+
+>**Round 1** : Osama is `defending` and Obama is `attacking`. In this round Osama's `defend` and Obama's `attack` function will be executed.
+
+>**Round 2** :  Osama is `attacking` and Obama is `defending`. In this round Osama's `attack` and Obama's `defend` function will be executed.
+Finally, the result is decided based on how their `attack` and `defend` codes performed. Wait a sec, we already know the result for this match. Don't we? Gosh! Moving ahead.
 
 
 ###### Note that ***Round 1*** and ***Round 2*** together make a single match
 
-## Scoring
+> We have inbuilt code editor for the game. You may edit your character's code from there. Your code has to pass the linting test before you can use it later.
+
+### Scoring
 
 Once you have coded your character and submitted it. You can challenge other players' characters.
-Then, a match is simulated between your two characters and the winner is awarded a certain number of points.
+Then, a match is simulated between your two characters and the winner is awarded a certain number of points. As mentioned before, challenging your own characters won't affect the leaderboard.
 The final winners are decided based on who has the *most* number of points.
 
-## Language
+### Language
 
 The chosen implementation language is [Javascript](https://developer.mozilla.org/en/docs/Web/JavaScript) chosen for it's specific ease of use. Also being an interpreted, scripting language with *no* static typing it offers several coding speed benefits.
 
@@ -47,14 +53,6 @@ The standard language features like,
 etc. *are* accessible.
 
 >Note that you can always edit your code. You need to be log in and then visit your character's page to be able to edit the code.
-
-### A little about Game
-
-Basically, there are two modes. `Training` and `Challenge`. `Training` phase is when you test your code by running it against bot's code or by running against your own characters. So if you want to compete with your own character then just visit your homepage and choose the character to challenge it. To be able to challenge your own character's code, the character's code must pass the liniting test(explained in next section). Note that challenging your own characters allows you to test your code's standard. This mode won't affect the leaderboard. So feel free to experiment with your code in this round. Later you can see the preview of all your matches in your homepage.
-The second mode is Challenge mode. In challenge mode you get to actually challenge someone from leaderboard. You can challenge another player only if -
-* The difference between the two player's experience is `<=` 50.
-* The players do not have common owner.
-* The time difference between the consecutive game play is `2 minutes`.
 
 
 ### Linting
