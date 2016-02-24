@@ -37,7 +37,8 @@ const P_A = 0, P_B = 1,
         radius: 6,
         damage: 30,
         minDamage: 10,
-        maxDamage: 30
+        maxDamage: 30,
+        throwDistance: 2
     }
 
 function getDefaultParams() {
@@ -62,7 +63,8 @@ function getDefaultExplosionParams() {
         damage: EXPLOSION_DEFAULT.damage,
         radius: EXPLOSION_DEFAULT.radius,
         minDamage: EXPLOSION_DEFAULT.minDamage,
-        maxDamage: EXPLOSION_DEFAULT.maxDamage
+        maxDamage: EXPLOSION_DEFAULT.maxDamage,
+        throwDistance: EXPLOSION_DEFAULT.throwDistance
     }
 }
 

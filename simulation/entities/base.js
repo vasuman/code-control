@@ -347,6 +347,10 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
         });
     }
 
+    function getRadialDistance(pos, center) {
+        var distance = Math.max(Math.abs(pos.i - center.i), Math.abs(pos.j - center.j));
+    }
+
     function update(result) {
         if(!(result instanceof Object)) {
             throw new ControlException('Must return an object!');
@@ -392,7 +396,7 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
         } else if (action == 'explosive ring') {
             if (self.side == Side.Defend)
                 return;
-            
+
             if(!('type' in result)) {
                 throw new ControlException('No "type" key in result in "explosive ring"');
                 return;
@@ -403,8 +407,15 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
 
             self.explosionData.capacity--;
 
+            var center = self.pos;
+            if ('pos' in result) {
+                var distance = getRadialDistance(result.pos, center);
+                if (distance <= self.explosionData.throwDistance)
+                    center = result.pos;
+            }
+
             var explosiveData = {
-                center: self.pos,
+                center: center,
                 radius: self.explosionData.radius,
                 side: self.side,
                 type: result.type,
