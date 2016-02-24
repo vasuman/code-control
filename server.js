@@ -279,7 +279,7 @@ function challenge(req, res) {
 		myMap = gen_map;
         if(req.body.level == 'battle' || req.body.level == 'char') {
             BattleLevel = require('./simulation/level').BattleLevel;
-            new BattleLevel(charA, charB, myMap, DEFEND, sim1DoneCb);
+            new BattleLevel(charB, charA, myMap, DEFEND, sim1DoneCb);
         } else {
             return res.redirect('/404');
         }
@@ -296,7 +296,7 @@ function challenge(req, res) {
             return res.send(reason + err);
 		}
 		results.push(r);
-        new BattleLevel(charA, charB, myMap, ATTACK, simDoneCb);
+        new BattleLevel(charB, charA, myMap, ATTACK, simDoneCb);
 	}
     function simDoneCb(err, r) {
         if(err) {
@@ -312,7 +312,7 @@ function challenge(req, res) {
 		results.push(r);
         var m = new models.Match({
 			initiator: charB,
-            contenders: [charA, charB],
+            contenders: [charB, charA],
             type: 'versus',
             map: r.map,
             when: Date.now(),

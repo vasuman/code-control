@@ -5,15 +5,41 @@
 </head>
 <body>
 <%- include header %>
-<% if(match.type != 'train'){ %>
-<% user.chars.forEach( function(c,i) { if(c._id+'' == match.contenders[0]._id+''){ x=true; } else if(c._id+'' == match.contenders[1]._id+''){x=false;} }); } else { x=true;}%>
-<% user.chars.forEach( function(c,i) { if(c._id+'' == match.contenders[0]._id+''){ xa=true; } else if(c._id+'' == match.contenders[1]._id+''){xb=true;} }); %>
+
+<% if (user) { %>
+<% if (match.type != 'train') { %>
+	<% user.chars.forEach( function(c,i) { %>
+		<% if (c._id+'' == match.contenders[0]._id+'') { %>
+			<% x=true; %>
+		<% } else if (c._id+'' == match.contenders[1]._id+'') { %>
+			<% x=false; %>
+		<% } %>
+	<% }); %>
+<% } else { %>
+	<% x=true; %>
+<% } %>
+
+<% user.chars.forEach( function(c,i) { %>
+	<% if (c._id+'' == match.contenders[0]._id+'') { %>
+		<% xa=true; %>
+	<% } else if (c._id+'' == match.contenders[1]._id+'') { %>
+		<% xb=true; %>
+	<% } %>
+<% }); %>
+<% } %>
+
+<% if (!user) { %>
+	<% x = true; %>
+	<% xa = true; %>
+<% } %>
+
+
 <div class = "container centered">
     <div id = "info1">
             <b>Played</b> <%= format_date_t(match.when) %>
     </div>
 
-<div id="switch_attack_and_defend" style="display: none;"><% if(x){ %>true<% } else { %>false<% } %> </div>
+<div id="switch_attack_and_defend" style="display: none;"><% if (x) { %>true<% } else { %>false<% } %></div>
 	<div id="match1" class="match_info_container">
     	<div id = "result1" >
     	<h2> Attack </h2>
@@ -24,7 +50,6 @@
                 <% } else { %>
                     <b><%= find_char_id(match.result[0], match.contenders) %> wins</b>
                 <% } %>
-
         	<% } else { %>
             	<b> Winner <%= find_char_id(match.result[0], match.contenders) %> </b><br>
         	<% } %>
