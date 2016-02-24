@@ -1,8 +1,7 @@
-# Update
+# Attack and Defend
 
-The single entry point to all your code. This is the only function that is actually called by the simulation. Controls the `action` your character takes during that turn. Any **declared** global variables are accessible *persistantly*. The `update` function **must** be declared.
+The entry points to all your code. They are the only functions that are actually called by the simulation. Controls the `action` your character takes during that turn. Any **declared** global variables are accessible *persistantly*. The `attack` and `defend` function **must** be declared.
 
-> Additional functions -- that are called from `update` may also be declared.
 
 ## Return Value
 
@@ -13,7 +12,7 @@ The **compulsory** key that your return object must posses is the `action` key. 
 
 Does *nothing* for that turn.
 
-    function update(params) {
+    function attack(params) {
         return { action: 'rest' }    
     }
 
@@ -24,7 +23,7 @@ Does *nothing* for that turn.
 Attempts to move in the particular [Direction](api.html#direction). If the new position is invalid -- out of bounds; or already occupied, the `move` *fails*.
 This action **requires** an additional `dir` key which specifies the [Direction](api.html#direction) to move in.
 
-    function update(params) {
+    function attack(params) {
         return {
             action: 'move',
             dir: Direction.U
@@ -35,7 +34,7 @@ This action **requires** an additional `dir` key which specifies the [Direction]
 
 If an entity is present *one* tile away in the [Direction](api.html#direction) `dir` from the current position. The other character is `damaged`.
 
-    function update(params) {
+    function attack(params) {
         return {
             action: 'attack',
             dir: Direction.D
@@ -54,7 +53,7 @@ An entity is just a plain old Javascript `Object` that describes well, an *entit
 
 ## Parameters
 
-Your `update` function is supplied with a bunch of parameters that specify the current game state. All of these parameters are encapsualted into a single `params` object. All parameters are accesible via the *keys* of this object.
+Your `attack` and `defend` function is supplied with a bunch of parameters that specify the current game state. All of these parameters are encapsualted into a single `params` object. All parameters are accesible via the *keys* of this object.
 
 ### params.self
 

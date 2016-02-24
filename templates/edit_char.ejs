@@ -17,10 +17,8 @@
 <center>
     <h2> <%- link_to(char.name, '/c/' + char.name) %> </h2>
     </center>
-<div id = "editor" autofocus>
-    <%= char['code'][0] %><!-- Defend Code -->
-    <%= char['code'][1] %><!-- Attack Code -->
-</div>
+<div id = "editor" autofocus><%= char['code'][0] %>
+<%= char['code'][1] %></div>
 <center>
     <div id = "flag-div">
     <% if(char.passed) { %>
