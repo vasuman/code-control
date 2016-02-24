@@ -44,7 +44,7 @@ charSchema.methods.getHealth = function() {
 }
 
 charSchema.methods.getAttack = function() {
-    return 10;
+    return 100;
 }
 
 var userSchema = new Schema({

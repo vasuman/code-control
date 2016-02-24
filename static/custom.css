@@ -14,10 +14,10 @@
 }
 
 .container-sim {
+	display: inline-block;
 	position: relative;
 	width: 292px;
 	height: 164px;
-	float: left;
 	border: 10px solid #f5f5f5;
 }
 

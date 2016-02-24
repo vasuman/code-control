@@ -103,6 +103,27 @@
         <% } %>
 		</div>
 		</div>
+		<div class="container-sim">
+		<canvas class="mini-replay"></canvas>
+		<div class = "overlay">
+        <% if(match.type == 'train') { %>
+			<div class = "match-train match-text">
+				<%- link_to('training', '/m/' + match._id) %>
+			</div>
+        <% } else { %>
+            <% var outcome; %>
+            <% if(!match.result) { %>
+                <% outcome = 'draw' %>
+            <% } else { %>
+                <% outcome = (match.result[1].equals(char._id)) ? 'win' : 'lose'; %>
+            <% } %>
+            <div class = "match-<%= outcome %> match-text">
+                <%- link_to(outcome, '/m/' + match._id) %> 
+            </div>
+        <% } %>
+		</div>
+		</div>
+		<br>
         <% }) %>
     </div>
     </div>
