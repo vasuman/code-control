@@ -320,11 +320,14 @@ function challenge(req, res) {
             replay: [results[0].replay, results[1].replay],
             expr: payoff
         });
-        if(results[0].winner.equals(charA._id) && results[1].winner.equals(charA._id)) {
-            charA.experience += payoff;
-        } else if(results[0].winner.equals(charB._id) && results[1].winner.equals(charB._id)) {
-            charB.experience += payoff;
-        }
+	
+		if (charA.owner._id.toString() != charB.owner.toString()) {
+			if(results[0].winner.equals(charA._id) && results[1].winner.equals(charA._id)) {
+				charA.experience += payoff;
+			} else if(results[0].winner.equals(charB._id) && results[1].winner.equals(charB._id)) {
+				charB.experience += payoff;
+			}
+		}
         m.save(function(err) {
             if(err) {
                 throw err;
