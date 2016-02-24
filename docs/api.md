@@ -83,11 +83,11 @@ An entity is just a plain old Javascript `Object` that describes well, an *entit
 
 Your `attack` and `defend` functions are supplied with a bunch of parameters that specify the current game state. All of these parameters are encapsualted into a single `params` object. All parameters are accesible via the *keys* of this object that are :
 
-##### params.self
+***params.self***
 
 An `entity` object that describes the **character that is being updated**.
 
-##### params.grid
+***params.grid***
 
 Keys,
 * `arr` 1D row major representation of *game grid*
@@ -97,7 +97,7 @@ A one dimensional `Array` that represents the entire *game grid* at the current 
 
 > Modifying these parameters *doesn't* change the game state. You can *only* affect the state by *returning* an `action` and update your character.
 
-##### params.entities
+***params.entities***
 
 An `Object` consisting of all the *entities* currently present on the map including you.
 
