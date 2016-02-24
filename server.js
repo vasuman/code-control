@@ -276,7 +276,6 @@ function challenge(req, res) {
 	}
 	function afterMapGen(gen_map) {	
 		if (req.body.level == 'char') {
-			console.log("swap");
 			var temp = charA;
 			charA = charB;
 			charB = temp;
@@ -646,7 +645,10 @@ function saveChar(req, res) {
         errs = linter.versusProcess(req.body.code, [require('./simulation/api'), require('./simulation/defend_api'), require('./simulation/attack_api')], ['defend', 'attack']);
 		char.code = linter.adCode;
         char.passed = (errs.length == 0);
-        char.save(doneSave);
+		if (char.passed)
+        	char.save(doneSave);
+		else
+			return res.json({ status: 2, errors: errs });
     }
     if(!req.body.code) {
         return res.json({ status: 1 });
