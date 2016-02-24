@@ -1,4 +1,4 @@
-var canvasArray, ctxArray = [], mapArray = [], replayArray = [];
+var canvasArray, ctxArray = [], mapArray = [], replayArray = [], overlayArray = [];
 var matches;
 var bgCanvas = document.createElement('canvas'), 
 	bgCtx = bgCanvas.getContext('2d');
@@ -18,13 +18,13 @@ function setImmediate(f) {
 }
 
 function setHoverFunction(i) {
-	canvasArray[i].addEventListener('mouseover',function() {
+	overlayArray[i].addEventListener('mouseover',function() {
 		if (currentHoverObject == -1) {
 			currentHoverObject = i;
 			setImmediate(onHoverIn);
 		}
 	});
-	canvasArray[i].addEventListener('mouseout',function() {
+	overlayArray[i].addEventListener('mouseout',function() {
 		if (currentHoverObject != -1) {
 			currentHoverObject = -1;
 			setImmediate(onHoverOut);
@@ -34,6 +34,7 @@ function setHoverFunction(i) {
 
 function initElements() {
 	state = LOADING;
+	overlayArray = document.getElementsByClassName('overlay');
     canvasArray = document.getElementsByTagName('canvas');
     matches = JSON.parse(document.getElementById('matches-json').innerHTML);
 	if (matches.length == 0) return;

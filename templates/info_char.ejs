@@ -85,43 +85,63 @@
         <% char.matches.forEach(function(match) { %>
 		<div class="container-sim">
 		<canvas class="mini-replay"></canvas>
+		<a href="/m/<%= match._id %>">
 		<div class = "overlay">
         <% if(match.type == 'train') { %>
 			<div class = "match-train match-text">
-				<%- link_to('training', '/m/' + match._id) %>
+				<span class = "date-text"><%= format_date_t(match.when) %></span><br>
+				<span class = "outcome-text">SWARM</span><br>
+				<span class = "round-text">Defending...</span>
 			</div>
         <% } else { %>
             <% var outcome; %>
             <% if(!match.result) { %>
                 <% outcome = 'draw' %>
             <% } else { %>
-                <% outcome = (match.result[0].equals(char._id)) ? 'win' : 'lose'; %>
+                <% outcome = (match.result[0].equals(char._id)) ? 'WON' : 'LOST'; %>
             <% } %>
             <div class = "match-<%= outcome %> match-text">
-                <%- link_to(outcome, '/m/' + match._id) %> 
+				<span class = "date-text"><%= format_date_t(match.when) %></span><br>
+				<span class = "outcome-text"><%- outcome %></span><br> 
+				<% if (char._id.equals(match.contenders[0])) { %>
+					<span class = "round-text">Defending...</span>
+				<% } else { %>
+					<span class = "round-text">Attacking...</span>
+				<% } %>
             </div>
         <% } %>
 		</div>
+		</a>
 		</div>
 		<div class="container-sim">
 		<canvas class="mini-replay"></canvas>
+		<a href="/m/<%= match._id %>">
 		<div class = "overlay">
         <% if(match.type == 'train') { %>
 			<div class = "match-train match-text">
-				<%- link_to('training', '/m/' + match._id) %>
+				<span class = "date-text"><%= format_date_t(match.when) %></span><br>
+				<span class = "outcome-text">SWARM</span><br>
+				<span class = "round-text">Attacking...</span>
 			</div>
         <% } else { %>
             <% var outcome; %>
             <% if(!match.result) { %>
                 <% outcome = 'draw' %>
             <% } else { %>
-                <% outcome = (match.result[1].equals(char._id)) ? 'win' : 'lose'; %>
+                <% outcome = (match.result[1].equals(char._id)) ? 'WON' : 'LOST'; %>
             <% } %>
             <div class = "match-<%= outcome %> match-text">
-                <%- link_to(outcome, '/m/' + match._id) %> 
+				<span class = "date-text"><%= format_date_t(match.when) %></span><br>
+				<span class = "outcome-text"><%- outcome %></span><br>
+				<% if (char._id.equals(match.contenders[0])) { %>
+					<span class = "round-text">Attacking...</span>
+				<% } else { %>
+					<span class = "round-text">Defending...</span>
+				<% } %>
             </div>
         <% } %>
 		</div>
+		</a>
 		</div>
 		<br>
         <% }) %>
