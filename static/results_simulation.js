@@ -1,8 +1,8 @@
-var canvasArray, ctxArray = [], mapArray = [];
+var canvasArray, ctxArray = [], mapArray = [], replayArray = [];
 var matches;
 var bgCanvas = document.createElement('canvas'), 
 	bgCtx = bgCanvas.getContext('2d');
-var playTime, state, seek = 0, dir, delT = 0, entities = {}, images = {}, prevTime, replay, dead = {};
+var playTime, state, seek = 0, dir, delT = 0, entities = {}, images = {}, prevTime, dead = {};
 var scale = 4;
 var currentHoverObject = -1;
 
@@ -40,7 +40,8 @@ function initElements() {
 	for (var i=0;i<canvasArray.length;i++) {
 		var ctx = canvasArray[i].getContext('2d');
 		ctxArray.push(ctx);
-		mapArray.push(JSON.parse(matches[i].map));
+		mapArray.push(JSON.parse(matches[parseInt(i/2)].map));
+		replayArray.push(matches[parseInt(i/2)].replay[i%2]);
     	ctx.textAlign = 'center';
     	ctx.textBaseline = 'middle';
 		setHoverFunction(i);
@@ -220,13 +221,13 @@ function onHoverOut() {
 
 function doPlay() {
 	nextFrame();
-	if (seek > matches[currentHoverObject].replay.length -1) {
+	if (seek > replayArray[currentHoverObject].length -1) {
 		clearInterval(playTime);
 	}
 }
 
 function nextFrame() {
-    if(seek > (matches[currentHoverObject].replay.length - 1)) {
+    if(seek > (replayArray[currentHoverObject].length - 1)) {
         return;
     }
     dir = 0;
@@ -251,9 +252,9 @@ function update() {
     if(dir != -1 && dir != 0) {
         throw new Error('invalid direction');
     }
-    var curEv = matches[currentHoverObject].replay[seek],
+    var curEv = replayArray[currentHoverObject][seek],
     	f = (dir == 0) ? 1: -1,
-    	nextEv = matches[currentHoverObject].replay[seek + dir];
+    	nextEv = replayArray[currentHoverObject][seek + dir];
     if(!nextEv) {
         throw new Error('undefined transition state!');
     }
