@@ -49,8 +49,7 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
 
 	this.bombInfo = bombInfo;
 	this.side = round;
-    console.log(bombInfo);
-
+    
 	this.itemsAtPos = {
 		arr: [],
 		type: 'items'
@@ -95,7 +94,6 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
         }
         var action = result.action;
         if(action == 'move') {
-            console.log('start');
             var nextPos = moveSafe(self.pos, result);
             if(!level.grid.isValid(nextPos)) {
                 warnLog('attempting to move to invalid position');
@@ -134,8 +132,6 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
 
             }
 
-            console.log(level.grid.get(self.pos));
-
             /*
                 How do we handle this?
                 Two bools:
@@ -168,15 +164,34 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
                 // Bomb remove event
                 // level.removeBombEvent(occ.pos, occ);
                 didExplode = true;
-                damage(occ.damage);
+                // damage(occ.damage);
                 // Different Event end here
             }
 
             eventData.explode = didExplode;
+            var isKilled = false;
             if (didExplode) {
                 eventData.explodePos = nextPos;
                 eventData.explodeBomb = occ;
+
+                eventData.damage = {};
+
+                self.health -= occ.damage;
+                if (self.health < 1) {
+                    isKilled = true;
+                }
+                eventData.damage.amt = Math.min(occ.damage, self.health);
+                eventData.damage.idx = self.idx;
             }
+
+            /*
+                self.health -= amt;
+                if(self.health < 1) {
+                    kill();
+                    return;
+                }
+                level.damageEvent(self.idx, Math.min(self.health, amt));
+            */
 
             eventData.move = {};
             eventData.move.idx = self.idx;
@@ -184,6 +199,8 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
             eventData.move.pos = self.pos;
 
             level.bombEvent(eventData);
+            if (isKilled)
+                kill();
 
             level.grid.put(nextPos, self);
             self.pos = nextPos;
