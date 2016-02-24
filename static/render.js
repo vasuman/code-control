@@ -295,6 +295,13 @@ function update() {
             if (data.explode) {
                 var index = getIndexOfPointArray(bombPositions, data.explodePos);
                 bombPositions.splice(index, 1);
+
+                /*
+                    var ent = entities[nextEv.damage.idx];
+                    ent.health -= f * nextEv.damage.amt;
+                    ent.flags.damaged = true;
+                */
+
             }
         } else {
             if (data.placed) {
@@ -305,6 +312,13 @@ function update() {
             if (data.explode) {
                 bombPositions.push(data.explodePos);
             }
+        }
+
+        if (data.explode) {
+            var damageData = data.damage;
+            thisEnt = entities[damageData.idx];
+            thisEnt.health -= f * damageData.amt;
+            thisEnt.flags.damaged = true;
         }
         // console.log(data);
         // console.log(bombPositions);
