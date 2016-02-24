@@ -392,17 +392,7 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
         } else if (action == 'explosive ring') {
             if (self.side == Side.Defend)
                 return;
-            /*
-                Data = {
-                    center,
-                    radius,
-                    damage,
-                    type,
-                    killTrap
-                }
-
-            */
-
+            
             if(!('type' in result)) {
                 throw new ControlException('No "type" key in result in "explosive ring"');
                 return;

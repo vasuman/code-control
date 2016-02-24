@@ -230,8 +230,8 @@ function explosionHandler(nextEv, f, dir) {
 
     handle();
     
-    console.log(data);
-    console.log(bombPositions);
+    // console.log(data);
+    // console.log(bombPositions);
 }
 
 function bombHandler(nextEv, f, dir) {
