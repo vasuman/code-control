@@ -169,6 +169,11 @@ function AbstractLevel(chars, myMap, round, finishCb) {
     }
     this.bombEvent = bombEvent;
 
+    function explosionEvent(data) {
+        addEvent('explosion', data)
+    }
+    this.explosionEvent = explosionEvent;
+
     function getSpawn() {
         var p = {};
         do {

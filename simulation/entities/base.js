@@ -5,6 +5,11 @@ var stuff = require('../stuff'),
     Bomb = stuff.Bomb;
 var globalEntIdx = 0;
 
+const ATTACK_MODES = {
+    constant: 1,
+    linear: 2
+}
+
 // COPIED DIRECTLY FROM STUFF
 
 
@@ -85,6 +90,211 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
         }
     }
 
+    function updateMove(result) {
+        var nextPos = moveSafe(self.pos, result);
+        if(!level.grid.isValid(nextPos)) {
+            warnLog('attempting to move to invalid position');
+            return;
+        }
+        var occ = level.grid.get(nextPos);
+        /*
+            if(occ) {
+                warnLog('position - ' + nextPos + ' already occupied by, ' + occ);
+                return;
+            }
+        */
+
+        if (occ.type == 'tile') {
+            warnLog("Running into a frickin' wall");
+            return;
+        }
+
+        if (occ.type == 'warrior') {
+            return;
+        }
+
+        var didPlaceBomb = self.bombAtPos;
+        var bomb;
+
+        if (self.bombAtPos) {
+            bomb = new Bomb(self.side, self.bombInfo.damage, self.bombInfo.lifetime, self.bombInfo.radius, self.pos);
+            level.grid.put(self.pos, bomb);
+            self.bombAtPos = false;
+            // Bomb add event
+            // level.addBombEvent(self.pos, bomb);
+            // Different Event end here
+
+        } else {
+            level.grid.put(self.pos, 0);
+
+        }
+
+        /*
+            How do we handle this?
+            Two bools:
+                BombPlaced
+                BombExploded
+
+            and related data
+                BombPlaced
+                    placedPos
+                    placedBomb
+
+                BombExploded
+                    explodePos
+                    explodeBomb
+        */
+
+        var eventData = { };
+        eventData.placed = didPlaceBomb;
+        if (didPlaceBomb) {
+            eventData.placedPos = self.pos;
+            eventData.placedBomb = bomb;
+        }
+        var didExplode = false;
+
+        if (occ.type == 'Player Item' && occ.kind == 'bomb') {
+            // If bombs don't attack everyone, add shit here.
+            
+            // self.damage(occ.damage);
+            // explosion(self.pos, occ.radius, occ.damage);
+            // Bomb remove event
+            // level.removeBombEvent(occ.pos, occ);
+            didExplode = true;
+            // damage(occ.damage);
+            // Different Event end here
+        }
+
+        eventData.explode = didExplode;
+        var isKilled = false;
+        if (didExplode) {
+            eventData.explodePos = nextPos;
+            eventData.explodeBomb = occ;
+
+            eventData.damage = {};
+
+            self.health -= occ.damage;
+            if (self.health < 1) {
+                isKilled = true;
+            }
+            eventData.damage.amt = Math.min(occ.damage, self.health);
+            eventData.damage.idx = self.idx;
+        }
+
+        /*
+            self.health -= amt;
+            if(self.health < 1) {
+                kill();
+                return;
+            }
+            level.damageEvent(self.idx, Math.min(self.health, amt));
+        */
+
+        eventData.move = {};
+        eventData.move.idx = self.idx;
+        eventData.move.nextPos = nextPos;
+        eventData.move.pos = self.pos;
+
+        level.bombEvent(eventData);
+        if (isKilled)
+            kill();
+
+        level.grid.put(nextPos, self);
+        self.pos = nextPos;
+
+        /*
+            if (didPlaceBomb) {
+
+            } else {
+                    level.grid.put(nextPos, self);
+                    level.moveEvent(self.idx, nextPos, self.pos);
+                    self.pos = nextPos;
+            }
+
+            level.grid.put(nextPos, self);
+            level.moveEvent(self.idx, nextPos, self.pos);
+            self.pos = nextPos;
+        */
+    }
+
+    /*
+        Data = {
+            center,
+            radius,
+            damage,
+            type,
+            killTrap
+        }
+
+    */
+    function updateExplosiveRing(result, data) {
+        var center = data.center,
+            radius = data.radius,
+            damage = data.damage,
+            ourSide = data.side,
+            type = data.type,
+            killTrap = data.killTrap;
+
+        var eventData = { };
+
+        function constant() {
+            eventData.type = 'constant';
+
+            var topLeft = new Point(center.i - radius, center.j - radius),
+                toDamage = [],
+                toKill = [],
+                toRemove = [],
+                damageEnt = { },
+                diameter = 2 * radius,
+                pointInConsideration;
+
+            for (var i = 0; i < diameter; i++) {
+                for (var j = 0; j < diameter; j++) {
+                    pointInConsideration = new Point(i + topLeft.i, j + topLeft.j);
+                    if (!level.grid.isValid(pointInConsideration))
+                        continue;
+
+                    obj = level.grid.get(pointInConsideration);
+                    if (obj instanceof Controllable) {
+                        if (obj.side == ourSide)
+                            continue;
+
+                        obj.health -= damage;
+                        if (obj.health < 1) 
+                            toKill.push(obj);
+
+                        damageEnt.idx = obj.idx;
+                        damageEnt.amt = Math.min(obj.health, damage);
+                        toDamage.push(damageEnt);
+                    }
+
+                    if (!killTrap)
+                        continue;
+
+                    if (obj.type == 'Player Item' && obj.kind == 'bomb') {
+                        toRemove.push(obj.pos);
+
+                        level.grid.put(obj.pos, 0);
+                    }
+                }
+            }
+
+            eventData.ents = toDamage;
+            eventData.bombs = toRemove;
+
+            level.explosionEvent(eventData);
+            
+            // TODO: Merge kill event and explosion event
+            toKill.forEach(function (obj) {
+                obj.kill();
+            });
+        }
+
+        if (type == 'constant') {
+            constant();
+        }
+    }
+
     function update(result) {
         if(!(result instanceof Object)) {
             throw new ControlException('Must return an object!');
@@ -94,130 +304,7 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
         }
         var action = result.action;
         if(action == 'move') {
-            var nextPos = moveSafe(self.pos, result);
-            if(!level.grid.isValid(nextPos)) {
-                warnLog('attempting to move to invalid position');
-                return;
-            }
-            var occ = level.grid.get(nextPos);
-            /*
-                if(occ) {
-                    warnLog('position - ' + nextPos + ' already occupied by, ' + occ);
-                    return;
-                }
-            */
-
-            if (occ.type == 'tile') {
-                warnLog("Running into a frickin' wall");
-                return;
-            }
-
-            if (occ.type == 'warrior') {
-                return;
-            }
-
-            var didPlaceBomb = self.bombAtPos;
-            var bomb;
-
-            if (self.bombAtPos) {
-                bomb = new Bomb(self.side, self.bombInfo.damage, self.bombInfo.lifetime, self.bombInfo.radius, self.pos);
-                level.grid.put(self.pos, bomb);
-                self.bombAtPos = false;
-                // Bomb add event
-                // level.addBombEvent(self.pos, bomb);
-                // Different Event end here
-
-            } else {
-                level.grid.put(self.pos, 0);
-
-            }
-
-            /*
-                How do we handle this?
-                Two bools:
-                    BombPlaced
-                    BombExploded
-
-                and related data
-                    BombPlaced
-                        placedPos
-                        placedBomb
-
-                    BombExploded
-                        explodePos
-                        explodeBomb
-            */
-
-            var eventData = { };
-            eventData.placed = didPlaceBomb;
-            if (didPlaceBomb) {
-                eventData.placedPos = self.pos;
-                eventData.placedBomb = bomb;
-            }
-            var didExplode = false;
-
-            if (occ.type == 'Player Item' && occ.kind == 'bomb') {
-                // If bombs don't attack everyone, add shit here.
-                
-                // self.damage(occ.damage);
-                // explosion(self.pos, occ.radius, occ.damage);
-                // Bomb remove event
-                // level.removeBombEvent(occ.pos, occ);
-                didExplode = true;
-                // damage(occ.damage);
-                // Different Event end here
-            }
-
-            eventData.explode = didExplode;
-            var isKilled = false;
-            if (didExplode) {
-                eventData.explodePos = nextPos;
-                eventData.explodeBomb = occ;
-
-                eventData.damage = {};
-
-                self.health -= occ.damage;
-                if (self.health < 1) {
-                    isKilled = true;
-                }
-                eventData.damage.amt = Math.min(occ.damage, self.health);
-                eventData.damage.idx = self.idx;
-            }
-
-            /*
-                self.health -= amt;
-                if(self.health < 1) {
-                    kill();
-                    return;
-                }
-                level.damageEvent(self.idx, Math.min(self.health, amt));
-            */
-
-            eventData.move = {};
-            eventData.move.idx = self.idx;
-            eventData.move.nextPos = nextPos;
-            eventData.move.pos = self.pos;
-
-            level.bombEvent(eventData);
-            if (isKilled)
-                kill();
-
-            level.grid.put(nextPos, self);
-            self.pos = nextPos;
-
-            /*
-                if (didPlaceBomb) {
-
-                } else {
-                        level.grid.put(nextPos, self);
-                        level.moveEvent(self.idx, nextPos, self.pos);
-                        self.pos = nextPos;
-                }
-
-                level.grid.put(nextPos, self);
-                level.moveEvent(self.idx, nextPos, self.pos);
-                self.pos = nextPos;
-            */
+            updateMove(result);
 
         } else if(action == 'rest') {
             // PASS
@@ -247,8 +334,32 @@ function Controllable(team, p, level, health, attack_damage, round, bombInfo) {
             if (self.bombAtPos)
                 return;
 
-            this.bombInfo.capacity -= 1;
-            this.bombAtPos = true;
+            self.bombInfo.capacity -= 1;
+            self.bombAtPos = true;
+
+        } else if (action == 'explosive ring') {
+            if (self.side == Side.Defend)
+                return;
+            /*
+                Data = {
+                    center,
+                    radius,
+                    damage,
+                    type,
+                    killTrap
+                }
+
+            */
+
+            var explosiveData = {
+                center: self.pos,
+                radius: 6,
+                damage: 20,
+                side: self.side,
+                type: 'constant',
+                killTrap: true
+            };
+            updateExplosiveRing(result, explosiveData);
 
         } else {
             throw new ControlException('`' + action + '` is not a valid action');

@@ -202,6 +202,97 @@ function getIndexOfPointArray(arr, pos) {
     return -1;
 }
 
+function explosionHandler(nextEv, f, dir) {
+    var data = nextEv.explosion;
+
+    function constant() {
+        var ents = data.ents,
+            bombs = data.bombs;
+
+        ents.forEach(function damage(ent) {
+            var thisEnt = entities[ent.idx];
+            if (!thisEnt)
+                return;
+            
+            thisEnt.health -= f * ent.amt;
+            thisEnt.flags.damaged = true;
+        });
+
+        bombs.forEach(function remove(pos) {
+            if (dir == 0) {
+                var index = getIndexOfPointArray(bombPositions, pos);
+                bombPositions.splice(index, 1);
+            } else {
+                bombPositions.push(pos);
+            }
+        });
+    }
+
+    if (data.type == 'constant')
+        constant();
+
+    console.log(data);
+    console.log(bombPositions);
+}
+
+function bombHandler(nextEv, f, dir) {
+    var data = nextEv.bomb;
+    var moveData = data.move;
+    var thisEnt = entities[moveData.idx];
+    // console.log(thisEnt);
+    var nPos = moveData.nextPos;
+    var oPos = moveData.pos;
+
+    var delPos = {
+        i: nPos.i - oPos.i,
+        j: nPos.j - oPos.j
+    };
+
+    /*
+        thisEnt.pos.i += f * ent.pos.i;
+        thisEnt.pos.j += f * ent.pos.j;
+    */
+    
+    thisEnt.pos.i += f * delPos.i;
+    thisEnt.pos.j += f * delPos.j;
+
+    if (dir == 0) {
+        if (data.placed) {
+            bombPositions.push(data.placedPos);
+        }
+
+        if (data.explode) {
+            var index = getIndexOfPointArray(bombPositions, data.explodePos);
+            bombPositions.splice(index, 1);
+
+            /*
+                var ent = entities[nextEv.damage.idx];
+                ent.health -= f * nextEv.damage.amt;
+                ent.flags.damaged = true;
+            */
+
+        }
+    } else {
+        if (data.placed) {
+            var index = getIndexOfPointArray(bombPositions, data.placedPos);
+            bombPositions.splice(index, 1);
+        }
+
+        if (data.explode) {
+            bombPositions.push(data.explodePos);
+        }
+    }
+
+    if (data.explode) {
+        var damageData = data.damage;
+        thisEnt = entities[damageData.idx];
+        thisEnt.health -= f * damageData.amt;
+        thisEnt.flags.damaged = true;
+    }
+    // console.log(data);
+    // console.log(bombPositions);
+}
+
 function update() {
     disableButtons();
     if(dir != -1 && dir != 0) {
@@ -267,61 +358,9 @@ function update() {
         }
 
     } else if ('bomb' in nextEv) {
-        var data = nextEv.bomb;
-        var moveData = data.move;
-        var thisEnt = entities[moveData.idx];
-        // console.log(thisEnt);
-        var nPos = moveData.nextPos;
-        var oPos = moveData.pos;
-
-        var delPos = {
-            i: nPos.i - oPos.i,
-            j: nPos.j - oPos.j
-        };
-
-        /*
-            thisEnt.pos.i += f * ent.pos.i;
-            thisEnt.pos.j += f * ent.pos.j;
-        */
-        
-        thisEnt.pos.i += f * delPos.i;
-        thisEnt.pos.j += f * delPos.j;
-
-        if (dir == 0) {
-            if (data.placed) {
-                bombPositions.push(data.placedPos);
-            }
-
-            if (data.explode) {
-                var index = getIndexOfPointArray(bombPositions, data.explodePos);
-                bombPositions.splice(index, 1);
-
-                /*
-                    var ent = entities[nextEv.damage.idx];
-                    ent.health -= f * nextEv.damage.amt;
-                    ent.flags.damaged = true;
-                */
-
-            }
-        } else {
-            if (data.placed) {
-                var index = getIndexOfPointArray(bombPositions, data.placedPos);
-                bombPositions.splice(index, 1);
-            }
-
-            if (data.explode) {
-                bombPositions.push(data.explodePos);
-            }
-        }
-
-        if (data.explode) {
-            var damageData = data.damage;
-            thisEnt = entities[damageData.idx];
-            thisEnt.health -= f * damageData.amt;
-            thisEnt.flags.damaged = true;
-        }
-        // console.log(data);
-        // console.log(bombPositions);
+        bombHandler(nextEv, f, dir);
+    } else if ('explosion' in nextEv) {
+        explosionHandler(nextEv, f, dir);
     }
     seek += f;
     resetButtons();
