@@ -16,14 +16,16 @@
 	<div id="match1" class="match_info_container">
     	<div id = "result1" >
     	<h2> Attack </h2>
-     	<% if(match.type == 'train') { %>
-        	Kill value <%= match.result %>
-    	<% } else { %>
+     	<% if(match.type != 'train') { %>
         	<% if(match.result[0]+'' != match.result[1]+'') { %>
-            	Draw
+            	<% if(x==true) { %>
+                    <b><%= find_char_id(match.result[1], match.contenders) %> wins</b>
+                <% } else { %>
+                    <b><%= find_char_id(match.result[0], match.contenders) %> wins</b>
+                <% } %>
+
         	<% } else { %>
             	<b> Winner <%= find_char_id(match.result[0], match.contenders) %> </b><br>
-            	Won <%= match.expr %> experience
         	<% } %>
     	<% } %>
     	</div>
@@ -31,14 +33,15 @@
 	<div id="match2" class="match_info_container">
     	<div id = "result2" >
     	<h2> Defend </h2>
-    	<% if(match.type == 'train') { %>
-        	Kill value <%= match.result %>
-    	<% } else { %>
+    	<% if(match.type != 'train') { %>
         	<% if(match.result[0]+'' != match.result[1]+'') { %>
-            	Draw
+            	<% if(x==false) { %>
+                    <b><%= find_char_id(match.result[1], match.contenders) %> wins</b>
+                <% } else { %>
+                    <b><%= find_char_id(match.result[0], match.contenders) %> wins</b>
+                <% } %>
         	<% } else { %>
             	<b> Winner <%= find_char_id(match.result[1], match.contenders) %> </b><br>
-            	Won <%= match.expr %> experience
         	<% } %>
     	<% } %>
     	</div>
@@ -53,6 +56,7 @@
                 <span style="color:red;">Swarm</span>
                 <% }); %>
             </h1>
+            <h3>Kill value <%= match.result %></h3>
         <% } else { %>
             <h1> 
                 <% if(match.contenders.length == 2) {%>
@@ -69,6 +73,11 @@
                     <% }); %>
                 <% } %>
             </h1>
+            <% if(match.result[0]+'' != match.result[1]+'') { %>
+                <h3>Draw</h3>
+            <% } else { %>
+                <h3><b><%= find_char_id(match.result[1], match.contenders) %> Wins </b>(+<%= match.expr %> exp)</h3>
+            <% } %>
         <% } %>
         </div>
 		<center>
