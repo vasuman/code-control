@@ -21,9 +21,9 @@ Note that the above mentioned rules are not applicable for Training mode.
 
 Assume there is a match where `Osama` challenged `Obama`. Now the match flow will be as below:
 
->**Round 1** : Obama is `defending` and Osama is `attacking`. In this round Obama's `defend` and Osama's `attack` function will be executed.
+>**Round 1** : Osama is `defending` and Obama is `attacking`. In this round Osama's `defend` and Obama's `attack` function will be executed.
 
->**Round 2** :  Obama is `attacking` and Osama is `defending`. In this round Obama's `attack` and Osama's `defend` function will be executed.
+>**Round 2** :  Osama is `attacking` and Obama is `defending`. In this round Osama's `attack` and Obama's `defend` function will be executed.
 Finally, the result is decided based on how their `attack` and `defend` codes performed. Wait a sec, we already know the result for this match. Don't we? Gosh! Moving ahead.
 
 
