@@ -90,8 +90,8 @@ const REST_INTERVAL = 1000 * 120;
 var swarmChar = {
     id: -1,
     code: [DEFAULT_DEFEND_CODE, DEFAULT_ATTACK_CODE],
-    getHealth: function() { return 30; },
-    getAttack: function() { return 5; }
+    getHealth: function() { return 100; },
+    getAttack: function() { return 100; }
 }
 
 var ALLOWED_PIDS = {};
