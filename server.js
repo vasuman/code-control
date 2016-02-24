@@ -193,7 +193,7 @@ function doTrain(req, res) {
                 if(err) {
                     throw err;
                 }
-                res.redirect('/m/' + m._id);
+                return res.redirect('/m/' + m._id);
             });
         });
     }
@@ -361,7 +361,7 @@ function challenge(req, res) {
                         if(err) {
                             throw err;
                         }
-                        res.redirect('/m/' + m._id);
+                        return res.redirect('/m/' + m._id);
                     });
                 });
             });
@@ -571,7 +571,7 @@ function createChar(req, res) {
             if(err) {
                 throw err;
             }
-            res.redirect('/c/' + char.name);
+            return res.redirect('/c/' + char.name);
         }
         if(err) {
             throw err;
@@ -584,8 +584,7 @@ function createChar(req, res) {
             throw err;
         }
         if(char) {
-            res.redirect('/char/create?err=2');
-            return;
+            return res.redirect('/char/create?err=2');
         }
         var c = new models.Character({
             owner: req.user._id,
@@ -621,7 +620,7 @@ function getChar(name, cb, res) {
             throw err;
         }
         if(!char) {
-            res.redirect('/404');
+            return res.redirect('/404');
         }
         cb(char);
     }
