@@ -133,13 +133,11 @@ var validGlobalsDict = array_to_bool_dict(ValidGlobalsList);	// Too lazy to modi
 function versusProcess(code, globalsArr, req_func) {
     /*
         Allows only required functions as global variables, nothing more.
-
         params code         :User's code. A single string of 
                              attack and defend code actually
         params globalsArr   [api, attack_api, defend_api]
         params req_func     :['attack','defend']
         
-
     */
 	if (globalsArr.length < 3)
 		throw new Error('Globals doesn\'t have enough elements!');
@@ -199,6 +197,32 @@ function process(code, globals, req_func) {
 	globals = truthize(globals);
 	var j = require('jshint').JSHINT, i,
     res = j(code, options, globals), warn = [], errors, f;
+
+    var def = 0, att = 0
+    j.data().functions.forEach(function(func){
+    	if(func.name == "defend")
+    		++def;
+    	else if(func.name == "attack")
+    		++att;
+    });
+    if (def>1){
+    		warn.push({ 
+                row: 0, 
+                text: 'There can be only one defend function defined in code',
+                column: 1,
+                type: 'error',
+                raw: 'Invalid declaration of function'
+            });
+    	}else if (att>1){
+    		warn.push({ 
+                row: 0, 
+                text: 'There can be only one attack function defined in code',
+                column: 1,
+                type: 'error',
+                raw: 'Invalid declaration of function'
+            });
+    	}
+
     if(!res) {
         var errors = j.data().errors, e;
         for(i = 0; i < errors.length; i++) {
