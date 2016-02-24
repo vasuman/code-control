@@ -407,9 +407,8 @@ function docs(req, res) {
     res.render('docs.ejs', {
             user: req.user,
             intro: mdHTML[0], 
-            update: mdHTML[1], 
-            api: mdHTML[2], 
-            examples: mdHTML[3]
+            api: mdHTML[1],  
+            examples: mdHTML[2]
     });
 }
 
