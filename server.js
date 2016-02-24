@@ -511,8 +511,7 @@ passport.deserializeUser(initUserId);
 
 var authHandle = passport.authenticate('local', {
     successRedirect: '/', 
-    failureRedirect: '/login_failed',
-	failureFlash: true
+    failureRedirect: '/login_failed'
 });
 
 function charPage(req, res) {
@@ -542,7 +541,7 @@ function charPage(req, res) {
 
 function createCharPage(req, res) {
     if(!req.user) {
-        return res.redirect('/login?redirect=create');
+        return res.redirect('/');
     }
     res.render('create_char', { 
         user: req.user, 

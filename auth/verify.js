@@ -10,8 +10,6 @@ const USER_AUTH_URL = 'https://api.pragyan.org/user/getDetails';
 const EVENT_AUTH_URL = 'https://api.pragyan.org/user/eventauth';
 
 function verifyCreds(email, password, done) {
-	console.log("Email: " + email);
-	console.log("Password: " + password);
 	request.post(
         USER_AUTH_URL, {
             form: {
