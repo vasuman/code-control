@@ -27,15 +27,15 @@ function Player(id) {
 
 const P_A = 0, P_B = 1,
 	BOMB_DEFAULT = {
-	  capacity: 15,
-	  damage: 10,
+	  capacity: 3,
+	  damage: 100,
 	  lifetime: -1,
 	  radius: 1
 	},
     EXPLOSION_DEFAULT = {
-        capacity: 15,
-        radius: 6,
-        damage: 30,
+        capacity: 5,
+        radius: 2,
+        damage: 100,
         minDamage: 10,
         maxDamage: 30,
         throwDistance: 2
@@ -101,6 +101,9 @@ function SwarmTraining(char, swarm, myMap, round, finishCb) {
     function init() {
         pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack(), round, getDefaultParams());
         spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultParams()));
+
+        // surroundPos(pChar.pos);
+        // surroundPos(spawned[0].pos);
     }
     this.init = init;
 
@@ -108,8 +111,75 @@ function SwarmTraining(char, swarm, myMap, round, finishCb) {
         if(self.turn % 500 == 0) {
             spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultParams()));
         }
+        // For debugging purposes
+        /*
+            if (self.turn % 1 == 0)
+                surroundPos(spawned[0].pos);
+        */
     }
     this.nextIter = nextIter;
+
+    // For debugging purposes
+    function getNextPos(pos) {
+        var point = new Point(pos.i + 4, pos.j);
+        if (emptyCheck(point))
+            return point;
+
+        point = new Point(pos.i + 3, pos.j);
+        if (emptyCheck(point))
+            return point;
+
+        point = new Point(pos.i + 2, pos.j);
+        if (emptyCheck(point))
+            return point;
+
+        point = new Point(pos.i + 1, pos.j);
+        if (emptyCheck(point))
+            return point;
+
+        point = new Point(pos.i - 1, pos.j);
+        if (emptyCheck(point))
+            return point;
+
+        point = new Point(pos.i, pos.j + 1);
+        if (emptyCheck(point))
+            return point;
+        
+        point = new Point(pos.i, pos.j - 1);
+        if (emptyCheck(point))
+            return point;
+    }
+
+    // For debugging purposes
+    function emptyCheck(point) {
+        if (self.grid.isValid(point)) {
+            if (!self.grid.get(point))
+                return true;
+        }
+    }
+
+    // For debugging purposes
+    function surroundPos(pos) {
+        var center = pos;
+        var radius = EXPLOSION_DEFAULT.radius + 1;
+        var topLeft = new Point(center.i - radius, center.j - radius);
+
+        for (var i = 0; i <= 2 * radius; i++) {
+            for (var j = 0; j <= 2 * radius; j++) {
+                var point = new Point(i + topLeft.i, j + topLeft.j);
+                if (!self.grid.isValid(point))
+                    continue;
+
+                var obj = self.grid.get(point);
+                if (obj)
+                    continue;
+
+                var bomb = new Bomb(round, BOMB_DEFAULT.damage, -1, 0, point);
+                self.grid.put(point, bomb);
+                self.addBombEvent(point, bomb);
+            }
+        }
+    }
 
     this.run();
 }

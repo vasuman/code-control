@@ -250,17 +250,17 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
                 damage = data.damage,
                 pointInConsideration;
 
-            for (var i = 0; i < diameter; i++) {
-                for (var j = 0; j < diameter; j++) {
+            for (var i = 0; i <= diameter; i++) {
+                for (var j = 0; j <= diameter; j++) {
                     pointInConsideration = new Point(i + topLeft.i, j + topLeft.j);
-                    analysePoint(pointInConsideration);      
+                    analysePoint(pointInConsideration, damage);      
                 }
             }
 
             
         }
 
-        function analysePoint(point) {
+        function analysePoint(point, damage) {
             if (!level.grid.isValid(point)) {
                 return;
             }
@@ -273,12 +273,12 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
                     return;
                 }
 
-                obj.health -= damageCurr;
+                obj.health -= damage;
                 if (obj.health < 1) 
                     toKill.push(obj);
 
                 damageEnt.idx = obj.idx;
-                damageEnt.amt = Math.min(obj.health, damageCurr);
+                damageEnt.amt = Math.min(obj.health, damage);
                 toDamage.push(damageEnt);
             }
 
@@ -306,22 +306,22 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
                 var point = topLeft;
                 var damageCurr = maxDamage - (maxDamage - minDamage) * ((iRadius - 1) / (radius - 1));
                 while (point.i != topRight.i) {
-                    analysePoint(point);
+                    analysePoint(point, damageCurr);
                     point.i++;
                 }
 
                 while (point.j != bottomRight.j) {
-                    analysePoint(point);
+                    analysePoint(point, damageCurr);
                     point.j++;
                 }
 
                 while (point.i != bottomLeft.i) {
-                    analysePoint(point);
+                    analysePoint(point, damageCurr);
                     point.i--;
                 }
 
                 while (point.j != topLeft.j) {
-                    analysePoint(point);
+                    analysePoint(point, damageCurr);
                     point.j++;
                 }
 
@@ -442,6 +442,8 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
         level.destroy(self);
         level.deathEvent(self.idx);
     }
+    this.kill = kill;
+
     function damage(amt) {
         self.health -= amt;
         if(self.health < 1) {

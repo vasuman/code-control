@@ -38,6 +38,11 @@ function getDirection(pointA, pointB) {
     return -1;
 }
 
+function hasPlacedBomb(params) {
+    var ent = params.self;
+    return ent.bombAtPos;
+}
+
 function getEntArray(params) {
     var res = [], key;
     for(key in params.entities) {
@@ -65,3 +70,4 @@ module.exports.getEntArray = getEntArray;
 module.exports.getType = getType;
 module.exports.getAt = getAt;
 module.exports.isValid = isValid;
+module.exports.hasPlacedBomb = hasPlacedBomb;
