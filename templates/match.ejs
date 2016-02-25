@@ -12,11 +12,12 @@
 	<div id="match1" class="match_info_container">
     	<div id = "result1" >
      	<% if(match.type != 'train') { %>
-			<h3> Defender: </h3>
+			<h2> Round 1 </h2>
+            <h3> Defender: </h3>
 			<b><%= match.contenders[0].name %></b>
 			<h3> Attacker: </h3>
 			<b><%= match.contenders[1].name %></b><br>
-			<b><%= find_char_id(match.result[0], match.contenders) %> wins</b></br>
+			<b class="winner" ><%= find_char_id(match.result[0], match.contenders) %> wins</b></br>
         <% } else { %>
 			<h2> Defend </h2>
             <b> Score <%= match.result[0] %> </b><br>
@@ -26,11 +27,12 @@
 	<div id="match2" class="match_info_container">
     	<div id = "result2" >
      	<% if(match.type != 'train') { %>
+            <h2> Round 2 </h2>
 			<h3> Defender: </h3>
 			<b><%= match.contenders[1].name %></b>
 			<h3> Attacker: </h3>
 			<b><%= match.contenders[0].name %></b><br>
-			<b><%= find_char_id(match.result[1], match.contenders) %> wins</b></br>
+			<b class="winner" ><%= find_char_id(match.result[1], match.contenders) %> wins</b></br>
         <% } else { %>
 			<h2> Attack </h2>
             <b> Score <%= match.result[1] %> </b><br>

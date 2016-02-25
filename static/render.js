@@ -43,15 +43,19 @@ function initElements() {
         window.scrollTo(0,document.body.scrollHeight);
 		resetPlay();
         replay = replayArray[0];
-		match1.style.backgroundColor = "rgb(225,225,225)";
+		match1.style.backgroundColor = "rgb(0,0,0)";//"rgb(225,225,225)";
 		match2.style.backgroundColor = "white";
+        match1.style.color = "whitesmoke";
+        match2.style.color = "#F5F5F5";
 	};
 	match2.onclick = function() {
         window.scrollTo(0,document.body.scrollHeight);
 		resetPlay();
        	replay = replayArray[1];
-		match2.style.backgroundColor = "rgb(225,225,225)";
+		match2.style.backgroundColor = "rgb(0,0,0)";
 		match1.style.backgroundColor = "white";
+        match2.style.color = "whitesmoke";
+        match1.style.color = "#F5F5F5";
 	};
 
     downloadLink();

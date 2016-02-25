@@ -101,7 +101,8 @@
 
 #match1 {
 	cursor: pointer;
-	background-color: rgb(225,225,225);
+	background-color: rgb(0,0,0);
+	color:whitesmoke;
 	float: left;
 }
 
@@ -109,4 +110,21 @@
 	cursor: pointer;
 	background-color: white;
 	float: right;
+}
+#match1,#match2{
+	margin: 2%;
+	border-radius: 2%;
+}
+#result1,#result2{
+	box-shadow: 10px 10px 5px rgba(136, 136, 136, 0.15);
+	border-radius: 2px;
+	border-style: solid black;
+	padding: 15px;
+
+}
+#result1 h3,#result2 h3{
+	margin: 3px;
+}
+.winner{
+	color:green;
 }
