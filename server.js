@@ -267,7 +267,7 @@ function challenge(req, res) {
         }
         var map = DEF_MAP[~~(Math.random() * DEF_MAP.length)].value,
         numPlays = playedAgainst(req.user, charA.owner);
-        payoff = Math.max(~~(EXP_GAIN * Math.pow(0.7, numPlays)), MIN_EXP_GAIN);
+        payoff = Math.max(~~(EXP_GAIN * Math.pow(0.7, numPlays/2)), MIN_EXP_GAIN);
         if(numPlays > MAX_PLAYS) {
             payoff = 0;
         }
@@ -351,8 +351,10 @@ function challenge(req, res) {
 		if (charA.owner._id.toString() != charB.owner.toString()) {
 			if(results[0].winner.equals(charA._id) && results[1].winner.equals(charA._id)) {
 				charA.experience += payoff;
+				charB.experience -= (EXP_GAIN - payoff);
 			} else if(results[0].winner.equals(charB._id) && results[1].winner.equals(charB._id)) {
-				charB.experience += payoff;
+				charB.experience += payoff;	
+				charA.experience -= (EXP_GAIN - payoff);
 			}
 		}
         m.save(function(err) {
