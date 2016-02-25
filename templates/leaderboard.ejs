@@ -17,7 +17,7 @@
         <tr>
             <td> <%= i + 1 %> </td>
 			<td>
-				<a class="<% if (a == 1) { %>Leaderboard-self<% } else { %>Leaderboard-other<% } %>" href='/c/'+char.name><%= char.name %></a>
+				<a class="<% if (a == 1) { %>Leaderboard-self<% } else { %>Leaderboard-other<% } %>" href= "<%='/c/'+char.name %>"> <%= char.name %></a>
 			</td>
             <td> <%= char.experience %> </td>
         </tr>
