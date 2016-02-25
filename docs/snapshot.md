@@ -33,3 +33,7 @@
 > Training Match simulation page
 
 ![Match simulation](/img/challenge.png)
+
+> Leaderboard. Green ones are your own characters, Blue ones are opponents
+
+![Match simulation](/img/leader.png)
