@@ -55,6 +55,15 @@ app.locals.find_char_id = function(id, chars) {
     }
     return '_';
 }
+app.locals.find_not_char_id = function(id, chars) {
+    var i;
+    for(i = 0; i < chars.length; i++) {
+        if(!chars[i]._id.equals(id)) {
+            return chars[i].name;
+        }
+    }
+    return '_';
+}
 function SelectOption(text, value) {
     this.text = text;
     this.value = value;

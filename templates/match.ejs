@@ -61,8 +61,11 @@
                 <h3><b><%= find_char_id(match.result[1], match.contenders) %> Wins </b>
 					<% if (match.type == 'versus') { %>
                         (+<%= match.expr %> exp)
-                    <% } else { %>
-                        (self_challenge)
+                    <% } %>
+                </h3>
+                <h3><b><%= find_not_char_id(match.result[1], match.contenders) %> Loses </b>
+					<% if (match.type == 'versus') { %>
+                        (-<%= 14 - match.expr %> exp)
                     <% } %>
                 </h3>
             <% } %>
