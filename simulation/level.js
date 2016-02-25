@@ -106,7 +106,7 @@ function SwarmTraining(char, swarm, myMap, round, finishCb) {
     this.init = init;
 
     function nextIter() {
-        if(self.turn % 500 == 0) {
+        if(self.turn % 5 == 0) {
             spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultParams()));
         }
         // For debugging purposes
