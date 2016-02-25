@@ -12,9 +12,13 @@
         <th> Experience </th>
     </thead>
     <% topChars.forEach(function(char, i) { %>
+		<% var a = 0 %>
+		<% if (user && user._id.equals(char.owner)) a = 1 %>
         <tr>
             <td> <%= i + 1 %> </td>
-            <td> <%- link_to(char.name, '/c/' + char.name) %> </td>
+			<td>
+				<a class="<% if (a == 1) { %>Leaderboard-self<% } else { %>Leaderboard-other<% } %>" href='/c/'+char.name><%= char.name %></a>
+			</td>
             <td> <%= char.experience %> </td>
         </tr>
     <% }); %>

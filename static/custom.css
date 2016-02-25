@@ -22,6 +22,10 @@
 	width: auto;
 }
 
+.Leaderboard-self {
+	color: green !important;
+}
+
 .container-sim {
 	display: inline-block;
 	position: relative;
