@@ -3,7 +3,29 @@
 	display:none;
 }
 
-/* END */
+/* For create char page */
+#create_char_form{
+	text-align: center;
+}
+#info{
+	text-align: center;
+}
+#info .btn{
+	margin: 15px;
+	height: 50px;
+	width : 100px;
+	text-align: center;
+}
+#type,#name{
+	width:20%;
+	align:center;
+	margin: 2%;
+}
+/* For Docs */
+img{
+	width:90%;
+	height: auto;
+}
 .centered {
     float: none;
     margin: 0 auto;
@@ -11,6 +33,15 @@
 
 .sp-but {
     margin: 2em;
+}
+
+.navbar-pragyan-weblogo {
+	float: right;
+}
+
+#pragyan-weblogo {
+	height: 50px;
+	width: auto;
 }
 
 .container-sim {

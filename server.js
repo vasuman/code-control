@@ -435,7 +435,8 @@ function docs(req, res) {
             user: req.user,
             intro: mdHTML[0], 
             api: mdHTML[1],  
-            examples: mdHTML[2]
+            examples: mdHTML[2],
+            snapshot: mdHTML[3]
     });
 }
 
