@@ -10,9 +10,6 @@ const ATTACK_MODES = {
     linear: 2
 }
 
-// COPIED DIRECTLY FROM STUFF
-
-
 function ControlException(reason) {
     this.reason = reason;
 }
@@ -26,7 +23,7 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
     this.type = 'warrior';
     this.health = health;
     this.team = team;
-	this.round = round;
+    this.round = round;
     this.dead = false;
     this.pos = new Point(p.i, p.j);
     if(!level.grid.isValid(self.pos)) {
@@ -52,7 +49,7 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
         return nextPos;
     }
 
-	this.bombInfo = params.bomb;
+	this.bombData = params.bomb;
 	this.side = round;
     
 	this.itemsAtPos = {
@@ -65,31 +62,31 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
     this.explosionData = params.explosion;
     	
 	/*
-    function explosion(center, radius, damage) {
-        var obj = level.grid.get(center);
-        if (obj instanceof Controllable)
-            obj.damage(damage);
+        function explosion(center, radius, damage) {
+            var obj = level.grid.get(center);
+            if (obj instanceof Controllable)
+                obj.damage(damage);
 
-        var topLeft = new Point(center.i - 1, center.j - 1);
-        var diameter = 2 * radius;
-        var pointInConsideration = new Point(0, 0);
+            var topLeft = new Point(center.i - 1, center.j - 1);
+            var diameter = 2 * radius;
+            var pointInConsideration = new Point(0, 0);
 
-        for (var i = 0; i < diameter; i++) {
-            for (var j = 0; j < diameter; j++) {
-                pointInConsideration = new Point(i + topLeft.i, j + topLeft.j);
-                if (!level.grid.isValid(pointInConsideration))
-                    continue;
+            for (var i = 0; i < diameter; i++) {
+                for (var j = 0; j < diameter; j++) {
+                    pointInConsideration = new Point(i + topLeft.i, j + topLeft.j);
+                    if (!level.grid.isValid(pointInConsideration))
+                        continue;
 
-                obj = level.grid.get(pointInConsideration);
-                if (obj instanceof Controllable)
-                    obj.damage(damage);
+                    obj = level.grid.get(pointInConsideration);
+                    if (obj instanceof Controllable)
+                        obj.damage(damage);
 
-                    if (obj instanceof Bomb) {
-                        level.removeBombEvent(obj.pos, obj);
-                    }
+                        if (obj instanceof Bomb) {
+                            level.removeBombEvent(obj.pos, obj);
+                        }
+                }
             }
         }
-    }
 	*/
 
     function updateMove(result) {
@@ -119,7 +116,7 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
         var bomb;
 
         if (self.bombAtPos) {
-            bomb = new Bomb(self.side, self.bombInfo.damage, self.bombInfo.lifetime, self.bombInfo.radius, self.pos);
+            bomb = new Bomb(self.side, self.bombData.damage, -1, 0, self.pos);
             level.grid.put(self.pos, bomb);
             self.bombAtPos = false;
             // Bomb add event
@@ -381,7 +378,7 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
             }
             occ.damage(attack_damage);
         } else if (action == 'plant bomb') {
-            if (self.bombInfo.capacity <= 0)
+            if (self.bombData.capacity <= 0)
                 return;
 
             if (self.side == Side.Defend)
@@ -390,7 +387,7 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
             if (self.bombAtPos)
                 return;
 
-            self.bombInfo.capacity -= 1;
+            self.bombData.capacity -= 1;
             self.bombAtPos = true;
 
         } else if (action == 'explosive ring') {
@@ -401,7 +398,7 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
 				if(!('type' in result)) {
 					throw new ControlException('No "type" key in result in "explosive ring"');
 					return;
-            }
+                }
 			*/
 
             if (self.explosionData.capacity <= 0)

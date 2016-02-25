@@ -31,10 +31,22 @@ An object containing constants representing the 4 directions,
 > Note that `attack` and `defend` are two independent functions that handle your `attack` and `defend` simulations respectively. Your code must have both `attack` and `defend` functions.
 
 
-#### Return Value
+### Return Value
 
-The return value from `attack` and `defend` functions is an `Object`  that determines the `action` your character performs.
-The **compulsory** key that your return object must posses is the `action` key. This key can be any one of :
+The return value from `attack` and `defend` functions is an JSON Object that determines the `action` your character performs. This object is of the format
+
+    {
+        action: ,
+        dir: 
+    }
+
+The `action` key is **necessary**. It will be used to return the action your character performs.
+
+Note that the function `attack` can return certain values that are ignored when returned through `defend`.
+
+#### Common Return Values
+
+The `action` key can take any of the following values
 
 **rest**
 
@@ -51,14 +63,20 @@ Does *nothing* for that turn.
 Attempts to move in the particular `Direction`. If the new position is invalid -- out of bounds; or already occupied, the `move` *fails*.
 This action **requires** an additional `dir` key which specifies the [Direction](api.html#direction) to move in.
 
-    function attack(params) {
+    function defend(params) {
         return {
             action: 'move',
             dir: Direction.U
         }
     }
 
+#### Attacker Return Values
+
+The following return values are valid only in `attack`. In `defend`, they are synonymous to `rest`.
+
 **attack**
+
+This return type is ignored when returned through the `defend` function.
 
 If an entity is present *one* tile away in the `Direction` `dir` from the current position. The other character is `damaged`.
 
@@ -66,20 +84,51 @@ If an entity is present *one* tile away in the `Direction` `dir` from the curren
         return {
             action: 'attack',
             dir: Direction.D
-        }
+        };
     }
 In the above code snippet, if an enemy is one tile downwards from you then you perform an attack.
 
-#### Entity
+**We recommend you skip this part and come back to it once you're clear with all the Special Moves**
+
+**plant bomb**
+
+This will cause the entity to prepare a bomb that will be planted on the next move.
+
+    function attack(params) {
+        return {
+            action: 'plant bomb'
+        };
+    }
+
+**explosive ring**
+
+This will force the entity to damage all objects in a 2 square radius of the player.
+
+    function attack(params) {
+        return {
+            action: 'explosive ring'
+        };
+    }
+
+
+### Entity
 
 An entity is just a plain old Javascript `Object` that describes well, an *entity*. Its keys describe its state. Available keys are :
 
 * *idx*: A unique `id` that identifies each entity.
 * *team*: A number that identifies which team the entity belongs to.
 * *pos*: A `Point` object that describes its position on the grid.
-* *health*: The remaining health of the entity.
 
-#### Parameters or `params`
+
+### Bomb
+
+A bomb is an object that simulates the existance of the bomb. Every bomb have the following keys
+
+* *pos*: A `Point` object specifying the position of the bomb on the grid.
+
+The `type` key is useful for distinguishing between the Bombs and the Entities.
+
+### Parameters or `params`
 
 Your `attack` and `defend` functions are supplied with a bunch of parameters that specify the current game state. All of these parameters are encapsualted into a single `params` object. All parameters are accesible via the *keys* of this object that are :
 
@@ -90,18 +139,46 @@ An `entity` object that describes the **character that is being updated**.
 ***params.grid***
 
 Keys,
+
 * `arr` 1D row major representation of *game grid*
 * `row` number of rows
 * `col` number of columns
-A one dimensional `Array` that represents the entire *game grid* at the current instant. The API provides a utility `getAt` function to help seeking using `i`, `j` indexing. 
 
-> Modifying these parameters *doesn't* change the game state. You can *only* affect the state by *returning* an `action` and update your character.
+A one dimensional `Array` that represents the entire *game grid* at the current instant. The API provides a utility `getAt` function to help seeking using `i`, `j` indexing. 
 
 ***params.entities***
 
-An `Object` consisting of all the *entities* currently present on the map including you.
+An `Object` consisting of all the *entities* currently present on the map including you. It is a key-value pair of the following description
+
+    // object ent is of type Entity
+    params.entities = {
+        ent.idx: ent
+    }
+
+It is hence a key-value holder of all Entities on the map.
+
+> Modifying these parameters *doesn't* change the game state. You can *only* affect the state by *returning* an `action` and update your character.
+
+### Special Moves
+Two special moves have been added from the last iteration of Code-Character
+
+#### Bombs
+The attacker can place Bombs around the map. The process is as follows:
+
+* He first readies a bomb to be planted in the position he's in.
+* On moving from the position he's in, the bomb is primed.
+
+The bombs affect both the attacker entity and the defender entity, even though only the attacker can plant them.
+
+The number of bombs the attacker can place are limited. This number is returned by the `getBombsRemaining` function described later.
+
+#### Explosions
+The attacker can now initiate a explosion attack around him that will damage every object in range.
+
+The number of explosions the attacker can perform is limited. The number of remaining explosions can be accessed through the `getExplosionsRemaining` function described later.
 
 
+## Functions available
 ### isValid
 
 *Parameters*: `params`, `point`
@@ -145,7 +222,12 @@ Function that returns the entities on the map as an `Array`
 
 *Parameters*: `object`
 
-Function that returns the *type* of object from the return value of `getAt` or `none` if it's empty.
+Function that returns the *type* of `object`. The return types for all different objects on the grid are as follows:
+
+* `Entity`: `warrior`
+* `Bomb`  : `bomb`
+* `Walls` : `tile`
+* `Empty` : `free`
 
 ### getMove
 
@@ -160,3 +242,36 @@ Note that `point` and `dir` has to be an instance of `Point` and `Direction` obj
     `
 
 Note that the APIs' won't change a state of any object. If you want to change the state, then return a result object with `action` key. For example, you can use `getMove` to get the new position and if the new position is suitable for you then just return an `action` with value `move` and `dir` with the direction you passed in `getMove` to actually move to the new position.
+
+### getExplosionsRemaining
+
+*Parameters*: `ent`
+
+Function that returns the number of explosion attacks an entity can do.
+
+    function attack(params) {
+        var rem = getExplosionsRemaining(params.self);
+        if (rem > 0)
+            return {
+                action: 'explosive ring'
+            };
+        ...
+    }
+
+Note that the parameter `ent` is of type *Entity*.
+
+### getBombsRemaining
+
+*Parameters*: `ent`
+
+Function that returns the number of bombs an entity can plant. Reduces by one every time a bomb is planted.
+
+    function attack(params) {
+        var rem = getBombsRemaining(params.self);
+        if (rem > 0)
+            return {
+                action: 'plant bomb'
+            };
+    }
+
+Note that the parameter `ent` is of type *Entity*.

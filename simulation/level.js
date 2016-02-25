@@ -52,8 +52,6 @@ function getDefaultBombParams() {
     return {
         capacity: BOMB_DEFAULT.capacity,
         damage: BOMB_DEFAULT.damage,
-        lifetime: BOMB_DEFAULT.lifetime,
-        radius: BOMB_DEFAULT.radius
     }
 }
 
@@ -62,9 +60,9 @@ function getDefaultExplosionParams() {
         capacity: EXPLOSION_DEFAULT.capacity,
         damage: EXPLOSION_DEFAULT.damage,
         radius: EXPLOSION_DEFAULT.radius,
-        minDamage: EXPLOSION_DEFAULT.minDamage,
-        maxDamage: EXPLOSION_DEFAULT.maxDamage,
-        throwDistance: EXPLOSION_DEFAULT.throwDistance
+        // minDamage: EXPLOSION_DEFAULT.minDamage,
+        // maxDamage: EXPLOSION_DEFAULT.maxDamage,
+        // throwDistance: EXPLOSION_DEFAULT.throwDistance
     }
 }
 
