@@ -119,6 +119,9 @@
 
             for (var j = 0; j <= 2 * radius; j++) {
                 var point = new Point(i + topLeft.i, j + topLeft.j);
+                if (!isValid(params, point))
+                    continue;
+
                 var obj = getAt(params, point);
                 var type = getType(obj);
 
@@ -243,6 +246,9 @@
 
             for (var j = 0; j <= 2 * radius; j++) {
                 var point = new Point(i + topLeft.i, j + topLeft.j);
+                if (!isValid(params, point))
+                    continue;
+                
                 var obj = getAt(params, point);
                 var type = getType(obj);
 
