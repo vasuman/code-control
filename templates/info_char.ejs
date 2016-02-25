@@ -82,7 +82,7 @@
     <% if(char.matches.length > 0) { %>
     <div id = "recent-matches" class = "col-lg-4 well">
         <h3> Matches </h3>
-        <% char.matches.forEach(function(match) { %>
+        <% char.matches.reverse().forEach(function(match) { %>
 		<div class="container-sim">
 		<canvas class="mini-replay"></canvas>
 		<a href="/m/<%= match._id %>">
