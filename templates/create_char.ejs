@@ -6,9 +6,9 @@
 <body>
 <%- include header %>
 <div id = "info">
-<%- form_tag('/char/params') %>
+<%- form_tag('/char/params', {role : "form", class:"form-inline", id:"create_char_form"}) %>
     <%- label_for('name') %>
-    <%- text_field_tag('name') %>
+    <%- text_field_tag('name', {class : "form-control",placeholder:"Character name"}) %>
     <% if(err) { %>
         <div id = "name-err">
         <% if(err == 1) { %>
@@ -19,8 +19,10 @@
         </div>
     <% } %>
     <%- label_for('type') %>
-    <%- select_tag('type', allowed_types) %>
-    <%- submit_tag('create') %>
+    <%- select_tag('type', allowed_types, {class : "form-control"}) %>
+    <br>
+    <%- submit_tag('create', {class:"btn btn-lg btn-primary"}) %>
 <%- form_end_tag() %>
+</div>
 </body>
 </html>
