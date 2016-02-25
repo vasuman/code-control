@@ -57,7 +57,7 @@
                 <h3>Draw</h3>
             <% } else { %>
                 <h3><b><%= find_char_id(match.result[1], match.contenders) %> Wins </b>
-                (+<%= match.expr %> exp)</h3>
+					<% if (match.type == 'versus') { %>(+<%= match.expr %> exp)<% } %></h3>
             <% } %>
         <% } %>
         </div>
