@@ -257,8 +257,10 @@ function challenge(req, res) {
         if(charB.name == req.params.cname){
             return res.redirect('/not_permit');
         }
-        if(Math.abs(charB.experience - charA.experience) > EXP_DIFF) {
-            return res.redirect('/not_permit');
+        if (req.body.level === "battle" ){
+            if(Math.abs(charB.experience - charA.experience) > EXP_DIFF) {
+                return res.redirect('/not_permit');
+            }
         }
         if(!isRested(charB)) {
             return res.redirect('/not_permit');
