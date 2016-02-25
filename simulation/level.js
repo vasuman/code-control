@@ -27,7 +27,7 @@ function Player(id) {
 
 const P_A = 0, P_B = 1,
 	BOMB_DEFAULT = {
-	  capacity: 3,
+	  capacity: 5,
 	  damage: 100,
 	  lifetime: -1,
 	  radius: 1
@@ -37,7 +37,7 @@ const P_A = 0, P_B = 1,
         radius: 2,
         damage: 100,
         minDamage: 10,
-        maxDamage: 30,
+        maxDamage: 100,
         throwDistance: 2
     }
 

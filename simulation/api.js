@@ -59,9 +59,6 @@ function getType(object) {
     }
     return (object.type || 'none')
 }
-function plantBomb(params){
-    console.log(Point.i + " "+ Point.j);
-}
 
 module.exports.Point = Point;
 module.exports.getMove = stuff.getMove;
@@ -73,5 +70,4 @@ module.exports.getEntArray = getEntArray;
 module.exports.getType = getType;
 module.exports.getAt = getAt;
 module.exports.isValid = isValid;
-module.exports.plantBomb = plantBomb;
 module.exports.hasPlacedBomb = hasPlacedBomb;

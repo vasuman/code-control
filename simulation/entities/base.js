@@ -64,6 +64,7 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
 
     this.explosionData = params.explosion;
     	
+	/*
     function explosion(center, radius, damage) {
         var obj = level.grid.get(center);
         if (obj instanceof Controllable)
@@ -83,14 +84,13 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
                 if (obj instanceof Controllable)
                     obj.damage(damage);
 
-                /*
                     if (obj instanceof Bomb) {
                         level.removeBombEvent(obj.pos, obj);
                     }
-                */
             }
         }
     }
+	*/
 
     function updateMove(result) {
         var nextPos = moveSafe(self.pos, result);
@@ -397,10 +397,12 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
             if (self.side == Side.Defend)
                 return;
 
-            if(!('type' in result)) {
-                throw new ControlException('No "type" key in result in "explosive ring"');
-                return;
+			/*
+				if(!('type' in result)) {
+					throw new ControlException('No "type" key in result in "explosive ring"');
+					return;
             }
+			*/
 
             if (self.explosionData.capacity <= 0)
                 return;
@@ -408,26 +410,23 @@ function Controllable(team, p, level, health, attack_damage, round, params) {
             self.explosionData.capacity--;
 
             var center = self.pos;
-            if ('pos' in result) {
-                var distance = getRadialDistance(result.pos, center);
-                if (distance <= self.explosionData.throwDistance)
-                    center = result.pos;
-            }
+			/*
+				if ('pos' in result) {
+					var distance = getRadialDistance(result.pos, center);
+					if (distance <= self.explosionData.throwDistance)
+						center = result.pos;
+				}
+			*/
 
             var explosiveData = {
                 center: center,
                 radius: self.explosionData.radius,
                 side: self.side,
-                type: result.type,
+                type: 'constant',
                 killTrap: true
             };
 
-            if (result.type == 'constant')
-                explosiveData.damage = self.explosionData.damage;
-            else {
-                explosiveData.minDamage = self.explosionData.minDamage;
-                explosiveData.maxDamage = self.explosionData.maxDamage;
-            }
+			explosiveData.damage = self.explosionData.damage;
             updateExplosiveRing(result, explosiveData);
 
         } else {
