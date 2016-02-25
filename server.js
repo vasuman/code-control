@@ -89,6 +89,7 @@ const REST_INTERVAL = 1000 * 120;
 var swarmChar = {
     id: -1,
     code: [DEFAULT_DEFEND_CODE, DEFAULT_ATTACK_CODE],
+	codeChanged: false,
     getHealth: function() { return 100; },
     getAttack: function() { return 100; }
 }
@@ -112,7 +113,7 @@ function loadData() {
             if(err) {
                 throw err;
             }
-            //val.pop()[key.pop()] = d;
+            val.pop()[key.pop()] = d;
             if(file.length > 0) {
                 fs.readFile(file.pop(), doneFRead(file, val, key));
             } else {
@@ -120,7 +121,7 @@ function loadData() {
             }
         }
     }
-    fs.readFile('./simulation/swarm-code.js', { encoding: 'utf8' }, doneFRead([], [swarmChar], ['code']))
+    fs.readFile('./simulation/swarm-code-full.js', { encoding: 'utf8' }, doneFRead([], [swarmChar], ['code']))
 }
 function isRested(char) {
     return (Date.now() - char.lastPlayed) > REST_INTERVAL
@@ -157,6 +158,14 @@ function doTrain(req, res) {
 		myMap = gen_map;
         if(req.body.level == 'swarm') {
             SwarmLevel = require('./simulation/level').SwarmTraining;
+
+
+			if (!swarmChar.codeChanged) {
+				var errs = linter.versusProcess(swarmChar.code, [require('./simulation/api'), require('./simulation/defend_api'), require('./simulation/attack_api')], ['defend', 'attack']);
+				swarmChar.code = linter.adCode;
+				swarmChar.codeChanged = true;
+			}
+
             new SwarmLevel(char, swarmChar, myMap, DEFEND, sim1DoneCb);
         } else {
             return res.redirect('/404');
