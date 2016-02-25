@@ -205,7 +205,7 @@ function doTrain(req, res) {
 }
 
 function isPlaying(match, char) {
-    if(match.type != 'versus' || match.result == null) {
+    if(match.type == 'train' || match.result == null) {
         return false;
     }
     var i;
@@ -316,24 +316,36 @@ function challenge(req, res) {
             return res.send(reason + err);
         }
 		results.push(r);
-        var m = new models.Match({
-			initiator: charB,
-            contenders: [charB, charA],
-            type: 'versus',
-            map: r.map,
-            when: Date.now(),
-            result: [results[0].winner, results[1].winner],
-            replay: [results[0].replay, results[1].replay],
-            expr: payoff
-        });
-
+		var m;
 		// RESET
 		if (req.body.level == 'char') {
-			console.log("swap");
+
+			m = new models.Match({
+				initiator: charB,
+				contenders: [charB, charA],
+				type: 'selfversus',
+				map: r.map,
+				when: Date.now(),
+				result: [results[0].winner, results[1].winner],
+				replay: [results[0].replay, results[1].replay],
+				expr: payoff
+			});
+
 			var temp = charA;
 			charA = charB;
 			charB = temp;
-		}	
+		} else {
+			m = new models.Match({
+				initiator: charB,
+				contenders: [charB, charA],
+				type: 'versus',
+				map: r.map,
+				when: Date.now(),
+				result: [results[0].winner, results[1].winner],
+				replay: [results[0].replay, results[1].replay],
+				expr: payoff
+			});
+		}
 		if (charA.owner._id.toString() != charB.owner.toString()) {
 			if(results[0].winner.equals(charA._id) && results[1].winner.equals(charA._id)) {
 				charA.experience += payoff;

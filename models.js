@@ -1,7 +1,7 @@
 var mongoose = require('mongoose'),
 Schema = mongoose.Schema;
 
-const MATCH_TYPES = ['versus', 'train'];
+const MATCH_TYPES = ['versus', 'train', 'selfversus'];
 const CHAR_TYPES
 
 function Map(level, jsonPath) {
