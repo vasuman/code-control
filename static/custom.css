@@ -13,6 +13,15 @@
     margin: 2em;
 }
 
+.navbar-pragyan-weblogo {
+	float: right;
+}
+
+#pragyan-weblogo {
+	height: 50px;
+	width: auto;
+}
+
 .container-sim {
 	display: inline-block;
 	position: relative;
