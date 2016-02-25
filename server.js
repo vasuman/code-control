@@ -65,8 +65,8 @@ app.use(express.errorHandler());
 /* DATA REGION */
 const PORT = process.env.PORT || 8000;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost/code';
-const DEFAULT_ATTACK_CODE = "function attack(params) {\n // TODO: insert attack code here\n return {action: 'move',dir:1};}";
-const DEFAULT_DEFEND_CODE = "function defend(params) {\n // TODO: insert defend code here\n return {action: 'move',dir:0};}";
+const DEFAULT_ATTACK_CODE = "function attack(params) {\n\t// TODO: insert attack code here\n\treturn {\n\t\taction: 'rest'\n\t};\n}";
+const DEFAULT_DEFEND_CODE = "function defend(params) {\n\t// TODO: insert defend code here\n\treturn {\n\t\taction: 'rest'\n\t};\n}";
 const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
 const DEF_LVL = [ new SelectOption('Battle', 'battle') ];
 const START_EXP = 10;
@@ -193,7 +193,7 @@ function doTrain(req, res) {
                 if(err) {
                     throw err;
                 }
-                res.redirect('/m/' + m._id);
+                return res.redirect('/m/' + m._id);
             });
         });
     }
@@ -276,7 +276,6 @@ function challenge(req, res) {
 	}
 	function afterMapGen(gen_map) {	
 		if (req.body.level == 'char') {
-			console.log("swap");
 			var temp = charA;
 			charA = charB;
 			charB = temp;
@@ -362,7 +361,7 @@ function challenge(req, res) {
                         if(err) {
                             throw err;
                         }
-                        res.redirect('/m/' + m._id);
+                        return res.redirect('/m/' + m._id);
                     });
                 });
             });
@@ -572,7 +571,7 @@ function createChar(req, res) {
             if(err) {
                 throw err;
             }
-            res.redirect('/c/' + char.name);
+            return res.redirect('/c/' + char.name);
         }
         if(err) {
             throw err;
@@ -585,8 +584,7 @@ function createChar(req, res) {
             throw err;
         }
         if(char) {
-            res.redirect('/char/create?err=2');
-            return;
+            return res.redirect('/char/create?err=2');
         }
         var c = new models.Character({
             owner: req.user._id,
@@ -622,7 +620,7 @@ function getChar(name, cb, res) {
             throw err;
         }
         if(!char) {
-            res.redirect('/404');
+            return res.redirect('/404');
         }
         cb(char);
     }
@@ -646,7 +644,10 @@ function saveChar(req, res) {
         errs = linter.versusProcess(req.body.code, [require('./simulation/api'), require('./simulation/defend_api'), require('./simulation/attack_api')], ['defend', 'attack']);
 		char.code = linter.adCode;
         char.passed = (errs.length == 0);
-        char.save(doneSave);
+		if (char.passed)
+        	char.save(doneSave);
+		else
+			return res.json({ status: 2, errors: errs });
     }
     if(!req.body.code) {
         return res.json({ status: 1 });
