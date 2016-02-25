@@ -6,6 +6,7 @@ var playTime, state, seek = 0, dir, delT = 0, entities = {}, images = {}, prevTi
 var scale = 4;
 var currentHoverObject = -1;
 
+var bombPositions = [];
 const LOADING = 0, ERROR = 1, DONE = 2;
 const MOVE_DELAY = 1000;
 const F_SIZE = 13;
@@ -18,19 +19,120 @@ function setImmediate(f) {
 }
 
 function setHoverFunction(i) {
-	overlayArray[i].addEventListener('mouseover',function() {
+	overlayArray[i].addEventListener('mouseenter',function() {
 		if (currentHoverObject == -1) {
-			currentHoverObject = i;
+            currentHoverObject = i;
 			setImmediate(onHoverIn);
 		}
 	});
-	overlayArray[i].addEventListener('mouseout',function() {
+	overlayArray[i].addEventListener('mouseleave',function() {
 		if (currentHoverObject != -1) {
-			currentHoverObject = -1;
+            bombPositions[currentHoverObject] = [];
+            currentHoverObject = -1;
 			setImmediate(onHoverOut);
 		}
 	});
 }
+
+function getIndexOfPointArray(arr, pos) {
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i].i == pos.i && arr[i].j == pos.j)
+            return i;
+    }
+
+    return -1;
+}
+
+function bombHandler(nextEv, f, dir) {
+    var data = nextEv.bomb;
+    var moveData = data.move;
+    var thisEnt = entities[moveData.idx];
+    // console.log(thisEnt);
+    var nPos = moveData.nextPos;
+    var oPos = moveData.pos;
+
+    var delPos = {
+        i: nPos.i - oPos.i,
+        j: nPos.j - oPos.j
+    };
+
+    /*
+        thisEnt.pos.i += f * ent.pos.i;
+        thisEnt.pos.j += f * ent.pos.j;
+    */
+    
+    thisEnt.pos.i += f * delPos.i;
+    thisEnt.pos.j += f * delPos.j;
+
+    if (dir == 0) {
+        if (data.placed) {
+            bombPositions[currentHoverObject].push(data.placedPos);
+        }
+
+        if (data.explode) {
+            var index = getIndexOfPointArray(bombPositions[currentHoverObject], data.explodePos);
+            bombPositions[currentHoverObject].splice(index, 1);
+
+            /*
+                var ent = entities[nextEv.damage.idx];
+                ent.health -= f * nextEv.damage.amt;
+                ent.flags.damaged = true;
+            */
+
+        }
+    } else {
+        if (data.placed) {
+            var index = getIndexOfPointArray(bombPositions[currentHoverObject], data.placedPos);
+            bombPositions[currentHoverObject].splice(index, 1);
+        }
+
+        if (data.explode) {
+            bombPositions[currentHoverObject].push(data.explodePos);
+        }
+    }
+
+    if (data.explode) {
+        var damageData = data.damage;
+        thisEnt = entities[damageData.idx];
+        thisEnt.health -= f * damageData.amt;
+        thisEnt.flags.damaged = true;
+    }
+    // console.log(data);
+    // console.log(bombPositions);
+}
+
+function explosionHandler(nextEv, f, dir) {
+    var data = nextEv.explosion;
+
+    function handle() {
+        var ents = data.ents,
+            bombs = data.bombs;
+
+        ents.forEach(function damage(ent) {
+            var thisEnt = entities[ent.idx];
+            if (!thisEnt)
+                return;
+
+            thisEnt.health -= f * ent.amt;
+            thisEnt.flags.damaged = true;
+        });
+
+        bombs.forEach(function remove(pos) {
+            if (dir == 0) {
+                var index = getIndexOfPointArray(bombPositions[currentHoverObject], pos);
+                bombPositions[currentHoverObject].splice(index, 1);
+            } else {
+                bombPositions[currentHoverObject].push(pos);
+            }
+        });
+    }
+
+    handle();
+    
+    // console.log(data);
+    // console.log(bombPositions);
+}
+
 
 function initElements() {
 	state = LOADING;
@@ -43,6 +145,7 @@ function initElements() {
 		ctxArray.push(ctx);
 		mapArray.push(JSON.parse(matches[parseInt(i/2)].map));
 		replayArray.push(matches[parseInt(i/2)].replay[i%2]);
+        bombPositions.push([]);
     	ctx.textAlign = 'center';
     	ctx.textBaseline = 'middle';
 		setHoverFunction(i);
@@ -81,14 +184,43 @@ function loadImages(imgList, callback) {
     setImmediate(cbWrap(0));
 }
 
+const imgName = "/basic.png";
 function drawState() {
     ctxArray[currentHoverObject].clearRect(0, 0, canvasArray[currentHoverObject].width, canvasArray[currentHoverObject].height);
     ctxArray[currentHoverObject].drawImage(bgCanvas, 0, 0);
     var ent, img, drawX, drawY;
+    var map = mapArray[currentHoverObject];
+
+    for (var i = 0; i < bombPositions[currentHoverObject].length; i++) {
+        drawX = bombPositions[currentHoverObject][i].j * mapArray[currentHoverObject].tilewidth / scale;
+        drawY = bombPositions[currentHoverObject][i].i * mapArray[currentHoverObject].tileheight / scale;
+        /*
+            img.j = 3;
+            img.i = 0;
+            img.name = imgName;
+            console.log(img.name);
+            console.log(img.j);
+            console.log(img.i);
+            console.log('Goodbye');
+        */
+        ctxArray[currentHoverObject].drawImage(
+            images[imgName], 
+            3 * mapArray[currentHoverObject].tilewidth, 
+            0 * mapArray[currentHoverObject].tileheight, 
+            mapArray[currentHoverObject].tilewidth / scale,
+            mapArray[currentHoverObject].tileheight / scale,
+            drawX, drawY,
+            mapArray[currentHoverObject].tilewidth / scale,
+            mapArray[currentHoverObject].tileheight / scale
+        );
+
+    }
+
     for(key in entities) {
         if(entities.hasOwnProperty(key)) {
             ent = entities[key];
             img = ent.image;
+            // console.log(img.name == imgName);
             drawX = ent.pos.j * mapArray[currentHoverObject].tilewidth / scale;
             drawY = ent.pos.i * mapArray[currentHoverObject].tileheight / scale;
             ctxArray[currentHoverObject].drawImage(
@@ -214,10 +346,11 @@ function startInterval() {
 function onHoverOut() {
 	clearInterval(playTime);
 	state = LOADING;
-	//currentHoverObject = -1;
     seek = 0;
     entities = {};
     dead = {};
+    // bombPositions[currentHoverObject] = [];
+	// currentHoverObject = -1;
 }
 
 function doPlay() {
@@ -284,6 +417,37 @@ function update() {
             entities[nextEv.death] = dead[nextEv.death];
             delete dead[nextEv.death];
         }
+    } else if ('bombAdd' in nextEv) {
+
+        var pos = nextEv.bombAdd;
+        if (dir == 0) {
+            bombPositions[currentHoverObject].push(pos);
+        } else {
+            var index = getIndexOfPointArray(bombPositions[currentHoverObject], pos);
+            if (index == -1)
+                console.log('MOM' + index);
+            bombPositions[currentHoverObject].splice(index, 1);
+        }
+
+    } else if ('bombRemove' in nextEv) {
+
+        console.log('in bomb remove');
+        var pos = nextEv.bombRemove;
+        if (dir == 0) {
+            
+            var index = getIndexOfPointArray(bombPositions[currentHoverObject], pos);
+            if (index == -1)
+                console.log('DAD' + index);
+            bombPositions[currentHoverObject].splice(index, 1);
+
+        } else {
+            bombPositions[currentHoverObject].push(pos);
+        }
+
+    } else if ('bomb' in nextEv) {
+        bombHandler(nextEv, f, dir);
+    } else if ('explosion' in nextEv) {
+        explosionHandler(nextEv, f, dir);
     }
     seek += f;
     //resetButtons();
