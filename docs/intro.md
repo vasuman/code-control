@@ -37,15 +37,6 @@ Once you have coded your character and save it. You can now challenge other play
 Then, a match is simulated between your two characters and the winner is awarded a certain number of points. A match consists of 2 rounds (already explained above) and a player must win both the rounds to win the match. If a player wins only one then it's a **Draw**. As mentioned before, challenging your own characters won't affect the leaderboard.
 The final winners are decided based on who has the *most* number of points.
 > Scoring rules
-    * Draw - Both get 0 point.
-    * Win  - Positive points , it varies with number of trials
-    * Lose - Negative points, it varies with number of trials 
-    The scoring rule for winner and loser is as below.
-    **Winner** -  `P + x` where `P` is the current point and `x` is the increment after win. The diffrential of `x` w.r.t number of trials is `negative`. Say, if you win in first trial agains a player `A` then you will get the maximum point. If you challenge  `A` again and win then you will get comparitively lesser points and so on.
-    **Loser** - `P - x` , same as above except the fact that this time the diffrential of `x` is `positive` w.r.t number of trials. Say the more you lose, the more it'll hurts.
-
-
-> Scoring rules
 * Draw - Both get 0 point.
 * Win  - Positive points , it varies with number of trials
 * Lose - Negative points, it varies with number of trials 
