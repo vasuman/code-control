@@ -60,7 +60,7 @@ Does *nothing* for that turn.
 
 **move**
 
-Attempts to move in the particular `Direction`. If the new position is invalid -- out of bounds; or already occupied, the `move` *fails*.
+Attempts to move in the particular `Direction`. If the new position is invalid -- out of bounds; or already occupied by another warrior, the `move` *fails*.
 This action **requires** an additional `dir` key which specifies the [Direction](api.html#direction) to move in.
 
     function defend(params) {
@@ -100,7 +100,10 @@ This will cause the entity to prepare a bomb that will be planted on the next mo
         };
     }
 
-**Note** : If you return `plant bomb` action, when you've already prepared a bomb, the action is synonymous to `rest`, because the bomb is already planted.
+**Note** : If you return `plant bomb` action, when you've returned a `plant bomb` and haven't moved, the action is 
+synonymous to `rest`, because the bomb is already prepared.
+
+**Note** : You don't move when you plant a bomb.
 
 **explosive ring**
 
@@ -200,19 +203,7 @@ Function that returns whether a certain point is within the bounds of the map.
 
 Function that returns an `Object` at the given `point` on the map.
 The object may be either an *entity* or a *tile* or value `0` if it's free.
-Type can be determined via `getType`
-
-### getDistance
-
-*Parameters*: `pointA`, `pointB`
-
-Function that returns the [Manhattan distance](http://en.wikipedia.org/wiki/Taxicab_geometry) between two points
-
-### getDirection
-
-*Parameters*: `pointA`, `pointB`
-
-Function that gets the *direction* of the maximum difference between `pointB` and `pointA`. Returns `-1` if both are same;
+Type can be determined via `getType`.
 
 ### getEntArray
 
