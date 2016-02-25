@@ -106,3 +106,13 @@ function attack(params) {
         if (isThug()) return "Bye";
 }
 ```
+
+***Functions that are specified in the API to be attack private are blocked by the linter when called in defend*** 
+The function `hasPlacedBomb` is attack private.
+
+```
+function defend(params) {
+    var res = hasPlacedBomb(params.self); // Will throw error
+    ...
+}
+```

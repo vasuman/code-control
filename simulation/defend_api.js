@@ -52,6 +52,10 @@ function getType(object) {
     if(object == 0) {
         return 'empty';
     }
+
+    if (object.type == 'Player Item')
+        return object.kind;
+
     return (object.type || 'none')
 }
 
@@ -65,3 +69,14 @@ module.exports.getEntArray = getEntArray;
 module.exports.getType = getType;
 module.exports.getAt = getAt;
 module.exports.isValid = isValid;
+
+function getBombsRemaining(ent) {
+    return ent.bombData.capacity;
+}
+
+function getExplosionsRemaining(ent) {
+    return ent.explosionData.capacity;
+}
+
+module.exports.getBombsRemaining = getBombsRemaining;
+module.exports.getExplosionsRemaining = getExplosionsRemaining;

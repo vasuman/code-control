@@ -78,7 +78,7 @@ The following return values are valid only in `attack`. In `defend`, they are sy
 
 This return type is ignored when returned through the `defend` function.
 
-If an entity is present *one* tile away in the `Direction` `dir` from the current position. The other character is `damaged`.
+If an entity is present *one* tile away in the `Direction` `dir` from the current position. The other entity is then killed.
 
     function attack(params) {
         return {
@@ -100,9 +100,11 @@ This will cause the entity to prepare a bomb that will be planted on the next mo
         };
     }
 
+**Note** : If you return `plant bomb` action, when you've already prepared a bomb, the action is synonymous to `rest`, because the bomb is already planted.
+
 **explosive ring**
 
-This will force the entity to damage all objects in a 2 square radius of the player.
+This will force the entity to kill all objects (including bombs) in a 2 square radius of the player.
 
     function attack(params) {
         return {
@@ -168,14 +170,14 @@ The attacker can place Bombs around the map. The process is as follows:
 * He first readies a bomb to be planted in the position he's in.
 * On moving from the position he's in, the bomb is primed.
 
-The bombs affect both the attacker entity and the defender entity, even though only the attacker can plant them.
+The bombs can kill both the attacker entity and the defender entity, even though only the attacker can plant them. They are triggered when an attacker or a defender steps on them.
 
-The number of bombs the attacker can place are limited. This number is returned by the `getBombsRemaining` function described later.
+The number of bombs the attacker can place are limited. This number is returned by the `getBombsRemaining` function described later. **He has five at the start.**
 
 #### Explosions
-The attacker can now initiate a explosion attack around him that will damage every object in range.
+The attacker can now initiate a explosion attack around him that will kill every object in range, including bombs. **The range is a default value of 2.**
 
-The number of explosions the attacker can perform is limited. The number of remaining explosions can be accessed through the `getExplosionsRemaining` function described later.
+The number of explosions the attacker can perform is limited. The number of remaining explosions can be accessed through the `getExplosionsRemaining` function described later. **He has two at the start.**
 
 
 ## Functions available
@@ -251,7 +253,7 @@ Function that returns the number of explosion attacks an entity can do.
 
     function attack(params) {
         var rem = getExplosionsRemaining(params.self);
-        if (rem > 0)
+        if (rem > 0) // Do explode if you can
             return {
                 action: 'explosive ring'
             };
@@ -268,10 +270,28 @@ Function that returns the number of bombs an entity can plant. Reduces by one ev
 
     function attack(params) {
         var rem = getBombsRemaining(params.self);
-        if (rem > 0)
+        if (rem > 0) // Plant bomb if you have any left
             return {
                 action: 'plant bomb'
             };
+        ...
     }
 
 Note that the parameter `ent` is of type *Entity*.
+
+### hasPlacedBomb
+
+*Parameters*: `ent`
+
+Attack Private Function that returns whether an attacker entity has prepared earlier to place a bomb through a `plant bomb` action.
+
+    function attack(params) {
+        var ent = params.self;
+        if (!hasPlacedBomb(ent) && getBombsRemaining(ent) > 0) // Prepare bomb if you already haven't
+            return {
+                action: `plant bomb`
+            }
+        ...
+    }
+
+**Note** : This function isn't recognized when called in the `defend` function. The linter will block the execution.

@@ -33,7 +33,7 @@ const P_A = 0, P_B = 1,
 	  radius: 1
 	},
     EXPLOSION_DEFAULT = {
-        capacity: 5,
+        capacity: 2,
         radius: 2,
         damage: 100,
         minDamage: 10,

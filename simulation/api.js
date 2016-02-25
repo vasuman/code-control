@@ -53,10 +53,15 @@ function getEntArray(params) {
     return res;
 }
 
+
 function getType(object) {
     if(object == 0) {
         return 'empty';
     }
+
+    if (object.type == 'Player Item')
+        return object.kind;
+
     return (object.type || 'none')
 }
 
@@ -71,3 +76,20 @@ module.exports.getType = getType;
 module.exports.getAt = getAt;
 module.exports.isValid = isValid;
 module.exports.hasPlacedBomb = hasPlacedBomb;
+
+function getBombsRemaining(ent) {
+    return ent.bombData.capacity;
+}
+
+function getExplosionsRemaining(ent) {
+    return ent.explosionData.capacity;
+}
+
+module.exports.getBombsRemaining = getBombsRemaining;
+module.exports.getExplosionsRemaining = getExplosionsRemaining;
+
+function hasPlacedBomb(ent) {
+    return ent.bombAtPos;
+}
+
+module.exports.hasPlacedBomb = hasPlacedBomb
