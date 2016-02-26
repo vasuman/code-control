@@ -706,7 +706,9 @@ function leaderboard(req, res) {
         if(err) {
             throw err;
         }
-        res.render('leaderboard', { user: req.user, topChars: chars, from: start });
+		models.Match.find().count(function(cerr, count) {
+        	res.render('leaderboard', { user: req.user, topChars: chars, from: start, count: count });
+		});
     }
     models.Character.find().sort({ experience: -1 }).skip(start).limit(100).exec(qCback);
 }

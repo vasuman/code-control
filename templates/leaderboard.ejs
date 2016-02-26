@@ -5,9 +5,15 @@
 </head>
 <body>
 <%- include header %>
+<center>
+	<h3><u> Total Match Count: </u></h3>
+	<h1 style="color: red;"><b> <%= count %> </b></h1>
+</center>
+<br>
 <table class = "table table-striped table-bordered table-condensed">
     <thead>
-        <th> Position </th>
+        <th style="text-align: center;"> Position </th>
+		<th> Last Played </th>
         <th> Name </th>
         <th> Experience </th>
     </thead>
@@ -15,11 +21,12 @@
 		<% var a = 0 %>
 		<% if (user && user._id.equals(char.owner)) a = 1 %>
         <tr>
-            <td> <%= i + 1 %> </td>
-			<td>
+            <td width="25%" style="text-align: center;"> <%= i + 1 %> </td>
+			<td width="25%"> <%= format_date_t(char.lastPlayed) %> </td>
+			<td width="25%">
 				<a class="<% if (a == 1) { %>Leaderboard-self<% } else { %>Leaderboard-other<% } %>" href= "<%='/c/'+char.name %>"> <%= char.name %></a>
 			</td>
-            <td> <%= char.experience %> </td>
+            <td width="25%"> <%= char.experience %> </td>
         </tr>
     <% }); %>
 </table>
