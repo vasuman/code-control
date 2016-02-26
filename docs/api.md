@@ -12,7 +12,7 @@ A constructor that simplifies creation of `i`, `j` objects
         i: 0,
         j: 0
     }
-> Note that the canvas origin is at top-left and the coordinates are positive.
+> Note that the canvas origin is at top-left and the coordinates are positive. `j` and `i` denotes row and column respectively
 ### Direction
 
 An object containing constants representing the 4 directions,
