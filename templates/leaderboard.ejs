@@ -22,7 +22,13 @@
 		<% if (user && user._id.equals(char.owner)) a = 1 %>
         <tr>
             <td width="25%" style="text-align: center;"> <%= i + 1 %> </td>
-			<td width="25%"> <%= format_date_t(char.lastPlayed) %> </td>
+			<td width="25%">
+				<% if (format_date_t(char.lastPlayed) == "Thu Jan 01 1970    05:30:00") { %>
+		   			---
+				<% } else { %>
+					<%= format_date_t(char.lastPlayed) %>
+				<% } %>
+			</td>
 			<td width="25%">
 				<a class="<% if (a == 1) { %>Leaderboard-self<% } else { %>Leaderboard-other<% } %>" href= "<%='/c/'+char.name %>"> <%= char.name %></a>
 			</td>
