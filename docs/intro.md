@@ -45,6 +45,7 @@ The scoring rule for winner and loser is as below:
 >    **Winner** -  `P + x` where `P` is the current point and `x` is the increment after win. The diffrential of `x` w.r.t number of trials is `negative`. Say, if you win in first trial agains a player `A` then you will get the maximum point. If you challenge  `A` again and win then you will get comparitively lesser points and so on.
 **Loser** - `P - x` , same as above except the fact that this time the diffrential of `x` is `positive` w.r.t number of trials. Say the more you lose, the more it'll hurts.
 
+**Note**: The match ends after a total of 100 turns to each player. If the defender is still alive after the said number of turns, he wins. Else, the attacker wins.
 
 ### Language
 

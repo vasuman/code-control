@@ -220,7 +220,7 @@ Function that returns the *type* of `object`. The return types for all different
 * `Entity`: `warrior`
 * `Bomb`  : `bomb`
 * `Walls` : `tile`
-* `Empty` : `free`
+* `Empty` : `empty`
 
 ### getMove
 
