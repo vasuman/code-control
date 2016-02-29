@@ -34,6 +34,7 @@ function handleMessage(m) {
             process.send({ type: 'error', data: e.message });
         }
     } else if(type == 'run_code') {
+		console.log("sandbox data: " + data);
         update_code = 'result = ' + data +'(param);';
         try {
             vm.runInContext(update_code, ctx);

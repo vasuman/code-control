@@ -8,14 +8,15 @@ passport = require('passport'),
 http = require('http'),
 path = require('path'),
 helpers = require('express-helpers')(app),
-PragyanStrategy = require('./auth/pragyan').PragyanStrategy,
-verifyCookie = require('./auth/verify').verifyCookie,
-markdown = require( "marked" );
+PragyanStrategy = require('passport-local').Strategy,
+authVerify = require('./auth/verify'),
+verifyCreds = authVerify.verifyCreds,
+customUserPass = authVerify.customUserPass,
+markdown = require('marked');
 
 app.set('port', process.env.PORT || 8000);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'templates'));
-
 
 app.use(express.static(path.join(__dirname, 'static')));
 app.use(express.cookieParser());
@@ -54,6 +55,15 @@ app.locals.find_char_id = function(id, chars) {
     }
     return '_';
 }
+app.locals.find_not_char_id = function(id, chars) {
+    var i;
+    for(i = 0; i < chars.length; i++) {
+        if(!chars[i]._id.equals(id)) {
+            return chars[i].name;
+        }
+    }
+    return '_';
+}
 function SelectOption(text, value) {
     this.text = text;
     this.value = value;
@@ -64,12 +74,13 @@ app.use(express.errorHandler());
 /* DATA REGION */
 const PORT = process.env.PORT || 8000;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://localhost/code';
-const DEFAULT_CODE = 'function update(params) {\n // TODO: insert code here\n}';
+const DEFAULT_ATTACK_CODE = "function attack(params) {\n\t// TODO: insert attack code here\n\treturn {\n\t\taction: 'rest'\n\t};\n}";
+const DEFAULT_DEFEND_CODE = "function defend(params) {\n\t// TODO: insert defend code here\n\treturn {\n\t\taction: 'rest'\n\t};\n}";
 const ALLOWED_CHARS = [ new SelectOption('Warrior', 'warrior') ];
 const DEF_LVL = [ new SelectOption('Battle', 'battle') ];
 const START_EXP = 10;
 const START_LVL = 1;
-const TRAIN_DEF = [ new SelectOption('Swarm', 'swarm') ];
+const TRAIN_DEF = [ new SelectOption('Challenge Swarm', 'swarm'), new SelectOption('Challenge own chars', 'char') ];
 const EXP_DIFF = 50;
 const EXP_GAIN = 14;
 const MIN_EXP_GAIN = 1;
@@ -81,14 +92,15 @@ const DEF_MAP = [
     new SelectOption('Glob', 'glob.json'),
     new SelectOption('Jimk', 'jimk.json')
 ];
-
+const DEFEND = 0, ATTACK = 1;
 const REST_INTERVAL = 1000 * 120;
 
 var swarmChar = {
     id: -1,
-    code: '',
-    getHealth: function() { return 30; },
-    getAttack: function() { return 5; }
+    code: [DEFAULT_DEFEND_CODE, DEFAULT_ATTACK_CODE],
+	codeChanged: false,
+    getHealth: function() { return 100; },
+    getAttack: function() { return 100; }
 }
 
 var ALLOWED_PIDS = {};
@@ -118,10 +130,8 @@ function loadData() {
             }
         }
     }
-    fs.readFile('./simulation/swarm-code.js', { encoding: 'utf8' }, doneFRead([], [swarmChar], ['code']))
+    fs.readFile('./simulation/swarm-code-full.js', { encoding: 'utf8' }, doneFRead([], [swarmChar], ['code']))
 }
-/* END DATA */
-
 function isRested(char) {
     return (Date.now() - char.lastPlayed) > REST_INTERVAL
 }
@@ -144,38 +154,53 @@ function isValidMap(map) {
 }
 
 function doTrain(req, res) {
-    var char, jsonPath;
+    var char, jsonPath, myMap, results = [], SwarmLevel;
     function charFound(ch) {
         char = ch;
         if(!(req.user) || !(char.owner.equals(req.user._id))) {
             return res.redirect('/not_permit');
         }
-
-		//ASH : REMEMBER TO REMOVE
-		//
-        if(!isValidMap(req.body.map)) {
-            return res.redirect('/404');
-        }
-        jsonPath = path.join('./simulation', req.body.map);
+		var mapper = require("./simulation/map_gen").GenerateMap;
+		new mapper(afterMapGen);
+	}
+	function afterMapGen(gen_map) {
+		myMap = gen_map;
         if(req.body.level == 'swarm') {
-            var SwarmLevel = require('./simulation/level').SwarmTraining;
-            new SwarmLevel(char, swarmChar, jsonPath, simDoneCb);
+            SwarmLevel = require('./simulation/level').SwarmTraining;
+
+
+			if (!swarmChar.codeChanged) {
+				var errs = linter.versusProcess(swarmChar.code, [require('./simulation/api'), require('./simulation/defend_api'), require('./simulation/attack_api')], ['defend', 'attack']);
+				swarmChar.code = linter.adCode;
+				swarmChar.codeChanged = true;
+			}
+
+            new SwarmLevel(char, swarmChar, myMap, DEFEND, sim1DoneCb);
         } else {
             return res.redirect('/404');
         }
     }
+	function sim1DoneCb(err, r) {
+		if(err) {
+            return res.send(err);
+		}
+        results.push(r);
+		new SwarmLevel(char, swarmChar, myMap, ATTACK, simDoneCb);
+	}
     function simDoneCb(err, r) {
         if(err) {
             console.log(err, r);
             return res.send(err);
         }
+		results.push(r);
         var m = new models.Match({
+			initiator: char,
             contenders: [char],
             type: 'train',
             map: r.map,
             when: Date.now(),
-            result: r.score,
-            replay: r.replay
+            result: [results[0].score, results[1].score],
+            replay: [results[0].replay, results[1].replay]
         });
         m.save(function(err) {
             if(err) {
@@ -186,15 +211,19 @@ function doTrain(req, res) {
                 if(err) {
                     throw err;
                 }
-                res.redirect('/m/' + m._id);
+                return res.redirect('/m/' + m._id);
             });
         });
     }
-    getChar(req.params.cname, charFound);
+    if (req.body.level === "swarm")
+        getChar(req.params.cname, charFound);
+    else{
+        return res.redirect('/404'); 
+    }
 }
 
 function isPlaying(match, char) {
-    if(match.type != 'versus' || match.result == null) {
+    if(match.type == 'train' || match.result == null) {
         return false;
     }
     var i;
@@ -227,7 +256,7 @@ function getMatchesBetween(charA, charB) {
 }
 
 function challenge(req, res) {
-    var charA, charB, jsonPath, payoff;
+    var charA, charB, jsonPath, payoff, results = [], BattleLevel, myMap;
     function charFound(err, ch) {
         if(err) {
             throw err;
@@ -243,26 +272,58 @@ function challenge(req, res) {
         if(!charB) {
             return res.redirect('/not_permit');
         }
-        if(Math.abs(charB.experience - charA.experience) > EXP_DIFF) {
+        if(charB.name == req.params.cname){
             return res.redirect('/not_permit');
+        }
+        if (req.body.level === "battle" ){
+            if(Math.abs(charB.experience - charA.experience) > EXP_DIFF) {
+                return res.redirect('/not_permit');
+            }
         }
         if(!isRested(charB)) {
             return res.redirect('/not_permit');
         }
         var map = DEF_MAP[~~(Math.random() * DEF_MAP.length)].value,
         numPlays = playedAgainst(req.user, charA.owner);
-        payoff = Math.max(~~(EXP_GAIN * Math.pow(0.7, numPlays)), MIN_EXP_GAIN);
+        payoff = Math.max(~~(EXP_GAIN * Math.pow(0.7, numPlays/2)), MIN_EXP_GAIN);
         if(numPlays > MAX_PLAYS) {
             payoff = 0;
         }
         jsonPath = path.join('./simulation', map);
-        if(req.body.level == 'battle') {
-            var BattleLevel = require('./simulation/level').BattleLevel;
-            new BattleLevel(charA, charB, jsonPath, simDoneCb);
+		
+		var mapper = require("./simulation/map_gen").GenerateMap;
+		new mapper(afterMapGen);
+	}
+	function afterMapGen(gen_map) {	
+		if (req.body.level == 'char') {
+			var temp = charA;
+			charA = charB;
+			charB = temp;
+		}
+		// NOW charB is challenger always
+
+		myMap = gen_map;
+        if(req.body.level == 'battle' || req.body.level == 'char') {
+            BattleLevel = require('./simulation/level').BattleLevel;
+            new BattleLevel(charB, charA, myMap, DEFEND, sim1DoneCb);
         } else {
             return res.redirect('/404');
         }
     }
+	function sim1DoneCb(err, r) {
+		if(err) {
+			console.log(err, r);
+            var reason = ''
+            if(r == 1) {
+                reason = 'Error in your code - ';
+            } else {
+                reason = 'Error in other character code - ';
+            }
+            return res.send(reason + err);
+		}
+		results.push(r);
+        new BattleLevel(charB, charA, myMap, ATTACK, simDoneCb);
+	}
     function simDoneCb(err, r) {
         if(err) {
             console.log(err, r);
@@ -274,22 +335,46 @@ function challenge(req, res) {
             }
             return res.send(reason + err);
         }
-        var m = new models.Match({
-            contenders: [charA, charB],
-            type: 'versus',
-            map: r.map,
-            when: Date.now(),
-            result: r.winner,
-            replay: r.replay,
-            expr: payoff
-        });
-        if(r.winner) {
-            if(r.winner.equals(charA._id)) {
-                charA.experience += payoff;
-            } else if(r.winner.equals(charB._id)) {
-                charB.experience += payoff;
-            }
-        }
+		results.push(r);
+		var m;
+		// RESET
+		if (req.body.level == 'char') {
+
+			m = new models.Match({
+				initiator: charB,
+				contenders: [charB, charA],
+				type: 'selfversus',
+				map: r.map,
+				when: Date.now(),
+				result: [results[0].winner, results[1].winner],
+				replay: [results[0].replay, results[1].replay],
+				expr: payoff
+			});
+
+			var temp = charA;
+			charA = charB;
+			charB = temp;
+		} else {
+			m = new models.Match({
+				initiator: charB,
+				contenders: [charB, charA],
+				type: 'versus',
+				map: r.map,
+				when: Date.now(),
+				result: [results[0].winner, results[1].winner],
+				replay: [results[0].replay, results[1].replay],
+				expr: payoff
+			});
+		}
+		if (charA.owner._id.toString() != charB.owner.toString()) {
+			if(results[0].winner.equals(charA._id) && results[1].winner.equals(charA._id)) {
+				charA.experience += payoff;
+				charB.experience -= (EXP_GAIN - payoff);
+			} else if(results[0].winner.equals(charB._id) && results[1].winner.equals(charB._id)) {
+				charB.experience += payoff;	
+				charA.experience -= (EXP_GAIN - payoff);
+			}
+		}
         m.save(function(err) {
             if(err) {
                 throw err;
@@ -310,7 +395,7 @@ function challenge(req, res) {
                         if(err) {
                             throw err;
                         }
-                        res.redirect('/m/' + m._id);
+                        return res.redirect('/m/' + m._id);
                     });
                 });
             });
@@ -321,7 +406,13 @@ function challenge(req, res) {
             populate('owner').
             exec(charFound);
     }
-    models.Character.populate(req.user, { path: 'chars.matches', model: 'Match' }, userPoped);
+    
+    
+    if (req.body.level === "char" || req.body.level === "battle" ){
+        models.Character.populate(req.user, { path: 'chars.matches', model: 'Match' }, userPoped);
+    }else{
+        return res.redirect('/404');
+    }
 }
 
 function extend(target) {
@@ -332,6 +423,13 @@ function extend(target) {
         }
     });
     return target;
+}
+
+function loginPage(req, res) {
+	if (req.user) {
+		return res.redirect('/');
+	}
+	res.render('login.ejs', { user: req.user });
 }
 
 function notFound(req, res) {
@@ -354,11 +452,11 @@ function docs(req, res) {
         return markdown(text);
     });
     res.render('docs.ejs', {
-            user: null, 
+            user: req.user,
             intro: mdHTML[0], 
-            update: mdHTML[1], 
-            api: mdHTML[2], 
-            examples: mdHTML[3]
+            api: mdHTML[1],  
+            examples: mdHTML[2],
+            snapshot: mdHTML[3]
     });
 }
 
@@ -410,7 +508,7 @@ function userPage(req, res) {
         exec(buildOther);
 }
 
-passport.use(new PragyanStrategy(verifyCookie));
+passport.use(new PragyanStrategy(customUserPass, verifyCreds));
 
 function renderPage(page) {
     return function(req, res) {
@@ -441,9 +539,9 @@ function initUserId(pid, done) {
         if(res) {
             return done(null, res);
         }
-        if(!(pid in ALLOWED_PIDS)) {
-            return done(new Error('Not registered'));
-        }
+//        if(!(pid in ALLOWED_PIDS)) {
+//            return done(new Error('Not registered'));
+//        }
         var user = new models.User({
             pid: pid,
             points: 0,
@@ -461,7 +559,7 @@ function initUserId(pid, done) {
 passport.serializeUser(getUserId);
 passport.deserializeUser(initUserId);
 
-var authHandle = passport.authenticate('pragyan', {
+var authHandle = passport.authenticate('local', {
     successRedirect: '/', 
     failureRedirect: '/login_failed'
 });
@@ -474,7 +572,16 @@ function charPage(req, res) {
         if(!char) {
             return res.redirect('/404');
         }
-        res.render('info_char', { user: req.user, char: char, allowed_maps: DEF_MAP, train_level: TRAIN_DEF, vs_level: DEF_LVL });
+        var charNameList = [], _i = 0 ;
+       
+		if (req.user) {
+			req.user.chars.forEach(function(data){
+				if (data.name != req.params.cname ) // avoids challenging self
+				charNameList.push( new SelectOption( data.name, _i ) );
+			_i++;
+			});
+		}
+        res.render('info_char', { user: req.user, char: char, charNameList: charNameList, train_level: TRAIN_DEF, vs_level: DEF_LVL });
     }
     models.Character.findOne({ name: req.params.cname }).
         populate('owner').
@@ -484,7 +591,7 @@ function charPage(req, res) {
 
 function createCharPage(req, res) {
     if(!req.user) {
-        return res.redirect('/login?redirect=create');
+        return res.redirect('/');
     }
     res.render('create_char', { 
         user: req.user, 
@@ -499,7 +606,7 @@ function createChar(req, res) {
             if(err) {
                 throw err;
             }
-            res.redirect('/c/' + char.name);
+            return res.redirect('/c/' + char.name);
         }
         if(err) {
             throw err;
@@ -512,8 +619,7 @@ function createChar(req, res) {
             throw err;
         }
         if(char) {
-            res.redirect('/char/create?err=2');
-            return;
+            return res.redirect('/char/create?err=2');
         }
         var c = new models.Character({
             owner: req.user._id,
@@ -524,7 +630,7 @@ function createChar(req, res) {
             passed: false,
             experience: START_EXP,
             level: 1,
-            code: DEFAULT_CODE,
+            code: [ DEFAULT_DEFEND_CODE, DEFAULT_ATTACK_CODE ],
             lastPlayed: new Date(0),
             matches: []
         });
@@ -549,7 +655,7 @@ function getChar(name, cb, res) {
             throw err;
         }
         if(!char) {
-            res.redirect('/404');
+            return res.redirect('/404');
         }
         cb(char);
     }
@@ -570,12 +676,13 @@ function saveChar(req, res) {
         if(!req.user || !char.owner.equals(req.user._id)) {
             return res.redirect('/login_failed');
         }
-        /* DATA REGION */
-        errs = linter.process(req.body.code, require('./simulation/api'), ['update']);
-        /* END DATA */
-        char.code = req.body.code;
+        errs = linter.versusProcess(req.body.code, [require('./simulation/api'), require('./simulation/defend_api'), require('./simulation/attack_api')], ['defend', 'attack']);
+		char.code = linter.adCode;
         char.passed = (errs.length == 0);
-        char.save(doneSave);
+		if (char.passed)
+        	char.save(doneSave);
+		else
+			return res.json({ status: 2, errors: errs });
     }
     if(!req.body.code) {
         return res.json({ status: 1 });
@@ -599,7 +706,9 @@ function leaderboard(req, res) {
         if(err) {
             throw err;
         }
-        res.render('leaderboard', { user: req.user, topChars: chars, from: start });
+		models.Match.find().count(function(cerr, count) {
+        	res.render('leaderboard', { user: req.user, topChars: chars, from: start, count: count });
+		});
     }
     models.Character.find().sort({ experience: -1 }).skip(start).limit(100).exec(qCback);
 }
@@ -607,9 +716,19 @@ function leaderboard(req, res) {
 function notPermit(req, res) {
     return res.send('Not permitted!');
 }
+
+function verifyCode(req, res){
+    models.Character.findOne({ name: req.user.chars[req.body.char_name].name}, function verifyCb(err, char){
+        if (err){
+            console.log(err);
+            res.send(false);
+        }
+        res.send(char.passed);
+    });
+}
 app.get('/docs', docs);
 app.get('/', renderPage('index'));
-app.get('/login', authHandle);
+app.get('/login', loginPage);
 app.get('/logout', doLogout);
 app.get('/m/:mid', matchPage);
 app.get('/u/:pid', userPage);
@@ -619,10 +738,12 @@ app.get('/char/create', createCharPage);
 app.get('/login_failed', noLogin);
 app.get('/not_permit', notPermit);
 app.get('/leaderboard', leaderboard);
+app.post('/login', authHandle);
 app.post('/char/params', createChar);
 app.post('/c/:cname/train', doTrain);
 app.post('/c/:cname/challenge', challenge);
 app.post('/c/:cname/save', saveChar);
+app.post('/c/verifyCode', verifyCode);
 app.get('*', notFound);
 
 function startServer() {

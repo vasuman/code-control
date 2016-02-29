@@ -38,11 +38,6 @@ function getDirection(pointA, pointB) {
     return -1;
 }
 
-function hasPlacedBomb(params) {
-    var ent = params.self;
-    return ent.bombAtPos;
-}
-
 function getEntArray(params) {
     var res = [], key;
     for(key in params.entities) {
@@ -52,7 +47,6 @@ function getEntArray(params) {
     }
     return res;
 }
-
 
 function getType(object) {
     if(object == 0) {
@@ -75,7 +69,6 @@ module.exports.getEntArray = getEntArray;
 module.exports.getType = getType;
 module.exports.getAt = getAt;
 module.exports.isValid = isValid;
-module.exports.hasPlacedBomb = hasPlacedBomb;
 
 function getBombsRemaining(ent) {
     return ent.bombData.capacity;
@@ -87,9 +80,3 @@ function getExplosionsRemaining(ent) {
 
 module.exports.getBombsRemaining = getBombsRemaining;
 module.exports.getExplosionsRemaining = getExplosionsRemaining;
-
-function hasPlacedBomb(ent) {
-    return ent.bombAtPos;
-}
-
-module.exports.hasPlacedBomb = hasPlacedBomb

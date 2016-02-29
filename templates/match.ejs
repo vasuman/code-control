@@ -6,38 +6,74 @@
 <body>
 <%- include header %>
 <div class = "container centered">
-    <div id = "info">
-        <h2> Info </h2>
-        <b>Played</b> <%= format_date_t(match.when) %>
+    <div id = "info1">
+            <b>Played</b> <%= format_date_t(match.when) %>
     </div>
-    <div id = "versus">
-        <h2> Contenders </h2>
-        <ul>
-            <% match.contenders.forEach(function(contender, i) { %>
-                <li> <%- link_to(contender.name, '/c/' + contender.name) %> - Player <%= i + 1 %> </li>
-            <% }); %>
-        </ul>
-    </div>
-    <div id = "result" >
-    <h2> Result </h2>
-    <% if(match.type == 'train') { %>
-        Kill value <%= match.result %>
-    <% } else { %>
-        <% if(match.result == null) { %>
-            Draw
+	<div id="match1" class="match_info_container">
+    	<div id = "result1" >
+     	<% if(match.type != 'train') { %>
+			<h2> Round 1 </h2>
+            <h3> Defender: </h3>
+			<b><%= match.contenders[0].name %></b>
+			<h3> Attacker: </h3>
+			<b><%= match.contenders[1].name %></b><br>
+			<b class="winner" ><%= find_char_id(match.result[0], match.contenders) %> wins</b></br>
         <% } else { %>
-            <b> Winner <%= find_char_id(match.result, match.contenders) %> </b><br>
-            Won <%= match.expr %> experience
-        <% } %>
-    <% } %>
-    </div>
+			<h2> Defend </h2>
+            <b> Score <%= match.result[0] %> </b><br>
+    	<% } %>
+    	</div>
+	</div>
+	<div id="match2" class="match_info_container">
+    	<div id = "result2" >
+     	<% if(match.type != 'train') { %>
+            <h2> Round 2 </h2>
+			<h3> Defender: </h3>
+			<b><%= match.contenders[1].name %></b>
+			<h3> Attacker: </h3>
+			<b><%= match.contenders[0].name %></b><br>
+			<b class="winner" ><%= find_char_id(match.result[1], match.contenders) %> wins</b></br>
+        <% } else { %>
+			<h2> Attack </h2>
+            <b> Score <%= match.result[1] %> </b><br>
+    	<% } %>
+    	</div>
+	</div>
     <div id = "replay-frame">
-        <h2> Replay </h2>
-        <div id = "misc-info">
-            Player 1 - BLUE<br>
-            Player 2 - RED
+        <div id="match" class="global_match_info_container">
+        <% if(match.type == 'train') { %>
+            <h1>
+                <% match.contenders.forEach(function(contender, i) { %>
+                <span><%- link_to(contender.name, '/c/' + contender.name) %> </span>
+                vs 
+                <span style="color:red;">Swarm</span>
+                <% }); %>
+            </h1>
+            <h3>Kill value <%= match.result %></h3>
+        <% } else { %>
+            <h1> 
+            	<span id="challenger_link"><%- link_to(match.contenders[0].name, '/c/' + match.contenders[0].name) %> </span> vs
+                <span id="own_character_link"><%- link_to(match.contenders[1].name, '/c/' + match.contenders[1].name) %> </span>
+            </h1>
+            <% if(match.result[0]+'' != match.result[1]+'') { %>
+                <h3>Draw</h3>
+            <% } else { %>
+                <h3><b><%= find_char_id(match.result[1], match.contenders) %> Wins </b>
+					<% if (match.type == 'versus') { %>
+                        (+<%= match.expr %> exp)
+                    <% } %>
+                </h3>
+                <h3><b><%= find_not_char_id(match.result[1], match.contenders) %> Loses </b>
+					<% if (match.type == 'versus') { %>
+                        (-<%= 14 - match.expr %> exp)
+                    <% } %>
+                </h3>
+            <% } %>
+        <% } %>
         </div>
+		<center>
         <canvas id = "render-canvas" width = 800 height = 800></canvas>
+		</center>
     </div>
     <div id = "replay-buttons">
         <button class = "btn sp-but" id = "next-button">next</button>

@@ -1,7 +1,7 @@
 var mongoose = require('mongoose'),
 Schema = mongoose.Schema;
 
-const MATCH_TYPES = ['versus', 'train'];
+const MATCH_TYPES = ['versus', 'train', 'selfversus'];
 const CHAR_TYPES
 
 function Map(level, jsonPath) {
@@ -10,6 +10,7 @@ function Map(level, jsonPath) {
 }
 
 var matchSchema = new Schema({
+	initiator: { type: Schema.Types.ObjectId, ref: 'Character' },
     contenders: [{ type: Schema.Types.ObjectId, ref: 'Character' }],
     type: { type: String, enum: MATCH_TYPES },
     map: String,
@@ -33,7 +34,7 @@ var charSchema = new Schema({
     edited: Date,
     passed: Boolean,
     experience: Number,
-    code: String,
+    code: [String],
     lastPlayed: Date,
     matches: [{ type: Schema.Types.ObjectId, ref: 'Match'}]
 });
@@ -43,7 +44,7 @@ charSchema.methods.getHealth = function() {
 }
 
 charSchema.methods.getAttack = function() {
-    return 10;
+    return 100;
 }
 
 var userSchema = new Schema({

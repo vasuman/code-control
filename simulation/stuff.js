@@ -108,6 +108,99 @@ Point.prototype.toString = function() {
     return this.i + ':' + this.j;
 }
 
+const Side = {
+	'Attack': 1,
+	'Defend': 0
+};
+
+/*
+ * Attributes of Bomb:
+ * 		Side (Attacker / Defender)
+ * 		Damage (Amount of health the other side will lose)
+ * 		Lifetime (Number of turns)
+ * 		DamageRadius
+ *
+ *
+ * If Lifetime === -1, then it'll live forever
+ * DamageRadius = 1 by default
+ * type == 'Player Item'
+ * kind == 'bomb'
+ */
+function Bomb(side, damage, lifetime, damageRadius, pos) {
+	PlayerItem.call(this, side);
+	TimeItem.call(this, lifetime);
+
+	this.damage = damage;
+	this.radius = damageRadius;
+	this.pos = pos;
+    this.kind = 'bomb';
+
+	// Initialize all values
+	function init() {
+		this.kind = 'bomb';
+	}
+	this.init = init;
+
+	function update() {
+		var res = this.increaseTurn();
+		return res;
+	}
+	this.update = update;
+
+	this.init();
+}
+
+/*
+ * Any item with a lifetime will extend this.
+ */
+function TimeItem(lifetime) {
+	this.Lifetime = lifetime;
+	this.turnsLived = 0;
+
+	function getLifetimeStatus() {
+		if (this.Lifetime === -1)
+			return 'active';
+
+		if (this.turnsLived > this.Lifetime) { return 'inactive' } else { return 'active' };
+	}
+	this.getLifetimeStatus = getLifetimeStatus;
+
+	function increaseTurn() {
+		if (getLifetimeStatus() == 'inactive')
+			return false;
+
+		if (this.Lifetime <= 0)
+			return true;
+
+		this.turnsLived++;
+
+		if (this.turnsLived > this.Lifetime) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+	this.increaseTurn = increaseTurn;
+
+	function renewLife() {
+		if (this.Lifetime == -1)
+			return;
+
+		this.turnsLived = 0;
+	}
+	this.renewLife = renewLife;
+}
+
+/*
+ * Every item will inherit from PlayerItem
+ */
+function PlayerItem(side) {
+	if (side != null)
+		this.side = side;
+
+	this.type = 'Player Item';
+}
+
 function Tile(tData, idx) {
     this.type = 'tile';
     this.kind = tData.type;
@@ -179,6 +272,22 @@ function Grid(row, col) {
     }
     this.getRepr = getRepr;
 
+
+	/*
+		function plantBomb(pos, item) {
+			if (!isValid(pos)) {
+				console.log('Position to plant bomb is not valid');
+			}
+			var ent = get(pos);
+			if (ent === 0)
+				put(item);
+
+
+			// What if something else is there?
+
+		}
+	*/
+
     function move(oldPos, newPos) {
         var item = get(oldPos),
         dest = get(newPos);
@@ -243,3 +352,7 @@ module.exports.Direction = Direction;
 module.exports.Tile = Tile;
 module.exports.getMove = getMove;
 module.exports.LinkList = LinkList;
+module.exports.Side = Side;
+module.exports.Bomb = Bomb;
+module.exports.PlayerItem = PlayerItem;
+module.exports.TimeItem = TimeItem;

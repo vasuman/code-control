@@ -1,16 +1,23 @@
 var fs = require('fs'),
-util = require('util');
-stuff = require('./stuff'),
-run = require('./runner'),
-baseEnt = require('./entities/base'),
-Runner = run.Runner,
-Controllable = baseEnt.Controllable,
-ControlException = baseEnt.ControlException,
-Grid = stuff.Grid,
-Tile = stuff.Tile,
-LinkList = stuff.LinkList,
-Point = stuff.Point;
+	util = require('util');
+	stuff = require('./stuff'),
+	run = require('./runner'),
+	baseEnt = require('./entities/base'),
+	Runner = run.Runner,
+	Controllable = baseEnt.Controllable,
+	ControlException = baseEnt.ControlException,
+	Grid = stuff.Grid,
+	Tile = stuff.Tile,
+	LinkList = stuff.LinkList,
+	Bomb = stuff.Bomb,
+	Point = stuff.Point;
 
+var req_func = {
+	0 : 'defend',
+	1 : 'attack'
+}
+
+const DEFEND = 0, ATTACK = 1;
 const MAX_TURNS = 100, MAX_ERR = 101;
 function Player(id) {
     this.id = id;
@@ -18,17 +25,56 @@ function Player(id) {
     this.errCount = 0;
 }
 
-const P_A = 0, P_B = 1;
+const P_A = 0, P_B = 1,
+	BOMB_DEFAULT = {
+	  capacity: 5,
+	  damage: 100,
+	  lifetime: -1,
+	  radius: 1
+	},
+    EXPLOSION_DEFAULT = {
+        capacity: 2,
+        radius: 2,
+        damage: 100,
+        minDamage: 10,
+        maxDamage: 100,
+        throwDistance: 2
+    }
+
+function getDefaultParams() {
+    return {
+        bomb: getDefaultBombParams(),
+        explosion: getDefaultExplosionParams()
+    }
+}
+
+function getDefaultBombParams() {
+    return {
+        capacity: BOMB_DEFAULT.capacity,
+        damage: BOMB_DEFAULT.damage,
+    }
+}
+
+function getDefaultExplosionParams() {
+    return {
+        capacity: EXPLOSION_DEFAULT.capacity,
+        damage: EXPLOSION_DEFAULT.damage,
+        radius: EXPLOSION_DEFAULT.radius,
+        // minDamage: EXPLOSION_DEFAULT.minDamage,
+        // maxDamage: EXPLOSION_DEFAULT.maxDamage,
+        // throwDistance: EXPLOSION_DEFAULT.throwDistance
+    }
+}
 
 function randInt(a, b) {
     return a + Math.floor(Math.random() * (b - a));
 }
 
-function SwarmTraining(char, swarm, jsonPath, finishCb) {
+function SwarmTraining(char, swarm, myMap, round, finishCb) {
     var self = this,
     pChar, spawned = [];
 
-    AbstractLevel.call(this, [char, swarm], jsonPath, finishCb);
+    AbstractLevel.call(this, [char, swarm], myMap, round, finishCb);
 
     function isFinished() {
         return self.turn > MAX_TURNS || pChar.dead;
@@ -51,27 +97,97 @@ function SwarmTraining(char, swarm, jsonPath, finishCb) {
     this.gameOver = gameOver;
 
     function init() {
-        pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack())
-        spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack()));
+        pChar = new Controllable(P_A, self.getSpawn(), self, char.getHealth(), char.getAttack(), round, getDefaultParams());
+        spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultParams()));
+
+        // surroundPos(pChar.pos);
+        // surroundPos(spawned[0].pos);
     }
     this.init = init;
 
     function nextIter() {
         if(self.turn % 5 == 0) {
-            spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack()));
+            spawned.push(new Controllable(P_B, self.getSpawn(), self, swarm.getHealth(), swarm.getAttack(), (round + 1) % 2, getDefaultParams()));
         }
+        // For debugging purposes
+        /*
+            if (self.turn % 1 == 0)
+                surroundPos(spawned[0].pos);
+        */
     }
     this.nextIter = nextIter;
+
+    // For debugging purposes
+    function getNextPos(pos) {
+        var point = new Point(pos.i + 4, pos.j);
+        if (emptyCheck(point))
+            return point;
+
+        point = new Point(pos.i + 3, pos.j);
+        if (emptyCheck(point))
+            return point;
+
+        point = new Point(pos.i + 2, pos.j);
+        if (emptyCheck(point))
+            return point;
+
+        point = new Point(pos.i + 1, pos.j);
+        if (emptyCheck(point))
+            return point;
+
+        point = new Point(pos.i - 1, pos.j);
+        if (emptyCheck(point))
+            return point;
+
+        point = new Point(pos.i, pos.j + 1);
+        if (emptyCheck(point))
+            return point;
+        
+        point = new Point(pos.i, pos.j - 1);
+        if (emptyCheck(point))
+            return point;
+    }
+
+    // For debugging purposes
+    function emptyCheck(point) {
+        if (self.grid.isValid(point)) {
+            if (!self.grid.get(point))
+                return true;
+        }
+    }
+
+    // For debugging purposes
+    function surroundPos(pos) {
+        var center = pos;
+        var radius = EXPLOSION_DEFAULT.radius + 1;
+        var topLeft = new Point(center.i - radius, center.j - radius);
+
+        for (var i = 0; i <= 2 * radius; i++) {
+            for (var j = 0; j <= 2 * radius; j++) {
+                var point = new Point(i + topLeft.i, j + topLeft.j);
+                if (!self.grid.isValid(point))
+                    continue;
+
+                var obj = self.grid.get(point);
+                if (obj)
+                    continue;
+
+                var bomb = new Bomb(round, BOMB_DEFAULT.damage, -1, 0, point);
+                self.grid.put(point, bomb);
+                self.addBombEvent(point, bomb);
+            }
+        }
+    }
 
     this.run();
 }
 
 util.inherits(SwarmTraining, AbstractLevel);
 
-function BattleLevel(charA, charB, jsonPath, finishCb) {
+function BattleLevel(charA, charB, myMap, round, finishCb) {
     var self = this, aP, bP;
 
-    AbstractLevel.call(this, [charA, charB], jsonPath, finishCb);
+    AbstractLevel.call(this, [charA, charB], myMap, round, finishCb);
 
     function getNumEnt(x) {
         return Object.keys(self.players[x].ents).length;
@@ -83,19 +199,17 @@ function BattleLevel(charA, charB, jsonPath, finishCb) {
     this.isFinished = isFinished;
 
     function gameOver() {
-        if(bP.dead) {
+        if((bP.round == DEFEND && bP.dead) || (aP.round == DEFEND && !aP.dead)) {
             setImmediate(finishCb, null, { winner: charA._id, replay: self.replay, map: JSON.stringify(self.def) });
-        } else if(aP.dead) {
+		} else if((aP.round == DEFEND && aP.dead) || (bP.round == DEFEND && !bP.dead)) {
             setImmediate(finishCb, null, { winner: charB._id, replay: self.replay, map: JSON.stringify(self.def) });
-        } else {
-            setImmediate(finishCb, null, { winner: null, replay: self.replay, map: JSON.stringify(self.def) });
         }
     }
     this.gameOver = gameOver;
 
     function init() {
-        aP = new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack());
-        bP = new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack());
+        aP = new Controllable(0, self.getSpawn(), self, charA.getHealth(), charA.getAttack(), round, getDefaultParams());
+        bP = new Controllable(1, self.getSpawn(), self, charB.getHealth(), charB.getAttack(), (round + 1) % 2, getDefaultParams());
     }
     this.init = init;
     
@@ -107,15 +221,7 @@ function BattleLevel(charA, charB, jsonPath, finishCb) {
 
 util.inherits(BattleLevel, AbstractLevel);
 
-/* CHAR IFACE */
-
-/* getAttack()
- * getHealth()
- * code
- * id
- */
-
-function AbstractLevel(chars, jsonPath, finishCb) {
+function AbstractLevel(chars, myMap, round, finishCb) {
     var entities = {},
     updateList = new LinkList, moveDel = [],
     self = this,
@@ -133,7 +239,7 @@ function AbstractLevel(chars, jsonPath, finishCb) {
         var code = chars.map(function(x) {
             return x.code;
         });
-        runner = new Runner('./api', code, loadMap, errBack, 1000);
+        runner = new Runner(['./defend_api', './attack_api'], code, round, loadMap, errBack, 1000);
     }
     this.run = run;
 
@@ -141,6 +247,26 @@ function AbstractLevel(chars, jsonPath, finishCb) {
         addEvent('spawn', ent);
     }
     this.spawnEvent = spawnEvent;
+
+    function addBombEvent(pos, bomb) {
+        addEvent('bombAdd', pos);
+    }
+    this.addBombEvent = addBombEvent;
+
+    function removeBombEvent(pos, bomb) {
+        addEvent('bombRemove', pos);
+    }
+    this.removeBombEvent = removeBombEvent;
+
+    function bombEvent(data) {
+        addEvent('bomb', data);
+    }
+    this.bombEvent = bombEvent;
+
+    function explosionEvent(data) {
+        addEvent('explosion', data)
+    }
+    this.explosionEvent = explosionEvent;
 
     function getSpawn() {
         var p = {};
@@ -224,19 +350,18 @@ function AbstractLevel(chars, jsonPath, finishCb) {
         if(++loadMap.count < chars.length) {
             return;
         }
-		setImmediate(fReadCback);
+        setImmediate(fReadCback);
     }
     loadMap.count = 0;
 
     function fReadCback() {
-		self.def = require("./map_gen").GenerateMap();
+        self.def = myMap;
         self.grid = new Grid(self.def.height, self.def.width);
-        // Building tilesets
         for(key in self.def.tiledata) {
             if(self.def.tiledata.hasOwnProperty(key)) {
                 self.tSet[key] = new Tile(self.def.tiledata[key], key);
             }
-        }
+  		} 
         self.grid.loadTilemap(self.def.data, self.tSet);
         self.init();
         act(null);
@@ -252,16 +377,19 @@ function AbstractLevel(chars, jsonPath, finishCb) {
         addEvent('death', e);
     }
     this.deathEvent = deathEvent;
+    
     function act(ent) {
         if(ent == null) {
             ent = updateList.getHead();
         }
-        if(updateList.isEnd(ent)) {
+
+		if (ent instanceof Bomb) {
+			updateBomb(ent);
+		}
+
+        if(updateList.isEnd(ent)){
             self.turn += 1;
             self.nextIter();
-            // LOOP DONE
-            // UPDATE REST!?
-            // ADD HOOK for next
             if(self.isFinished()) {
                 self.gameOver();
                 return false;
@@ -269,7 +397,7 @@ function AbstractLevel(chars, jsonPath, finishCb) {
         }
         if(ent instanceof Controllable) {
             try {
-                runner.runCode(ent.team, getParams(ent), updateEntCallback(ent), 'update', 2000);
+                runner.runCode(ent.team, getParams(ent), updateEntCallback(ent), 2000);
             } catch(e) {
                 setImmediate(finishCb, e, ent.team);
             }

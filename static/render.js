@@ -1,8 +1,10 @@
 var canvas, ctx, logTable, nextButton, prevButton, playButton, pauseButton,
 resetButton, playTime = 0,
 state, seek = 0, dir, delT = 0, entities = {}, bgCanvas,
-images = {}, prevTime, map, replay, dead = {};
+images = {}, prevTime, map, replay, dead = {},
+replayArray, match1, match2;
 
+var bombPositions = [];
 const LOADING = 0, ERROR = 1, DONE = 2;
 
 const MOVE_DELAY = 1000;
@@ -18,7 +20,7 @@ function downloadLink() {
 }
 
 function initElements() {
-    canvas = document.getElementById('render-canvas');
+   	canvas = document.getElementById('render-canvas');
     ctx = canvas.getContext('2d');
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -27,13 +29,35 @@ function initElements() {
     playButton = document.getElementById('play-button');
     pauseButton = document.getElementById('pause-button');
     resetButton = document.getElementById('reset-button');
+	match1 = document.getElementById('match1');
+	match2 = document.getElementById('match2');
     map = JSON.parse(document.getElementById('map-json').innerHTML);
-    replay = JSON.parse(document.getElementById('replay-json').innerHTML);
+    replayArray = JSON.parse(document.getElementById('replay-json').innerHTML);
+    replay = replayArray[0];
     prevButton.onclick = prevFrame;
     nextButton.onclick = nextFrame;
     playButton.onclick = beginPlay;
     pauseButton.onclick = pausePlay;
     resetButton.onclick = resetPlay;
+	match1.onclick = function() {
+        window.scrollTo(0,document.body.scrollHeight);
+		resetPlay();
+        replay = replayArray[0];
+		match1.style.backgroundColor = "rgb(0,0,0)";//"rgb(225,225,225)";
+		match2.style.backgroundColor = "white";
+        match1.style.color = "white";
+        match2.style.color = "black";
+	};
+	match2.onclick = function() {
+        window.scrollTo(0,document.body.scrollHeight);
+		resetPlay();
+       	replay = replayArray[1];
+		match2.style.backgroundColor = "rgb(0,0,0)";
+		match1.style.backgroundColor = "white";
+        match2.style.color = "white";
+        match1.style.color = "black";
+	};
+
     downloadLink();
     setImmediate(render);
     pausePlay();
@@ -65,6 +89,7 @@ function resetPlay() {
     seek = 0;
     entities = {};
     dead = {};
+    bombPositions = [];
 }
 function stripChar(x, ch, rp) {
     while(x.find(ch) != -1) {
@@ -162,6 +187,105 @@ function addRow(logEv) {
     logMsg.innerHTML = XSafe(logEv.m);
 }
 
+function getIndexOfPointArray(arr, pos) {
+    for (var i = 0; i < arr.length; i++) {
+        if (arr[i].i == pos.i && arr[i].j == pos.j)
+            return i;
+    }
+
+    return -1;
+}
+
+function explosionHandler(nextEv, f, dir) {
+    var data = nextEv.explosion;
+
+    function handle() {
+        var ents = data.ents,
+            bombs = data.bombs;
+
+        ents.forEach(function damage(ent) {
+            var thisEnt = entities[ent.idx];
+            if (!thisEnt)
+                return;
+
+            thisEnt.health -= f * ent.amt;
+            thisEnt.flags.damaged = true;
+        });
+
+        bombs.forEach(function remove(pos) {
+            if (dir == 0) {
+                var index = getIndexOfPointArray(bombPositions, pos);
+                bombPositions.splice(index, 1);
+            } else {
+                bombPositions.push(pos);
+            }
+        });
+    }
+
+    handle();
+    
+    // console.log(data);
+    // console.log(bombPositions);
+}
+
+function bombHandler(nextEv, f, dir) {
+    var data = nextEv.bomb;
+    var moveData = data.move;
+    var thisEnt = entities[moveData.idx];
+    // console.log(thisEnt);
+    var nPos = moveData.nextPos;
+    var oPos = moveData.pos;
+
+    var delPos = {
+        i: nPos.i - oPos.i,
+        j: nPos.j - oPos.j
+    };
+
+    /*
+        thisEnt.pos.i += f * ent.pos.i;
+        thisEnt.pos.j += f * ent.pos.j;
+    */
+    
+    thisEnt.pos.i += f * delPos.i;
+    thisEnt.pos.j += f * delPos.j;
+
+    if (dir == 0) {
+        if (data.placed) {
+            bombPositions.push(data.placedPos);
+        }
+
+        if (data.explode) {
+            var index = getIndexOfPointArray(bombPositions, data.explodePos);
+            bombPositions.splice(index, 1);
+
+            /*
+                var ent = entities[nextEv.damage.idx];
+                ent.health -= f * nextEv.damage.amt;
+                ent.flags.damaged = true;
+            */
+
+        }
+    } else {
+        if (data.placed) {
+            var index = getIndexOfPointArray(bombPositions, data.placedPos);
+            bombPositions.splice(index, 1);
+        }
+
+        if (data.explode) {
+            bombPositions.push(data.explodePos);
+        }
+    }
+
+    if (data.explode) {
+        var damageData = data.damage;
+        thisEnt = entities[damageData.idx];
+        thisEnt.health -= f * damageData.amt;
+        thisEnt.flags.damaged = true;
+    }
+    // console.log(data);
+    // console.log(bombPositions);
+}
+
 function update() {
     disableButtons();
     if(dir != -1 && dir != 0) {
@@ -198,6 +322,38 @@ function update() {
             entities[nextEv.death] = dead[nextEv.death];
             delete dead[nextEv.death];
         }
+
+	} else if ('bombAdd' in nextEv) {
+
+        var pos = nextEv.bombAdd;
+        if (dir == 0) {
+            bombPositions.push(pos);
+        } else {
+            var index = getIndexOfPointArray(bombPositions, pos);
+            if (index == -1)
+                console.log('MOM' + index);
+            bombPositions.splice(index, 1);
+        }
+
+    } else if ('bombRemove' in nextEv) {
+
+        console.log('in bomb remove');
+        var pos = nextEv.bombRemove;
+        if (dir == 0) {
+            
+            var index = getIndexOfPointArray(bombPositions, pos);
+            if (index == -1)
+                console.log('DAD' + index);
+            bombPositions.splice(index, 1);
+
+        } else {
+            bombPositions.push(pos);
+        }
+
+    } else if ('bomb' in nextEv) {
+        bombHandler(nextEv, f, dir);
+    } else if ('explosion' in nextEv) {
+        explosionHandler(nextEv, f, dir);
     }
     seek += f;
     resetButtons();
@@ -214,10 +370,29 @@ function clearFlags() {
 }
 
 const F_SIZE = 13;
+const imgName = "/basic.png";
 function drawState() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(bgCanvas, 0, 0);
     var ent, img, drawX, drawY;
+	for (var i = 0; i < bombPositions.length; i++) {
+        drawX = bombPositions[i].j * map.tilewidth;
+		drawY = bombPositions[i].i * map.tileheight;
+        /*
+    		img.j = 3;
+    		img.i = 0;
+    		img.name = imgName;
+            console.log(img.name);
+            console.log(img.j);
+            console.log(img.i);
+            console.log('Goodbye');
+        */
+		
+	   ctx.drawImage(images[imgName], 3 * map.tilewidth, 0 * map.tileheight, 
+                        map.tilewidth, map.tileheight, drawX, drawY, map.tilewidth, map.tileheight);
+
+	}
+
     for(key in entities) {
         if(entities.hasOwnProperty(key)) {
             ent = entities[key];
@@ -230,6 +405,7 @@ function drawState() {
             ctx.fillText('' + ent.health, drawX, drawY + map.tileheight / 2);
         }
     }
+
 }
 
 function disableButtons() {

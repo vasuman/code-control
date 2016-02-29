@@ -1,5 +1,5 @@
 {
     "title": "Code Character",
-    "files": ["intro.md", "update.md", "api.md", "examples.md"],
+    "files": ["intro.md", "api.md", "examples.md", "snapshot.md"],
     "rootDir": "."
 }
